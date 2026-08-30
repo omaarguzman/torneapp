@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-8">
@@ -10,12 +12,12 @@ export default function Home() {
           Gestión de torneos de fútbol, simple y profesional.
         </p>
         <div className="flex flex-col gap-3">
-          <button className="bg-green-500 hover:bg-green-400 text-white font-semibold py-3 px-8 rounded-lg transition-colors">
+          <Link href="/login" className="bg-green-500 hover:bg-green-400 text-white font-semibold py-3 px-8 rounded-lg transition-colors text-center">
             Iniciar sesión
-          </button>
-          <button className="border border-gray-700 hover:border-gray-500 text-gray-300 font-semibold py-3 px-8 rounded-lg transition-colors">
+          </Link>
+          <Link href="/register" className="border border-gray-700 hover:border-gray-500 text-gray-300 font-semibold py-3 px-8 rounded-lg transition-colors text-center">
             Crear cuenta
-          </button>
+          </Link>
         </div>
       </div>
     </main>
