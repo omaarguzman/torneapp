@@ -25,16 +25,47 @@ export async function deleteVenue(formData: FormData) {
   revalidatePath(`/dashboard/tournaments/${tournamentId}`)
 }
 
-export async function addVenueSlot(formData: FormData) {
+export async function addVenueSlotRange(formData: FormData) {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string
+  const venueId = formData.get('venue_id') as string
+  const days = formData.getAll('days') as string[]
+  const rangeStart = formData.get('range_start') as string
+  const rangeEnd = formData.get('range_end') as string
+  const duration = parseInt(formData.get('duration') as string)
 
-  await supabase.from('venue_slots').insert({
-    venue_id: formData.get('venue_id') as string,
-    day_of_week: parseInt(formData.get('day_of_week') as string),
-    start_time: formData.get('start_time') as string,
-    end_time: formData.get('end_time') as string,
-  })
+  if (days.length === 0 || !rangeStart || !rangeEnd || !duration) return
+
+  const toMinutes = (t: string) => {
+    const [h, m] = t.split(':').map(Number)
+    return h * 60 + m
+  }
+  const toTimeString = (mins: number) => {
+    const h = Math.floor(mins / 60).toString().padStart(2, '0')
+    const m = (mins % 60).toString().padStart(2, '0')
+    return `${h}:${m}`
+  }
+
+  const startMin = toMinutes(rangeStart)
+  const endMin = toMinutes(rangeEnd)
+
+  const blocks: { start: string; end: string }[] = []
+  for (let t = startMin; t + duration <= endMin; t += duration) {
+    blocks.push({ start: toTimeString(t), end: toTimeString(t + duration) })
+  }
+
+  const rows = days.flatMap((day) =>
+    blocks.map((b) => ({
+      venue_id: venueId,
+      day_of_week: parseInt(day),
+      start_time: b.start,
+      end_time: b.end,
+    }))
+  )
+
+  if (rows.length > 0) {
+    await supabase.from('venue_slots').insert(rows)
+  }
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}`)
 }

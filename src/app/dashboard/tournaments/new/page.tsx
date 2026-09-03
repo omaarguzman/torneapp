@@ -81,6 +81,18 @@ export default function NewTournamentPage() {
             />
           </div>
 
+          <label className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="allow_schedule_priority"
+              defaultChecked
+              className="w-4 h-4 accent-green-500"
+            />
+            <span className="text-sm text-gray-300">
+              Permitir que los equipos compren preferencia de horario
+            </span>
+          </label>
+
           {error && (
             <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-4 py-3">
               {error}

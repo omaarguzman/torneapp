@@ -24,6 +24,7 @@ export async function createTournament(formData: FormData) {
       start_date: startDate || null,
       end_date: endDate || null,
       rules: rules || null,
+      allow_schedule_priority: formData.get('allow_schedule_priority') === 'on',
     })
     .select()
     .single()
