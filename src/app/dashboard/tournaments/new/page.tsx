@@ -81,6 +81,18 @@ export default function NewTournamentPage() {
             />
           </div>
 
+          <div>
+            <label className="text-sm text-gray-400 mb-1 block">Formato del torneo</label>
+            <select
+              name="format"
+              defaultValue="single"
+              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+            >
+              <option value="single">Solo ida (una vuelta)</option>
+              <option value="double">Ida y vuelta (dos vueltas)</option>
+            </select>
+          </div>
+
           <label className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 cursor-pointer">
             <input
               type="checkbox"

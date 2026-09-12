@@ -8,7 +8,7 @@ type SlotRow = { day_of_week: number; start_time: string; end_time: string }
 export async function saveVenueAsTemplate(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'No autenticado' }
+  if (!user) return
 
   const venueId = formData.get('venue_id') as string
   const tournamentId = formData.get('tournament_id') as string
@@ -19,7 +19,7 @@ export async function saveVenueAsTemplate(formData: FormData) {
     .eq('id', venueId)
     .single()
 
-  if (!venue) return { error: 'Cancha no encontrada' }
+  if (!venue) return
 
   const { data: template, error } = await supabase
     .from('venue_templates')
@@ -27,7 +27,7 @@ export async function saveVenueAsTemplate(formData: FormData) {
     .select()
     .single()
 
-  if (error) return { error: error.message }
+  if (error || !template) return
 
   const slots = venue.venue_slots as SlotRow[]
   if (slots.length > 0) {

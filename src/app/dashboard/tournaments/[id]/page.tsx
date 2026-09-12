@@ -81,10 +81,13 @@ export default async function TournamentPage({
             <p className="text-gray-500 text-sm">Canchas</p>
             <p className="text-2xl font-bold text-white mt-1">{venues?.length ?? 0}</p>
           </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
+          <Link
+            href={`/dashboard/tournaments/${id}/fixture`}
+            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+          >
             <p className="text-gray-500 text-sm">Jornadas</p>
-            <p className="text-2xl font-bold text-white mt-1">0</p>
-          </div>
+            <p className="text-2xl font-bold text-white mt-1">Ver fixture →</p>
+          </Link>
         </div>
 
         {/* SECCIÓN CANCHAS */}

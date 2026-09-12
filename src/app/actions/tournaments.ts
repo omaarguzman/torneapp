@@ -25,6 +25,7 @@ export async function createTournament(formData: FormData) {
       end_date: endDate || null,
       rules: rules || null,
       allow_schedule_priority: formData.get('allow_schedule_priority') === 'on',
+      double_round: formData.get('format') === 'double',
     })
     .select()
     .single()
