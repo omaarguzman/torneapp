@@ -5,6 +5,8 @@ type InviteInfo = {
   team_name: string
   tournament_name: string
   already_claimed: boolean
+  delegate_name: string | null
+  delegate_email: string | null
 }
 
 export default async function TeamInvitePage({
@@ -49,7 +51,11 @@ export default async function TeamInvitePage({
             <p className="text-gray-500 text-sm text-center mb-6">
               Regístrate para administrar los jugadores de tu equipo y ver las estadísticas del torneo.
             </p>
-            <DelegateRegisterForm token={token} />
+            <DelegateRegisterForm
+              token={token}
+              defaultName={invite.delegate_name ?? ''}
+              defaultEmail={invite.delegate_email ?? ''}
+            />
           </>
         )}
       </div>

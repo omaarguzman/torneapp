@@ -3,7 +3,15 @@
 import { useActionState } from 'react'
 import { registerDelegate } from '@/app/actions/delegate'
 
-export default function DelegateRegisterForm({ token }: { token: string }) {
+export default function DelegateRegisterForm({
+  token,
+  defaultName,
+  defaultEmail,
+}: {
+  token: string
+  defaultName: string
+  defaultEmail: string
+}) {
   const [state, formAction, isPending] = useActionState(registerDelegate, null)
 
   if (state && 'success' in state) {
@@ -22,14 +30,36 @@ export default function DelegateRegisterForm({ token }: { token: string }) {
       <input type="hidden" name="token" value={token} />
 
       <div>
+        <label className="text-sm text-gray-400 mb-1 block">Tu nombre completo</label>
+        <input
+          name="full_name"
+          required
+          defaultValue={defaultName}
+          placeholder="Juan Pérez"
+          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+        />
+        {defaultName && (
+          <p className="text-gray-600 text-xs mt-1">
+            El administrador ya registró tu nombre — puedes corregirlo si es necesario.
+          </p>
+        )}
+      </div>
+
+      <div>
         <label className="text-sm text-gray-400 mb-1 block">Correo electrónico</label>
         <input
           name="email"
           type="email"
           required
+          defaultValue={defaultEmail}
           placeholder="tu@correo.com"
           className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
         />
+        {defaultEmail && (
+          <p className="text-gray-600 text-xs mt-1">
+            El administrador ya registró este correo — puedes corregirlo si prefieres usar otro.
+          </p>
+        )}
       </div>
 
       <div>

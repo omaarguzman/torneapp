@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { friendlyAuthError } from '@/lib/friendlyAuthError'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -25,12 +26,18 @@ export async function login(formData: FormData) {
 export async function register(formData: FormData) {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   })
 
-  if (error) return { error: error.message }
+  if (error) return { error: friendlyAuthError(error.message) }
+
+  if (!data.user?.identities || data.user.identities.length === 0) {
+    return {
+      error: 'Ya existe una cuenta con este correo. Si es tuya, inicia sesión en vez de registrarte de nuevo.',
+    }
+  }
 
   return { success: 'Revisa tu correo para confirmar tu cuenta.' }
 }
