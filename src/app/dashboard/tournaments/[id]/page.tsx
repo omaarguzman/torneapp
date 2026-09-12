@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { createVenue, deleteVenue, addVenueSlotRange, deleteVenueSlot } from '@/app/actions/venues'
 import { saveVenueAsTemplate, useVenueTemplate } from '@/app/actions/venueTemplates'
 import { deleteTeam } from '@/app/actions/teams'
+import { deletePlayer } from '@/app/actions/players'
 
 const sportLabels: Record<string, string> = {
   futbol_11: 'Fútbol 11',
@@ -42,9 +43,15 @@ export default async function TournamentPage({
 
   const { data: teams } = await supabase
     .from('teams')
-    .select('*, preferred_slot:venue_slots(day_of_week, start_time, end_time, venue:venues(name))')
+    .select('*, preferred_slot:venue_slots(day_of_week, start_time, end_time, venue:venues(name)), players(*)')
     .eq('tournament_id', id)
     .order('created_at')
+
+  teams?.forEach((team) => {
+    team.players?.sort((a: { jersey_number: number | null }, b: { jersey_number: number | null }) =>
+      (a.jersey_number ?? 999) - (b.jersey_number ?? 999)
+    )
+  })
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
@@ -252,35 +259,88 @@ export default async function TournamentPage({
           </div>
 
           {teams && teams.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
               {teams.map((team) => (
-                <div key={team.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4 flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {team.logo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+                <div key={team.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {team.logo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xl">⚽</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold truncate">{team.name}</p>
+                      {team.delegate_email && (
+                        <p className="text-gray-500 text-xs truncate">{team.delegate_email}</p>
+                      )}
+                      {team.has_scheduling_priority && team.preferred_slot && (
+                        <span className="inline-block mt-1.5 bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">
+                          ⭐ {team.preferred_slot.venue?.name} · {dayNames[team.preferred_slot.day_of_week]} {team.preferred_slot.start_time.slice(0, 5)}
+                        </span>
+                      )}
+                    </div>
+                    <form action={deleteTeam}>
+                      <input type="hidden" name="team_id" value={team.id} />
+                      <input type="hidden" name="tournament_id" value={id} />
+                      <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">
+                        ✕
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Jugadores del equipo */}
+                  <div className="mt-4 pt-4 border-t border-gray-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">
+                        Jugadores ({team.players?.length ?? 0})
+                      </p>
+                      <Link
+                        href={`/dashboard/tournaments/${id}/teams/${team.id}/players/new`}
+                        className="text-green-400 hover:text-green-300 text-xs font-semibold"
+                      >
+                        + Jugador
+                      </Link>
+                    </div>
+
+                    {team.players && team.players.length > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        {team.players.map((player: {
+                          id: string
+                          full_name: string
+                          jersey_number: number | null
+                          position: string | null
+                          photo_url: string | null
+                        }) => (
+                          <div key={player.id} className="flex items-center gap-2.5 bg-gray-800/50 rounded-lg px-3 py-2">
+                            <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden text-[10px] text-gray-400 font-semibold">
+                              {player.photo_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={player.photo_url} alt={player.full_name} className="w-full h-full object-cover" />
+                              ) : (
+                                player.jersey_number ?? '—'
+                              )}
+                            </div>
+                            <span className="text-gray-200 text-sm flex-1 truncate">{player.full_name}</span>
+                            {player.position && (
+                              <span className="text-gray-500 text-xs">{player.position}</span>
+                            )}
+                            <form action={deletePlayer}>
+                              <input type="hidden" name="player_id" value={player.id} />
+                              <input type="hidden" name="tournament_id" value={id} />
+                              <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">
+                                ✕
+                              </button>
+                            </form>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      <span className="text-xl">⚽</span>
+                      <p className="text-gray-600 text-xs">Sin jugadores registrados.</p>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold truncate">{team.name}</p>
-                    {team.delegate_email && (
-                      <p className="text-gray-500 text-xs truncate">{team.delegate_email}</p>
-                    )}
-                    {team.has_scheduling_priority && team.preferred_slot && (
-                      <span className="inline-block mt-1.5 bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">
-                        ⭐ {team.preferred_slot.venue?.name} · {dayNames[team.preferred_slot.day_of_week]} {team.preferred_slot.start_time.slice(0, 5)}
-                      </span>
-                    )}
-                  </div>
-                  <form action={deleteTeam}>
-                    <input type="hidden" name="team_id" value={team.id} />
-                    <input type="hidden" name="tournament_id" value={id} />
-                    <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">
-                      ✕
-                    </button>
-                  </form>
                 </div>
               ))}
             </div>
