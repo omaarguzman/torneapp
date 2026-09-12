@@ -6,6 +6,7 @@ import { saveVenueAsTemplate, useVenueTemplate } from '@/app/actions/venueTempla
 import { deleteTeam } from '@/app/actions/teams'
 import { deletePlayer } from '@/app/actions/players'
 import CopyLinkButton from '@/components/CopyLinkButton'
+import SectionTabs from './SectionTabs'
 
 const sportLabels: Record<string, string> = {
   futbol_11: 'Fútbol 11',
@@ -98,7 +99,8 @@ export default async function TournamentPage({
           </Link>
         </div>
 
-        {/* SECCIÓN CANCHAS */}
+        {(() => {
+        const venuesSection = (
         <section>
           <h2 className="text-lg font-bold text-white mb-4">Canchas y horarios</h2>
 
@@ -135,8 +137,8 @@ export default async function TournamentPage({
 
           <div className="flex flex-col gap-4 mb-6">
             {venues?.map((venue) => (
-              <div key={venue.id} className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-                <div className="flex items-start justify-between">
+              <details key={venue.id} className="group bg-gray-900 border border-gray-800 rounded-lg">
+                <summary className="flex items-start justify-between p-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                   <div>
                     <p className="text-white font-semibold">{venue.name}</p>
                     {venue.location && (
@@ -158,9 +160,11 @@ export default async function TournamentPage({
                         Eliminar
                       </button>
                     </form>
+                    <span className="text-gray-600 text-xs mt-1 transition-transform group-open:rotate-180">▾</span>
                   </div>
-                </div>
+                </summary>
 
+                <div className="px-5 pb-5">
                 {/* Horarios de esta cancha */}
                 <div className="flex flex-wrap gap-2 mt-3">
                   {venue.venue_slots?.map((slot: { id: string; day_of_week: number; start_time: string; end_time: string }) => (
@@ -233,7 +237,8 @@ export default async function TournamentPage({
                     + Generar horarios
                   </button>
                 </form>
-              </div>
+                </div>
+              </details>
             ))}
           </div>
 
@@ -256,9 +261,10 @@ export default async function TournamentPage({
             </button>
           </form>
         </section>
+        )
 
-        {/* SECCIÓN EQUIPOS */}
-        <section className="mt-10">
+        const teamsSection = (
+        <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white">Equipos</h2>
             <Link
@@ -381,10 +387,10 @@ export default async function TournamentPage({
             </div>
           )}
         </section>
+        )
 
-        <p className="text-gray-600 text-sm mt-10">
-          Próximamente: registro de jugadores en esta misma pantalla.
-        </p>
+        return <SectionTabs venuesSection={venuesSection} teamsSection={teamsSection} />
+        })()}
       </div>
     </main>
   )
