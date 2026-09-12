@@ -5,6 +5,8 @@ import GenerateFixtureButton from './GenerateFixtureButton'
 
 type MatchRow = {
   id: string
+  home_team_id: string
+  away_team_id: string
   match_date: string
   start_time: string
   end_time: string
@@ -51,7 +53,7 @@ export default async function FixturePage({
     .select(
       `id, number, week_start,
        matches (
-         id, match_date, start_time, end_time,
+         id, home_team_id, away_team_id, match_date, start_time, end_time,
          home_team:teams!matches_home_team_id_fkey(name, logo_url),
          away_team:teams!matches_away_team_id_fkey(name, logo_url),
          venue:venues(name)
@@ -85,9 +87,20 @@ export default async function FixturePage({
 
         {matchdays && matchdays.length > 0 ? (
           <div className="flex flex-col gap-6">
-            {matchdays.map((md) => (
+            {matchdays.map((md) => {
+              const playingTeamIds = new Set(md.matches.flatMap((m) => [m.home_team_id, m.away_team_id]))
+              const restingTeam = teams?.find((t) => !playingTeamIds.has(t.id))
+
+              return (
               <div key={md.id}>
-                <h2 className="text-white font-bold mb-3">Jornada {md.number}</h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-white font-bold">Jornada {md.number}</h2>
+                  {restingTeam && (
+                    <span className="text-gray-500 text-xs">
+                      Descansa: <span className="text-gray-300">{restingTeam.name}</span>
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-col gap-2">
                   {md.matches.map((m) => {
                     const dateLabel = new Date(m.match_date + 'T00:00:00').toLocaleDateString('es-MX', {
@@ -118,7 +131,8 @@ export default async function FixturePage({
                   })}
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div className="border border-dashed border-gray-800 rounded-lg p-10 text-center">

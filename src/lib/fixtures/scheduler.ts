@@ -56,6 +56,15 @@ function markUsed(map: Map<string, Set<string>>, teamId: string, key: string) {
   map.get(teamId)!.add(key)
 }
 
+export function shuffle<T>(items: T[]): T[] {
+  const arr = [...items]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
 /**
  * Detecta, para cada jornada, si dos equipos con preferencia pagada
  * chocan entre sí (juegan uno contra el otro con horarios distintos)
@@ -142,14 +151,16 @@ export function scheduleFixtures({
     const weekStart = addDays(tournamentStart, idx * 7)
     matchdays.push({ number: roundNum, weekStart: toISODate(weekStart) })
 
-    const pool = slotTemplates.map((t) => ({
-      template: t,
-      date: toISODate(dateForDayOfWeek(weekStart, t.dayOfWeek)),
-    }))
+    const pool = shuffle(
+      slotTemplates.map((t) => ({
+        template: t,
+        date: toISODate(dateForDayOfWeek(weekStart, t.dayOfWeek)),
+      }))
+    )
 
     const round = rounds[idx]
     const priorityMatches = round.filter((m) => priorities.has(m.home) || priorities.has(m.away))
-    const regularMatches = round.filter((m) => !priorities.has(m.home) && !priorities.has(m.away))
+    const regularMatches = shuffle(round.filter((m) => !priorities.has(m.home) && !priorities.has(m.away)))
 
     const usedInstanceKeys = new Set<string>()
 

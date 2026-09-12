@@ -3,13 +3,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateRoundRobinRounds } from '@/lib/fixtures/roundRobin'
-import { scheduleFixtures, type SlotTemplate, type ConflictReport } from '@/lib/fixtures/scheduler'
+import { scheduleFixtures, shuffle, type SlotTemplate, type ConflictReport } from '@/lib/fixtures/scheduler'
 
-type ActionResult =
+export type FixtureActionResult =
   | { success: true }
   | { error: string; conflicts?: ConflictReport[] }
+  | null
 
-export async function generateFixtures(formData: FormData): Promise<ActionResult> {
+export async function generateFixtures(
+  _prevState: FixtureActionResult,
+  formData: FormData
+): Promise<FixtureActionResult> {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string
 
@@ -70,7 +74,7 @@ export async function generateFixtures(formData: FormData): Promise<ActionResult
     }
   })
 
-  const teamIds = teams.map((t) => t.id)
+  const teamIds = shuffle(teams.map((t) => t.id))
   const rounds = generateRoundRobinRounds(teamIds, tournament.double_round)
 
   const result = scheduleFixtures({
@@ -92,35 +96,44 @@ export async function generateFixtures(formData: FormData): Promise<ActionResult
     }
   }
 
-  // Si ya existía un fixture generado antes, lo reemplazamos por completo
-  await supabase.from('matchdays').delete().eq('tournament_id', tournamentId)
+  try {
+    // Si ya existía un fixture generado antes, lo reemplazamos por completo
+    const { error: deleteError } = await supabase.from('matchdays').delete().eq('tournament_id', tournamentId)
+    if (deleteError) return { error: 'Error al borrar el fixture anterior: ' + deleteError.message }
 
-  for (const md of result.matchdays) {
-    const { data: matchday, error: mdError } = await supabase
-      .from('matchdays')
-      .insert({ tournament_id: tournamentId, number: md.number, week_start: md.weekStart })
-      .select()
-      .single()
+    for (const md of result.matchdays) {
+      const { data: matchday, error: mdError } = await supabase
+        .from('matchdays')
+        .insert({ tournament_id: tournamentId, number: md.number, week_start: md.weekStart })
+        .select()
+        .single()
 
-    if (mdError || !matchday) {
-      return { error: 'Error al guardar las jornadas: ' + mdError?.message }
+      if (mdError || !matchday) {
+        return { error: 'Error al guardar las jornadas: ' + mdError?.message }
+      }
+
+      const matchesForRound = result.matches.filter((m) => m.round === md.number)
+      if (matchesForRound.length > 0) {
+        const { error: matchError } = await supabase.from('matches').insert(
+          matchesForRound.map((m) => ({
+            tournament_id: tournamentId,
+            matchday_id: matchday.id,
+            home_team_id: m.homeTeamId,
+            away_team_id: m.awayTeamId,
+            venue_id: m.venueId,
+            match_date: m.date,
+            start_time: m.startTime,
+            end_time: m.endTime,
+          }))
+        )
+        if (matchError) return { error: 'Error al guardar los partidos: ' + matchError.message }
+      }
     }
-
-    const matchesForRound = result.matches.filter((m) => m.round === md.number)
-    if (matchesForRound.length > 0) {
-      const { error: matchError } = await supabase.from('matches').insert(
-        matchesForRound.map((m) => ({
-          tournament_id: tournamentId,
-          matchday_id: matchday.id,
-          home_team_id: m.homeTeamId,
-          away_team_id: m.awayTeamId,
-          venue_id: m.venueId,
-          match_date: m.date,
-          start_time: m.startTime,
-          end_time: m.endTime,
-        }))
-      )
-      if (matchError) return { error: 'Error al guardar los partidos: ' + matchError.message }
+  } catch (err) {
+    return {
+      error:
+        'Error de conexión al guardar el fixture (probablemente se interrumpió la red a medias). Vuelve a intentarlo: ' +
+        (err instanceof Error ? err.message : String(err)),
     }
   }
 
