@@ -7,9 +7,11 @@ import Link from 'next/link'
 export default function PlayerForm({
   tournamentId,
   teamId,
+  backHref,
 }: {
   tournamentId: string
   teamId: string
+  backHref?: string
 }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -99,7 +101,7 @@ export default function PlayerForm({
 
       <div className="flex gap-3">
         <Link
-          href={`/dashboard/tournaments/${tournamentId}`}
+          href={backHref ?? `/dashboard/tournaments/${tournamentId}`}
           className="flex-1 text-center border border-gray-700 text-gray-400 hover:text-white py-3 rounded-lg transition-colors text-sm font-semibold"
         >
           Cancelar

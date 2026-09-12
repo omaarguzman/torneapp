@@ -68,7 +68,10 @@ export async function createPlayer(formData: FormData) {
     return { error: error.message }
   }
 
-  redirect(`/dashboard/tournaments/${tournamentId}`)
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user!.id).single()
+
+  redirect(profile?.role === 'delegate' ? '/delegado' : `/dashboard/tournaments/${tournamentId}`)
 }
 
 export async function deletePlayer(formData: FormData) {
@@ -90,4 +93,5 @@ export async function deletePlayer(formData: FormData) {
   await supabase.from('players').delete().eq('id', playerId)
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}`)
+  revalidatePath('/delegado')
 }

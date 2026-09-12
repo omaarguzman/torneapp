@@ -5,6 +5,7 @@ import { createVenue, deleteVenue, addVenueSlotRange, deleteVenueSlot } from '@/
 import { saveVenueAsTemplate, useVenueTemplate } from '@/app/actions/venueTemplates'
 import { deleteTeam } from '@/app/actions/teams'
 import { deletePlayer } from '@/app/actions/players'
+import CopyLinkButton from '@/components/CopyLinkButton'
 
 const sportLabels: Record<string, string> = {
   futbol_11: 'Fútbol 11',
@@ -291,6 +292,13 @@ export default async function TournamentPage({
                           ⭐ {team.preferred_slot.venue?.name} · {dayNames[team.preferred_slot.day_of_week]} {team.preferred_slot.start_time.slice(0, 5)}
                         </span>
                       )}
+                      <div className="mt-1.5">
+                        {team.delegate_id ? (
+                          <span className="text-green-500 text-[10px]">✓ Delegado registrado</span>
+                        ) : (
+                          <CopyLinkButton path={`/equipo/${team.delegate_invite_token}`} label="📋 Link delegado" />
+                        )}
+                      </div>
                     </div>
                     <form action={deleteTeam}>
                       <input type="hidden" name="team_id" value={team.id} />

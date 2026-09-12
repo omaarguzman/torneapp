@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import GenerateFixtureButton from './GenerateFixtureButton'
-import CopyLinkButton from './CopyLinkButton'
+import CopyLinkButton from '@/components/CopyLinkButton'
 import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensions'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
@@ -193,7 +193,7 @@ export default async function FixturePage({
                               <p className="capitalize">{dateLabel} · {m.start_time.slice(0, 5)}</p>
                               <p>{m.venue?.name}</p>
                             </div>
-                            <CopyLinkButton token={m.access_token} />
+                            <CopyLinkButton path={`/partido/${m.access_token}`} label="📋 Link árbitro" />
                           </div>
                         </div>
                         {matchSuspensions.length > 0 && (
