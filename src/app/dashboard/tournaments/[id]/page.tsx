@@ -284,8 +284,12 @@ export default async function TournamentPage({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-semibold truncate">{team.name}</p>
-                      {team.delegate_email && (
-                        <p className="text-gray-500 text-xs truncate">{team.delegate_email}</p>
+                      {(team.delegate_name || team.delegate_email) && (
+                        <p className="text-gray-500 text-xs truncate">
+                          {team.delegate_name}
+                          {team.delegate_name && team.delegate_email && ' · '}
+                          {team.delegate_email}
+                        </p>
                       )}
                       {team.has_scheduling_priority && team.preferred_slot && (
                         <span className="inline-block mt-1.5 bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">
@@ -300,13 +304,21 @@ export default async function TournamentPage({
                         )}
                       </div>
                     </div>
-                    <form action={deleteTeam}>
-                      <input type="hidden" name="team_id" value={team.id} />
-                      <input type="hidden" name="tournament_id" value={id} />
-                      <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">
-                        ✕
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/dashboard/tournaments/${id}/teams/${team.id}/edit`}
+                        className="text-gray-600 hover:text-gray-300 text-xs transition-colors"
+                      >
+                        Editar
+                      </Link>
+                      <form action={deleteTeam}>
+                        <input type="hidden" name="team_id" value={team.id} />
+                        <input type="hidden" name="tournament_id" value={id} />
+                        <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">
+                          ✕
+                        </button>
+                      </form>
+                    </div>
                     <span className="text-gray-600 text-xs mt-1 transition-transform group-open:rotate-180">▾</span>
                   </summary>
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createTeam } from '@/app/actions/teams'
+import { createTeam, updateTeam } from '@/app/actions/teams'
 import Link from 'next/link'
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
@@ -19,18 +19,32 @@ type Venue = {
   venue_slots: Slot[]
 }
 
+type ExistingTeam = {
+  id: string
+  name: string
+  delegate_email: string | null
+  delegate_name: string | null
+  has_scheduling_priority: boolean
+  preferred_slot_id: string | null
+  logo_url: string | null
+}
+
 export default function TeamForm({
   tournamentId,
   venues,
   allowSchedulePriority,
+  team,
 }: {
   tournamentId: string
   venues: Venue[]
   allowSchedulePriority: boolean
+  team?: ExistingTeam
 }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [wantsPriority, setWantsPriority] = useState(false)
+  const [wantsPriority, setWantsPriority] = useState(team?.has_scheduling_priority ?? false)
+
+  const isEditing = !!team
 
   const slotOptions = venues.flatMap((v) =>
     v.venue_slots.map((s) => ({
@@ -42,7 +56,7 @@ export default function TeamForm({
   async function handleSubmit(formData: FormData) {
     setLoading(true)
     setError('')
-    const result = await createTeam(formData)
+    const result = await (isEditing ? updateTeam(formData) : createTeam(formData))
     if (result?.error) {
       setError(result.error)
       setLoading(false)
@@ -52,29 +66,51 @@ export default function TeamForm({
   return (
     <form action={handleSubmit} className="flex flex-col gap-4">
       <input type="hidden" name="tournament_id" value={tournamentId} />
+      {isEditing && <input type="hidden" name="team_id" value={team.id} />}
 
       <div>
         <label className="text-sm text-gray-400 mb-1 block">Nombre del equipo</label>
         <input
           name="name"
           required
+          defaultValue={team?.name}
           placeholder="Los Tigres FC"
           className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
         />
       </div>
 
-      <div>
-        <label className="text-sm text-gray-400 mb-1 block">Correo del delegado</label>
-        <input
-          name="delegate_email"
-          type="email"
-          placeholder="delegado@correo.com"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm text-gray-400 mb-1 block">Nombre del delegado</label>
+          <input
+            name="delegate_name"
+            defaultValue={team?.delegate_name ?? ''}
+            placeholder="Juan Pérez"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-gray-400 mb-1 block">Correo del delegado (opcional)</label>
+          <input
+            name="delegate_email"
+            type="email"
+            defaultValue={team?.delegate_email ?? ''}
+            placeholder="delegado@correo.com"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+          />
+        </div>
       </div>
 
       <div>
-        <label className="text-sm text-gray-400 mb-1 block">Logo del equipo (opcional, máx. 2MB)</label>
+        <label className="text-sm text-gray-400 mb-1 block">
+          Logo del equipo (opcional, máx. 2MB{isEditing ? ' — deja vacío para conservar el actual' : ''})
+        </label>
+        {isEditing && team?.logo_url && (
+          <div className="w-14 h-14 rounded-lg bg-gray-800 overflow-hidden mb-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+          </div>
+        )}
         <input
           name="logo"
           type="file"
@@ -102,6 +138,7 @@ export default function TeamForm({
                 <select
                   name="preferred_slot_id"
                   required
+                  defaultValue={team?.preferred_slot_id ?? ''}
                   className="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2.5"
                 >
                   <option value="">Selecciona el horario que escogió</option>
@@ -137,7 +174,7 @@ export default function TeamForm({
           disabled={loading}
           className="flex-1 bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white font-semibold py-3 rounded-lg transition-colors text-sm"
         >
-          {loading ? 'Guardando...' : 'Crear equipo'}
+          {loading ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear equipo'}
         </button>
       </div>
     </form>
