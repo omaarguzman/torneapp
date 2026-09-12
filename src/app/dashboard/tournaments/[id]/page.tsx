@@ -271,8 +271,8 @@ export default async function TournamentPage({
           {teams && teams.length > 0 ? (
             <div className="flex flex-col gap-3">
               {teams.map((team) => (
-                <div key={team.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
+                <details key={team.id} className="group bg-gray-900 border border-gray-800 rounded-lg">
+                  <summary className="flex items-start gap-3 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                     <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {team.logo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -299,10 +299,11 @@ export default async function TournamentPage({
                         ✕
                       </button>
                     </form>
-                  </div>
+                    <span className="text-gray-600 text-xs mt-1 transition-transform group-open:rotate-180">▾</span>
+                  </summary>
 
                   {/* Jugadores del equipo */}
-                  <div className="mt-4 pt-4 border-t border-gray-800">
+                  <div className="px-4 pb-4 pt-4 border-t border-gray-800">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs text-gray-500 uppercase tracking-wide">
                         Jugadores ({team.players?.length ?? 0})
@@ -351,7 +352,7 @@ export default async function TournamentPage({
                       <p className="text-gray-600 text-xs">Sin jugadores registrados.</p>
                     )}
                   </div>
-                </div>
+                </details>
               ))}
             </div>
           ) : (

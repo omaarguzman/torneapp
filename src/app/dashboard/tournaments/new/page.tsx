@@ -105,6 +105,36 @@ export default function NewTournamentPage() {
             </span>
           </label>
 
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+            <p className="text-sm text-gray-300 mb-3">Suspensiones automáticas</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">
+                  Amarillas acumuladas para suspender (vacío = desactivado)
+                </label>
+                <input
+                  name="yellow_card_suspension_threshold"
+                  type="number"
+                  min={1}
+                  placeholder="Ej. 3"
+                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">
+                  Partidos de suspensión por roja
+                </label>
+                <input
+                  name="red_card_suspension_matches"
+                  type="number"
+                  min={0}
+                  defaultValue={1}
+                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500"
+                />
+              </div>
+            </div>
+          </div>
+
           {error && (
             <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-4 py-3">
               {error}

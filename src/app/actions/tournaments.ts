@@ -14,6 +14,8 @@ export async function createTournament(formData: FormData) {
   const startDate = formData.get('start_date') as string
   const endDate = formData.get('end_date') as string
   const rules = formData.get('rules') as string
+  const yellowThresholdRaw = formData.get('yellow_card_suspension_threshold') as string
+  const redSuspensionRaw = formData.get('red_card_suspension_matches') as string
 
   const { data, error } = await supabase
     .from('tournaments')
@@ -26,6 +28,8 @@ export async function createTournament(formData: FormData) {
       rules: rules || null,
       allow_schedule_priority: formData.get('allow_schedule_priority') === 'on',
       double_round: formData.get('format') === 'double',
+      yellow_card_suspension_threshold: yellowThresholdRaw ? parseInt(yellowThresholdRaw) : null,
+      red_card_suspension_matches: redSuspensionRaw ? parseInt(redSuspensionRaw) : 1,
     })
     .select()
     .single()
