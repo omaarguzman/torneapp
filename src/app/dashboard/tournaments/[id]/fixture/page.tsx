@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import GenerateFixtureButton from './GenerateFixtureButton'
+import CopyLinkButton from './CopyLinkButton'
 
 type MatchRow = {
   id: string
@@ -10,6 +11,10 @@ type MatchRow = {
   match_date: string
   start_time: string
   end_time: string
+  status: string
+  score_home: number | null
+  score_away: number | null
+  access_token: string
   home_team: { name: string; logo_url: string | null } | null
   away_team: { name: string; logo_url: string | null } | null
   venue: { name: string } | null
@@ -54,6 +59,7 @@ export default async function FixturePage({
       `id, number, week_start,
        matches (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
+         status, score_home, score_away, access_token,
          home_team:teams!matches_home_team_id_fkey(name, logo_url),
          away_team:teams!matches_away_team_id_fkey(name, logo_url),
          venue:venues(name)
@@ -108,6 +114,7 @@ export default async function FixturePage({
                       day: 'numeric',
                       month: 'short',
                     })
+                    const played = m.status === 'played'
                     return (
                       <div
                         key={m.id}
@@ -117,14 +124,23 @@ export default async function FixturePage({
                           <span className="text-white text-sm font-medium truncate">
                             {m.home_team?.name ?? '—'}
                           </span>
-                          <span className="text-gray-600 text-xs">vs</span>
+                          {played ? (
+                            <span className="text-white text-sm font-bold bg-gray-800 px-2 py-0.5 rounded">
+                              {m.score_home} – {m.score_away}
+                            </span>
+                          ) : (
+                            <span className="text-gray-600 text-xs">vs</span>
+                          )}
                           <span className="text-white text-sm font-medium truncate">
                             {m.away_team?.name ?? '—'}
                           </span>
                         </div>
-                        <div className="text-right text-xs text-gray-500">
-                          <p className="capitalize">{dateLabel} · {m.start_time.slice(0, 5)}</p>
-                          <p>{m.venue?.name}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right text-xs text-gray-500">
+                            <p className="capitalize">{dateLabel} · {m.start_time.slice(0, 5)}</p>
+                            <p>{m.venue?.name}</p>
+                          </div>
+                          <CopyLinkButton token={m.access_token} />
                         </div>
                       </div>
                     )
