@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createVenue, deleteVenue, addVenueSlotRange, deleteVenueSlot } from '@/app/actions/venues'
 import { saveVenueAsTemplate, useVenueTemplate } from '@/app/actions/venueTemplates'
+import { deleteTeam } from '@/app/actions/teams'
 
 const sportLabels: Record<string, string> = {
   futbol_11: 'Fútbol 11',
@@ -39,6 +40,12 @@ export default async function TournamentPage({
     .from('venue_templates')
     .select('id, name, location, venue_template_slots(id)')
 
+  const { data: teams } = await supabase
+    .from('teams')
+    .select('*, preferred_slot:venue_slots(day_of_week, start_time, end_time, venue:venues(name))')
+    .eq('tournament_id', id)
+    .order('created_at')
+
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
@@ -61,7 +68,7 @@ export default async function TournamentPage({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
             <p className="text-gray-500 text-sm">Equipos</p>
-            <p className="text-2xl font-bold text-white mt-1">0</p>
+            <p className="text-2xl font-bold text-white mt-1">{teams?.length ?? 0}</p>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
             <p className="text-gray-500 text-sm">Canchas</p>
@@ -74,7 +81,6 @@ export default async function TournamentPage({
         </div>
 
         {/* SECCIÓN CANCHAS */}
-                {/* SECCIÓN CANCHAS */}
         <section>
           <h2 className="text-lg font-bold text-white mb-4">Canchas y horarios</h2>
 
@@ -233,8 +239,60 @@ export default async function TournamentPage({
           </form>
         </section>
 
+        {/* SECCIÓN EQUIPOS */}
+        <section className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white">Equipos</h2>
+            <Link
+              href={`/dashboard/tournaments/${id}/teams/new`}
+              className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              + Nuevo equipo
+            </Link>
+          </div>
+
+          {teams && teams.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {teams.map((team) => (
+                <div key={team.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4 flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {team.logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xl">⚽</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold truncate">{team.name}</p>
+                    {team.delegate_email && (
+                      <p className="text-gray-500 text-xs truncate">{team.delegate_email}</p>
+                    )}
+                    {team.has_scheduling_priority && team.preferred_slot && (
+                      <span className="inline-block mt-1.5 bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">
+                        ⭐ {team.preferred_slot.venue?.name} · {dayNames[team.preferred_slot.day_of_week]} {team.preferred_slot.start_time.slice(0, 5)}
+                      </span>
+                    )}
+                  </div>
+                  <form action={deleteTeam}>
+                    <input type="hidden" name="team_id" value={team.id} />
+                    <input type="hidden" name="tournament_id" value={id} />
+                    <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">
+                      ✕
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="border border-dashed border-gray-800 rounded-lg p-8 text-center">
+              <p className="text-gray-500 text-sm">Aún no hay equipos registrados.</p>
+            </div>
+          )}
+        </section>
+
         <p className="text-gray-600 text-sm mt-10">
-          Próximamente: registro de equipos y jugadores en esta misma pantalla.
+          Próximamente: registro de jugadores en esta misma pantalla.
         </p>
       </div>
     </main>
