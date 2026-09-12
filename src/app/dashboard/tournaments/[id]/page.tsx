@@ -72,7 +72,7 @@ export default async function TournamentPage({
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
             <p className="text-gray-500 text-sm">Equipos</p>
             <p className="text-2xl font-bold text-white mt-1">{teams?.length ?? 0}</p>
@@ -87,6 +87,13 @@ export default async function TournamentPage({
           >
             <p className="text-gray-500 text-sm">Jornadas</p>
             <p className="text-2xl font-bold text-white mt-1">Ver fixture →</p>
+          </Link>
+          <Link
+            href={`/dashboard/tournaments/${id}/stats`}
+            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+          >
+            <p className="text-gray-500 text-sm">Estadísticas</p>
+            <p className="text-2xl font-bold text-white mt-1">Ver tabla →</p>
           </Link>
         </div>
 
