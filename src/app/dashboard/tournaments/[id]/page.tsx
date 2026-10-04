@@ -7,6 +7,8 @@ import { deleteTeam } from '@/app/actions/teams'
 import { deletePlayer } from '@/app/actions/players'
 import CopyLinkButton from '@/components/CopyLinkButton'
 import SectionTabs from './SectionTabs'
+import PaymentsSection from './PaymentsSection'
+import type { Charge } from '@/lib/charges'
 
 const sportLabels: Record<string, string> = {
   futbol_11: 'Fútbol 11',
@@ -54,6 +56,15 @@ export default async function TournamentPage({
       (a.jersey_number ?? 999) - (b.jersey_number ?? 999)
     )
   })
+
+  const { data: chargesData } = await supabase
+    .from('team_charges')
+    .select('id, team_id, concept, description, amount, paid, paid_at, created_at')
+    .eq('tournament_id', id)
+    .order('created_at')
+
+  const charges = (chargesData ?? []) as Charge[]
+  const teamsWithDebt = new Set(charges.filter((c) => !c.paid).map((c) => c.team_id)).size
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
@@ -389,7 +400,26 @@ export default async function TournamentPage({
         </section>
         )
 
-        return <SectionTabs venuesSection={venuesSection} teamsSection={teamsSection} />
+        return (
+          <SectionTabs
+            tabs={[
+              { key: 'venues', label: 'Canchas', content: venuesSection },
+              { key: 'teams', label: 'Equipos', content: teamsSection },
+              {
+                key: 'payments',
+                label: 'Pagos',
+                badge: teamsWithDebt > 0 ? `${teamsWithDebt} con adeudo` : undefined,
+                content: (
+                  <PaymentsSection
+                    tournamentId={id}
+                    teams={(teams ?? []).map((t) => ({ id: t.id, name: t.name }))}
+                    charges={charges}
+                  />
+                ),
+              },
+            ]}
+          />
+        )
         })()}
       </div>
     </main>

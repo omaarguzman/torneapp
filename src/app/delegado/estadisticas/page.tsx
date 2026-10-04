@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { computeStandings } from '@/lib/stats/standings'
+import PendingChargesNotice from '../PendingChargesNotice'
 
 type EventRow = {
   type: 'goal' | 'yellow_card' | 'red_card'
@@ -24,6 +25,32 @@ export default async function DelegateStatsPage() {
   if (!myTeam) redirect('/delegado')
 
   const tournamentInfo = Array.isArray(myTeam.tournament) ? myTeam.tournament[0] : myTeam.tournament
+
+  const { data: pendingCharges } = await supabase
+    .from('team_charges')
+    .select('id, concept, description, amount')
+    .eq('team_id', myTeam.id)
+    .eq('paid', false)
+    .order('created_at')
+
+  if (pendingCharges && pendingCharges.length > 0) {
+    return (
+      <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+        <div className="max-w-3xl mx-auto">
+          <Link href="/delegado" className="text-gray-500 text-sm hover:text-gray-300">
+            ← Volver a mi equipo
+          </Link>
+          <h1 className="text-2xl font-black text-white mt-4 mb-1">Estadísticas</h1>
+          <p className="text-gray-500 text-sm mb-8">{tournamentInfo?.name}</p>
+          <PendingChargesNotice
+            charges={pendingCharges}
+            title="Estadísticas bloqueadas"
+            message="Para ver la tabla de posiciones y las estadísticas del torneo, tu equipo debe estar al corriente con los siguientes pagos:"
+          />
+        </div>
+      </main>
+    )
+  }
 
   const { data: teams } = await supabase
     .from('teams')

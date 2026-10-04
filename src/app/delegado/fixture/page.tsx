@@ -111,6 +111,25 @@ export default async function DelegateFixturePage() {
     md.matches.sort((a, b) => (a.match_date + a.start_time).localeCompare(b.match_date + b.start_time))
   })
 
+  const { count: pendingCount } = await supabase
+    .from('team_charges')
+    .select('id', { count: 'exact', head: true })
+    .eq('team_id', myTeam.id)
+    .eq('paid', false)
+
+  const isLocked = (pendingCount ?? 0) > 0
+
+  // Con adeudos, los marcadores se eliminan aquí en el servidor para que nunca
+  // lleguen al navegador (ocultarlos solo visualmente sería fácil de saltar).
+  if (isLocked) {
+    matchdays?.forEach((md) => {
+      md.matches.forEach((m) => {
+        m.score_home = null
+        m.score_away = null
+      })
+    })
+  }
+
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
@@ -119,6 +138,15 @@ export default async function DelegateFixturePage() {
         </Link>
 
         <h1 className="text-2xl font-black text-white mt-4 mb-8">Calendario del torneo</h1>
+
+        {isLocked && (
+          <div className="bg-red-950/40 border border-red-900 rounded-lg px-4 py-3 mb-6">
+            <p className="text-red-300 text-sm">
+              🔒 Los resultados están ocultos porque tu equipo tiene pagos pendientes.{' '}
+              <Link href="/delegado" className="underline hover:text-red-200">Ver detalle</Link>
+            </p>
+          </div>
+        )}
 
         {matchdays && matchdays.length > 0 ? (
           <div className="flex flex-col gap-6">
@@ -141,7 +169,11 @@ export default async function DelegateFixturePage() {
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-3 min-w-0">
                             <span className="text-white text-sm font-medium truncate">{m.home_team?.name ?? '—'}</span>
-                            {played ? (
+                            {played && isLocked ? (
+                              <span className="text-gray-500 text-sm bg-gray-800 px-2 py-0.5 rounded" title="Resultado oculto por pagos pendientes">
+                                🔒
+                              </span>
+                            ) : played ? (
                               <span className="text-white text-sm font-bold bg-gray-800 px-2 py-0.5 rounded">
                                 {m.score_home} – {m.score_away}
                               </span>

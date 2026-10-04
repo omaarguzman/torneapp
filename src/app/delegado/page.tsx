@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { logout } from '@/app/actions/auth'
 import { deletePlayer } from '@/app/actions/players'
+import PendingChargesNotice from './PendingChargesNotice'
 
 export default async function DelegateDashboard() {
   const supabase = await createClient()
@@ -33,6 +34,15 @@ export default async function DelegateDashboard() {
 
   const tournamentInfo = Array.isArray(team.tournament) ? team.tournament[0] : team.tournament
 
+  const { data: pendingCharges } = await supabase
+    .from('team_charges')
+    .select('id, concept, description, amount')
+    .eq('team_id', team.id)
+    .eq('paid', false)
+    .order('created_at')
+
+  const isLocked = (pendingCharges?.length ?? 0) > 0
+
   const players = (team.players ?? []).sort(
     (a: { jersey_number: number | null }, b: { jersey_number: number | null }) =>
       (a.jersey_number ?? 999) - (b.jersey_number ?? 999)
@@ -61,6 +71,16 @@ export default async function DelegateDashboard() {
           </form>
         </div>
 
+        {isLocked && (
+          <div className="mb-6">
+            <PendingChargesNotice
+              charges={pendingCharges ?? []}
+              title="Tienes pagos pendientes"
+              message="Mientras tengas adeudos, la tabla de posiciones, las estadísticas y los marcadores del torneo estarán bloqueados para tu equipo."
+            />
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-4 mb-8">
           <Link
             href={`/delegado/fixture`}
@@ -74,7 +94,7 @@ export default async function DelegateDashboard() {
             className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
           >
             <p className="text-gray-500 text-sm">Torneo</p>
-            <p className="text-lg font-bold text-white mt-1">Ver tabla →</p>
+            <p className="text-lg font-bold text-white mt-1">{isLocked ? '🔒 Ver tabla' : 'Ver tabla →'}</p>
           </Link>
         </div>
 
