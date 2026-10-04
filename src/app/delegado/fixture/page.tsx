@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensions'
+import { resolveCurrentTeam } from '@/lib/delegateTeam'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
   yellow_accumulation: 'acumulación de amarillas',
@@ -35,12 +36,7 @@ export default async function DelegateFixturePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: myTeam } = await supabase
-    .from('teams')
-    .select('id, tournament_id')
-    .eq('delegate_id', user.id)
-    .single()
-
+  const { team: myTeam } = await resolveCurrentTeam(supabase, user.id)
   if (!myTeam) redirect('/delegado')
 
   const { data: teams } = await supabase.from('teams').select('id, name').eq('tournament_id', myTeam.tournament_id)
@@ -95,7 +91,7 @@ export default async function DelegateFixturePage() {
 
   // Con adeudos, la base de datos no le deja leer partidos/eventos directamente;
   // esta función le entrega el calendario con los marcadores ya vacíos.
-  const { data: fixtureData } = await supabase.rpc('get_delegate_fixture')
+  const { data: fixtureData } = await supabase.rpc('get_delegate_fixture', { p_team_id: myTeam.id })
   const matchdays = (fixtureData ?? []) as MatchdayRow[]
 
   matchdays.forEach((md) => {

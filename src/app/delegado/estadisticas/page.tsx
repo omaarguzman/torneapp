@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { computeStandings } from '@/lib/stats/standings'
 import PendingChargesNotice from '../PendingChargesNotice'
+import { resolveCurrentTeam } from '@/lib/delegateTeam'
 import StatsExportButtons from '@/components/StatsExportButtons'
 
 type EventRow = {
@@ -17,15 +18,10 @@ export default async function DelegateStatsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: myTeam } = await supabase
-    .from('teams')
-    .select('id, tournament_id, tournament:tournaments(name)')
-    .eq('delegate_id', user.id)
-    .single()
-
+  const { team: myTeam } = await resolveCurrentTeam(supabase, user.id)
   if (!myTeam) redirect('/delegado')
 
-  const tournamentInfo = Array.isArray(myTeam.tournament) ? myTeam.tournament[0] : myTeam.tournament
+  const tournamentInfo = { name: myTeam.tournament_name }
 
   const { data: pendingCharges } = await supabase
     .from('team_charges')

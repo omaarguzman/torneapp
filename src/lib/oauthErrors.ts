@@ -8,7 +8,7 @@ const MESSAGES: Record<string, string> = {
   INVALID_ACCOUNT: 'No pudimos verificar tu cuenta para vincularla al equipo. Inténtalo de nuevo.',
   NOT_AUTHENTICATED: 'Tu sesión expiró antes de terminar el registro. Inténtalo de nuevo.',
   ALREADY_DELEGATE:
-    'Esa cuenta ya es delegado de otro equipo. Cada cuenta solo puede representar a un equipo; usa otra cuenta o pide al administrador que te desvincule del equipo anterior.',
+    'Esa cuenta ya es delegado de otro equipo de este mismo torneo. Una persona no puede representar a dos equipos del mismo torneo; usa otra cuenta.',
   EMAIL_IN_USE:
     'Ese correo ya está registrado como delegado de otro equipo de este torneo. Usa otro correo o contacta al administrador del torneo.',
 }

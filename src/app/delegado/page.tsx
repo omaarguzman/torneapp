@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { logout } from '@/app/actions/auth'
 import { deletePlayer } from '@/app/actions/players'
 import PendingChargesNotice from './PendingChargesNotice'
+import { resolveCurrentTeam } from '@/lib/delegateTeam'
 
 export default async function DelegateDashboard() {
   const supabase = await createClient()
@@ -11,11 +12,9 @@ export default async function DelegateDashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: team } = await supabase
-    .from('teams')
-    .select('id, name, logo_url, tournament_id, players(*), tournament:tournaments(name)')
-    .eq('delegate_id', user.id)
-    .single()
+  const { team, teams } = await resolveCurrentTeam(supabase, user.id)
+
+  if (!team && teams.length > 1) redirect('/delegado/equipos')
 
   if (!team) {
     return (
@@ -32,7 +31,10 @@ export default async function DelegateDashboard() {
     )
   }
 
-  const tournamentInfo = Array.isArray(team.tournament) ? team.tournament[0] : team.tournament
+  const { data: playerRows } = await supabase
+    .from('players')
+    .select('id, full_name, jersey_number, position, photo_url')
+    .eq('team_id', team.id)
 
   const { data: pendingCharges } = await supabase
     .from('team_charges')
@@ -43,10 +45,7 @@ export default async function DelegateDashboard() {
 
   const isLocked = (pendingCharges?.length ?? 0) > 0
 
-  const players = (team.players ?? []).sort(
-    (a: { jersey_number: number | null }, b: { jersey_number: number | null }) =>
-      (a.jersey_number ?? 999) - (b.jersey_number ?? 999)
-  )
+  const players = (playerRows ?? []).sort((a, b) => (a.jersey_number ?? 999) - (b.jersey_number ?? 999))
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
@@ -63,12 +62,19 @@ export default async function DelegateDashboard() {
             </div>
             <div>
               <h1 className="text-lg font-black text-white">{team.name}</h1>
-              <p className="text-gray-500 text-sm">{tournamentInfo?.name}</p>
+              <p className="text-gray-500 text-sm">{team.tournament_name}</p>
             </div>
           </div>
-          <form action={logout}>
-            <button className="text-gray-500 hover:text-white text-sm transition-colors">Cerrar sesión</button>
-          </form>
+          <div className="flex flex-col items-end gap-1">
+            {teams.length > 1 && (
+              <Link href="/delegado/equipos" className="text-green-400 hover:text-green-300 text-sm transition-colors">
+                Cambiar equipo
+              </Link>
+            )}
+            <form action={logout}>
+              <button className="text-gray-500 hover:text-white text-sm transition-colors">Cerrar sesión</button>
+            </form>
+          </div>
         </div>
 
         {isLocked && (

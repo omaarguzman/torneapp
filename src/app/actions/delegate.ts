@@ -1,6 +1,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { DELEGATE_TEAM_COOKIE } from '@/lib/delegateTeam'
 import { createClient } from '@/lib/supabase/server'
 import { friendlyAuthError, friendlyLoginError } from '@/lib/friendlyAuthError'
 import { claimErrorCode, oauthErrorMessage } from '@/lib/oauthErrors'
@@ -62,6 +64,33 @@ export async function registerDelegate(
   }
 
   return { success: true }
+}
+
+export async function selectDelegateTeam(formData: FormData) {
+  const supabase = await createClient()
+  const teamId = formData.get('team_id') as string
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: team } = await supabase
+    .from('teams')
+    .select('id')
+    .eq('id', teamId)
+    .eq('delegate_id', user.id)
+    .maybeSingle()
+
+  if (team) {
+    ;(await cookies()).set(DELEGATE_TEAM_COOKIE, team.id, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 180,
+    })
+  }
+
+  redirect('/delegado')
 }
 
 export async function acceptInviteWithPassword(

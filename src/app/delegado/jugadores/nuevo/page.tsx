@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import PlayerForm from '@/app/dashboard/tournaments/[id]/teams/[teamId]/players/new/PlayerForm'
+import { resolveCurrentTeam } from '@/lib/delegateTeam'
 
 export default async function NewDelegatePlayerPage() {
   const supabase = await createClient()
@@ -9,12 +10,7 @@ export default async function NewDelegatePlayerPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: team } = await supabase
-    .from('teams')
-    .select('id, name, tournament_id')
-    .eq('delegate_id', user.id)
-    .single()
-
+  const { team } = await resolveCurrentTeam(supabase, user.id)
   if (!team) redirect('/delegado')
 
   return (
