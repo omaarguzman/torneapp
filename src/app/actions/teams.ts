@@ -101,6 +101,27 @@ export async function updateTeam(formData: FormData) {
   redirect(`/dashboard/tournaments/${tournamentId}`)
 }
 
+export async function unlinkDelegate(formData: FormData) {
+  const supabase = await createClient()
+  const tournamentId = formData.get('tournament_id') as string
+  const teamId = formData.get('team_id') as string
+
+  // Un token nuevo invalida el link anterior aunque alguien lo tenga guardado
+  const { error } = await supabase
+    .from('teams')
+    .update({
+      delegate_id: null,
+      delegate_name: null,
+      delegate_email: null,
+      delegate_invite_token: crypto.randomUUID().replace(/-/g, ''),
+    })
+    .eq('id', teamId)
+
+  if (error) console.error('[unlinkDelegate] error:', error)
+
+  revalidatePath(`/dashboard/tournaments/${tournamentId}`)
+}
+
 export async function deleteTeam(formData: FormData) {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string

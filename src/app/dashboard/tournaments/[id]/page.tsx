@@ -8,6 +8,7 @@ import { deletePlayer } from '@/app/actions/players'
 import CopyLinkButton from '@/components/CopyLinkButton'
 import SectionTabs from './SectionTabs'
 import PaymentsSection from './PaymentsSection'
+import UnlinkDelegateButton from './UnlinkDelegateButton'
 import type { Charge } from '@/lib/charges'
 
 const sportLabels: Record<string, string> = {
@@ -315,7 +316,10 @@ export default async function TournamentPage({
                       )}
                       <div className="mt-1.5">
                         {team.delegate_id ? (
-                          <span className="text-green-500 text-[10px]">✓ Delegado registrado</span>
+                          <span className="flex items-center gap-2">
+                            <span className="text-green-500 text-[10px]">✓ Delegado registrado</span>
+                            <UnlinkDelegateButton teamId={team.id} tournamentId={id} teamName={team.name} />
+                          </span>
                         ) : (
                           <CopyLinkButton path={`/equipo/${team.delegate_invite_token}`} label="📋 Link delegado" />
                         )}
