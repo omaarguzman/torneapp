@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { register } from '@/app/actions/auth'
 import Link from 'next/link'
+import GoogleButton from '@/components/GoogleButton'
 
 export default function RegisterPage() {
   const [message, setMessage] = useState('')
@@ -47,6 +48,15 @@ export default function RegisterPage() {
             </Link>
           </div>
         ) : (
+          <>
+          <GoogleButton />
+
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-gray-800" />
+            <span className="text-gray-600 text-xs">o con tu correo</span>
+            <div className="flex-1 h-px bg-gray-800" />
+          </div>
+
           <form action={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="text-sm text-gray-400 mb-1 block">Correo electrónico</label>
@@ -95,6 +105,7 @@ export default function RegisterPage() {
               {loading ? 'Creando cuenta...' : 'Crear cuenta'}
             </button>
           </form>
+          </>
         )}
 
         <p className="text-center text-gray-500 text-sm mt-6">

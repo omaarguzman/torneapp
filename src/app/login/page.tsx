@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { login } from '@/app/actions/auth'
 import Link from 'next/link'
+import GoogleButton from '@/components/GoogleButton'
+import OAuthErrorNotice from '@/components/OAuthErrorNotice'
 
 export default function LoginPage() {
   const [error, setError] = useState('')
@@ -25,6 +27,18 @@ export default function LoginPage() {
           <span className="text-4xl">⚽</span>
           <h1 className="text-2xl font-black text-white mt-2">Torneapp</h1>
           <p className="text-gray-400 text-sm mt-1">Inicia sesión en tu cuenta</p>
+        </div>
+
+        <Suspense>
+          <OAuthErrorNotice />
+        </Suspense>
+
+        <GoogleButton />
+
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-gray-800" />
+          <span className="text-gray-600 text-xs">o con tu correo</span>
+          <div className="flex-1 h-px bg-gray-800" />
         </div>
 
         <form action={handleSubmit} className="flex flex-col gap-4">

@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import DelegateRegisterForm from './DelegateRegisterForm'
+import GoogleButton from '@/components/GoogleButton'
+import { oauthErrorMessage } from '@/lib/oauthErrors'
 
 type InviteInfo = {
   team_name: string
@@ -11,14 +13,18 @@ type InviteInfo = {
 
 export default async function TeamInvitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>
+  searchParams: Promise<{ error?: string }>
 }) {
   const { token } = await params
+  const { error } = await searchParams
   const supabase = await createClient()
 
   const { data } = await supabase.rpc('get_team_invite_info', { p_token: token })
   const invite = data as InviteInfo | null
+  const errorMessage = oauthErrorMessage(error)
 
   if (!invite) {
     return (
@@ -39,6 +45,12 @@ export default async function TeamInvitePage({
           <p className="text-gray-400 text-sm mt-1">{invite.tournament_name}</p>
         </div>
 
+        {errorMessage && (
+          <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-4 py-3 mb-6">
+            {errorMessage}
+          </p>
+        )}
+
         {invite.already_claimed ? (
           <div className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-6 text-center">
             <p className="text-gray-300 text-sm">
@@ -51,6 +63,15 @@ export default async function TeamInvitePage({
             <p className="text-gray-500 text-sm text-center mb-6">
               Regístrate para administrar los jugadores de tu equipo y ver las estadísticas del torneo.
             </p>
+
+            <GoogleButton invite={token} />
+
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-px bg-gray-800" />
+              <span className="text-gray-600 text-xs">o con tu correo</span>
+              <div className="flex-1 h-px bg-gray-800" />
+            </div>
+
             <DelegateRegisterForm
               token={token}
               defaultName={invite.delegate_name ?? ''}

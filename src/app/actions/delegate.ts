@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { friendlyAuthError } from '@/lib/friendlyAuthError'
+import { claimErrorCode, oauthErrorMessage } from '@/lib/oauthErrors'
 
 export type DelegateRegisterResult = { success: true } | { error: string } | null
 
@@ -46,8 +47,12 @@ export async function registerDelegate(
 
   if (claimError) {
     console.error('[registerDelegate] claim_team_delegate error:', claimError)
+    const code = claimErrorCode(claimError.message)
     return {
-      error: 'Tu cuenta se creó correctamente, pero no pudimos vincularla con tu equipo. Contacta al administrador del torneo para que verifique el enlace, o inténtalo de nuevo en unos minutos.',
+      error:
+        code === 'GOOGLE'
+          ? 'Tu cuenta se creó correctamente, pero no pudimos vincularla con tu equipo. Contacta al administrador del torneo para que verifique el enlace, o inténtalo de nuevo en unos minutos.'
+          : oauthErrorMessage(code)!,
     }
   }
 
