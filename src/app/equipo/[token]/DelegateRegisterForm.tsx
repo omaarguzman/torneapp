@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { registerDelegate } from '@/app/actions/delegate'
+import PasswordField from '@/components/PasswordField'
 
 export default function DelegateRegisterForm({
   token,
@@ -62,16 +63,7 @@ export default function DelegateRegisterForm({
         )}
       </div>
 
-      <div>
-        <label className="text-sm text-gray-400 mb-1 block">Contraseña</label>
-        <input
-          name="password"
-          type="password"
-          required
-          placeholder="Mínimo 6 caracteres"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
-        />
-      </div>
+      <PasswordField />
 
       <div>
         <label className="text-sm text-gray-400 mb-1 block">Confirmar contraseña</label>

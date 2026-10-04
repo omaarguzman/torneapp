@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { register } from '@/app/actions/auth'
 import Link from 'next/link'
 import GoogleButton from '@/components/GoogleButton'
+import PasswordField from '@/components/PasswordField'
 
 export default function RegisterPage() {
   const [message, setMessage] = useState('')
@@ -69,16 +70,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div>
-              <label className="text-sm text-gray-400 mb-1 block">Contraseña</label>
-              <input
-                name="password"
-                type="password"
-                required
-                placeholder="Mínimo 6 caracteres"
-                className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
-              />
-            </div>
+            <PasswordField />
 
             <div>
               <label className="text-sm text-gray-400 mb-1 block">Confirmar contraseña</label>

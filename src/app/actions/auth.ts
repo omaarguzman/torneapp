@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { friendlyAuthError, friendlyLoginError } from '@/lib/friendlyAuthError'
+import { passwordProblem } from '@/lib/passwordPolicy'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -33,11 +34,17 @@ export async function login(formData: FormData) {
 
 export async function register(formData: FormData) {
   const supabase = await createClient()
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
 
-  const { data, error } = await supabase.auth.signUp({
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  })
+  if (password !== formData.get('confirm')) {
+    return { error: 'Las contraseñas no coinciden.' }
+  }
+
+  const problem = passwordProblem(password, email)
+  if (problem) return { error: problem }
+
+  const { data, error } = await supabase.auth.signUp({ email, password })
 
   if (error) return { error: friendlyAuthError(error.message) }
 

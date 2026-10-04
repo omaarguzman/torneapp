@@ -27,7 +27,7 @@ export function friendlyAuthError(message: string): string {
     return 'Se alcanzó el límite de correos de confirmación por ahora. Espera unos minutos e inténtalo de nuevo.'
   }
   if (lower.includes('password')) {
-    return 'La contraseña debe tener al menos 6 caracteres.'
+    return 'La contraseña no es lo bastante segura: usa al menos 10 caracteres con mayúsculas, minúsculas y números.'
   }
   if (lower.includes('email') && lower.includes('invalid')) {
     return 'El correo electrónico no es válido. Revísalo e inténtalo de nuevo.'

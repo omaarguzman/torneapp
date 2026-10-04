@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { imageExtension, imageProblem } from '@/lib/uploads'
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 
@@ -28,6 +29,25 @@ async function delegateEmailTaken(
   return (data ?? []).some((t) => t.id !== excludeTeamId && t.delegate_email?.toLowerCase() === email)
 }
 
+async function uploadTeamLogo(
+  supabase: SupabaseClient,
+  tournamentId: string,
+  file: File
+): Promise<{ url: string } | { error: string }> {
+  const problem = imageProblem(file, 'El logo')
+  if (problem) return { error: problem }
+
+  const path = `${tournamentId}/${crypto.randomUUID()}.${imageExtension(file)}`
+  const { error } = await supabase.storage.from('logos').upload(path, file, { contentType: file.type })
+
+  if (error) {
+    console.error('[uploadTeamLogo] error:', error)
+    return { error: 'No se pudo subir el logo. Inténtalo de nuevo.' }
+  }
+
+  return { url: supabase.storage.from('logos').getPublicUrl(path).data.publicUrl }
+}
+
 export async function createTeam(formData: FormData) {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string
@@ -47,21 +67,9 @@ export async function createTeam(formData: FormData) {
   let logoUrl: string | null = null
 
   if (logoFile && logoFile.size > 0) {
-    if (logoFile.size > 2 * 1024 * 1024) {
-      return { error: 'El logo no debe pesar más de 2MB.' }
-    }
-
-    const ext = logoFile.name.split('.').pop()
-    const path = `${tournamentId}/${crypto.randomUUID()}.${ext}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('logos')
-      .upload(path, logoFile)
-
-    if (uploadError) return { error: 'No se pudo subir el logo: ' + uploadError.message }
-
-    const { data: publicUrlData } = supabase.storage.from('logos').getPublicUrl(path)
-    logoUrl = publicUrlData.publicUrl
+    const upload = await uploadTeamLogo(supabase, tournamentId, logoFile)
+    if ('error' in upload) return upload
+    logoUrl = upload.url
   }
 
   const { error } = await supabase.from('teams').insert({
@@ -115,18 +123,9 @@ export async function updateTeam(formData: FormData) {
   }
 
   if (logoFile && logoFile.size > 0) {
-    if (logoFile.size > 2 * 1024 * 1024) {
-      return { error: 'El logo no debe pesar más de 2MB.' }
-    }
-
-    const ext = logoFile.name.split('.').pop()
-    const path = `${tournamentId}/${crypto.randomUUID()}.${ext}`
-
-    const { error: uploadError } = await supabase.storage.from('logos').upload(path, logoFile)
-    if (uploadError) return { error: 'No se pudo subir el logo: ' + uploadError.message }
-
-    const { data: publicUrlData } = supabase.storage.from('logos').getPublicUrl(path)
-    updates.logo_url = publicUrlData.publicUrl
+    const upload = await uploadTeamLogo(supabase, tournamentId, logoFile)
+    if ('error' in upload) return upload
+    updates.logo_url = upload.url
   }
 
   const { error } = await supabase.from('teams').update(updates).eq('id', teamId)

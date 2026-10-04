@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { imageExtension, imageProblem } from '@/lib/uploads'
 
 export async function createPlayer(formData: FormData) {
   const supabase = await createClient()
@@ -33,18 +34,20 @@ export async function createPlayer(formData: FormData) {
   let photoUrl: string | null = null
 
   if (photoFile && photoFile.size > 0) {
-    if (photoFile.size > 2 * 1024 * 1024) {
-      return { error: 'La foto no debe pesar más de 2MB.' }
-    }
+    const problem = imageProblem(photoFile, 'La foto')
+    if (problem) return { error: problem }
 
-    const ext = photoFile.name.split('.').pop()
-    const path = `players/${tournamentId}/${crypto.randomUUID()}.${ext}`
+    // La carpeta por equipo permite que el delegado solo pueda tocar fotos de su equipo
+    const path = `players/${tournamentId}/${teamId}/${crypto.randomUUID()}.${imageExtension(photoFile)}`
 
     const { error: uploadError } = await supabase.storage
       .from('logos')
-      .upload(path, photoFile)
+      .upload(path, photoFile, { contentType: photoFile.type })
 
-    if (uploadError) return { error: 'No se pudo subir la foto: ' + uploadError.message }
+    if (uploadError) {
+      console.error('[createPlayer] upload error:', uploadError)
+      return { error: 'No se pudo subir la foto. Inténtalo de nuevo.' }
+    }
 
     const { data: publicUrlData } = supabase.storage.from('logos').getPublicUrl(path)
     photoUrl = publicUrlData.publicUrl

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { friendlyAuthError, friendlyLoginError } from '@/lib/friendlyAuthError'
 import { claimErrorCode, oauthErrorMessage } from '@/lib/oauthErrors'
+import { passwordProblem } from '@/lib/passwordPolicy'
 
 export type DelegateRegisterResult = { success: true } | { error: string } | null
 
@@ -22,6 +23,9 @@ export async function registerDelegate(
   if (password !== confirm) {
     return { error: 'Las contraseñas no coinciden.' }
   }
+
+  const problem = passwordProblem(password, email)
+  if (problem) return { error: problem }
 
   const { data, error } = await supabase.auth.signUp({ email, password })
 

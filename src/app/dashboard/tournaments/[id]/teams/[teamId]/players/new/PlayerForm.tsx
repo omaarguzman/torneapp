@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createPlayer } from '@/app/actions/players'
 import Link from 'next/link'
+import { IMAGE_ACCEPT } from '@/lib/uploads'
 
 export default function PlayerForm({
   tournamentId,
@@ -88,7 +89,7 @@ export default function PlayerForm({
         <input
           name="photo"
           type="file"
-          accept="image/*"
+          accept={IMAGE_ACCEPT}
           className="w-full bg-gray-900 border border-gray-700 text-gray-400 rounded-lg px-4 py-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-gray-800 file:text-white file:text-xs"
         />
       </div>

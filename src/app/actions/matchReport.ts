@@ -68,7 +68,15 @@ export async function submitMatchReport(
   })
 
   if (error) {
-    return { error: 'No se pudo guardar la cédula: ' + error.message }
+    console.error('[submitMatchReport] error:', error)
+    const messages: Record<string, string> = {
+      INVALID_SCORE: 'El marcador no es válido.',
+      INVALID_PLAYER: 'Uno de los eventos tiene un jugador que no pertenece a los equipos de este partido.',
+      GOALS_MISMATCH: 'Los goles registrados no coinciden con el marcador.',
+      INVALID_CARDS: 'Un jugador tiene más tarjetas de las permitidas (máximo 2 amarillas y 1 roja).',
+    }
+    const code = Object.keys(messages).find((c) => error.message.includes(c))
+    return { error: code ? messages[code] : 'No se pudo guardar la cédula. Inténtalo de nuevo.' }
   }
 
   revalidatePath(`/partido/${token}`)
