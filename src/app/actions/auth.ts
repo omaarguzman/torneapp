@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { friendlyAuthError } from '@/lib/friendlyAuthError'
+import { friendlyAuthError, friendlyLoginError } from '@/lib/friendlyAuthError'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -12,7 +12,15 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   })
 
-  if (error) return { error: 'Correo o contraseña incorrectos.' }
+  if (error) {
+    console.error('[login] signInWithPassword error:', {
+      name: error.name,
+      status: error.status,
+      code: error.code,
+      message: error.message,
+    })
+    return { error: friendlyLoginError(error.message, error.status) }
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
