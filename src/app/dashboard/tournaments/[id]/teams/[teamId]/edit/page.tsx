@@ -21,11 +21,17 @@ export default async function EditTeamPage({
 
   const { data: team } = await supabase
     .from('teams')
-    .select('id, name, delegate_email, delegate_name, has_scheduling_priority, preferred_slot_id, logo_url')
+    .select('id, name, has_scheduling_priority, preferred_slot_id, logo_url')
     .eq('id', teamId)
     .single()
 
   if (!team) notFound()
+
+  const { data: contact } = await supabase
+    .from('team_private')
+    .select('delegate_name, delegate_email')
+    .eq('team_id', teamId)
+    .maybeSingle()
 
   const { data: venues } = await supabase
     .from('venues')
@@ -45,7 +51,11 @@ export default async function EditTeamPage({
           tournamentId={id}
           venues={venues ?? []}
           allowSchedulePriority={tournament.allow_schedule_priority}
-          team={team}
+          team={{
+            ...team,
+            delegate_name: contact?.delegate_name ?? null,
+            delegate_email: contact?.delegate_email ?? null,
+          }}
         />
       </div>
     </main>

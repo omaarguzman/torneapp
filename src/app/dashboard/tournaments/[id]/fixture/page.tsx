@@ -21,7 +21,6 @@ type MatchRow = {
   status: string
   score_home: number | null
   score_away: number | null
-  access_token: string
   home_team: { name: string; logo_url: string | null } | null
   away_team: { name: string; logo_url: string | null } | null
   venue: { name: string } | null
@@ -110,7 +109,7 @@ export default async function FixturePage({
       `id, number, week_start,
        matches (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
-         status, score_home, score_away, access_token,
+         status, score_home, score_away,
          home_team:teams!matches_home_team_id_fkey(name, logo_url),
          away_team:teams!matches_away_team_id_fkey(name, logo_url),
          venue:venues(name)
@@ -118,6 +117,10 @@ export default async function FixturePage({
     )
     .eq('tournament_id', id)
     .order('number') as { data: MatchdayRow[] | null }
+
+  // Los links de árbitro viven en match_tokens, que solo puede leer el admin
+  const { data: tokens } = await supabase.from('match_tokens').select('match_id, token').eq('tournament_id', id)
+  const tokenByMatch = new Map((tokens ?? []).map((t) => [t.match_id, t.token]))
 
   matchdays?.forEach((md) => {
     md.matches.sort((a, b) => (a.match_date + a.start_time).localeCompare(b.match_date + b.start_time))
@@ -193,7 +196,9 @@ export default async function FixturePage({
                               <p className="capitalize">{dateLabel} · {m.start_time.slice(0, 5)}</p>
                               <p>{m.venue?.name}</p>
                             </div>
-                            <CopyLinkButton path={`/partido/${m.access_token}`} label="📋 Link árbitro" />
+                            {tokenByMatch.get(m.id) && (
+                              <CopyLinkButton path={`/partido/${tokenByMatch.get(m.id)}`} label="📋 Link árbitro" />
+                            )}
                           </div>
                         </div>
                         {matchSuspensions.length > 0 && (

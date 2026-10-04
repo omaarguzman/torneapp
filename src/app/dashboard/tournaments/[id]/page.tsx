@@ -48,14 +48,20 @@ export default async function TournamentPage({
 
   const { data: teams } = await supabase
     .from('teams')
-    .select('*, preferred_slot:venue_slots(day_of_week, start_time, end_time, venue:venues(name)), players(*)')
+    .select(
+      '*, preferred_slot:venue_slots(day_of_week, start_time, end_time, venue:venues(name)), players(*), private:team_private(invite_token, delegate_name, delegate_email)'
+    )
     .eq('tournament_id', id)
     .order('created_at')
+
+  type TeamPrivate = { invite_token: string; delegate_name: string | null; delegate_email: string | null }
 
   teams?.forEach((team) => {
     team.players?.sort((a: { jersey_number: number | null }, b: { jersey_number: number | null }) =>
       (a.jersey_number ?? 999) - (b.jersey_number ?? 999)
     )
+    const priv = team.private as TeamPrivate | TeamPrivate[] | null
+    team.private = Array.isArray(priv) ? priv[0] ?? null : priv
   })
 
   const { data: chargesData } = await supabase
@@ -302,11 +308,11 @@ export default async function TournamentPage({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-semibold truncate">{team.name}</p>
-                      {(team.delegate_name || team.delegate_email) && (
+                      {(team.private?.delegate_name || team.private?.delegate_email) && (
                         <p className="text-gray-500 text-xs truncate">
-                          {team.delegate_name}
-                          {team.delegate_name && team.delegate_email && ' · '}
-                          {team.delegate_email}
+                          {team.private?.delegate_name}
+                          {team.private?.delegate_name && team.private?.delegate_email && ' · '}
+                          {team.private?.delegate_email}
                         </p>
                       )}
                       {team.has_scheduling_priority && team.preferred_slot && (
@@ -320,9 +326,9 @@ export default async function TournamentPage({
                             <span className="text-green-500 text-[10px]">✓ Delegado registrado</span>
                             <UnlinkDelegateButton teamId={team.id} tournamentId={id} teamName={team.name} />
                           </span>
-                        ) : (
-                          <CopyLinkButton path={`/equipo/${team.delegate_invite_token}`} label="📋 Link delegado" />
-                        )}
+                        ) : team.private?.invite_token ? (
+                          <CopyLinkButton path={`/equipo/${team.private.invite_token}`} label="📋 Link delegado" />
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

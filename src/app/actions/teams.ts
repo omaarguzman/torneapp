@@ -22,11 +22,31 @@ async function delegateEmailTaken(
 ) {
   if (!email) return false
   const { data } = await supabase
-    .from('teams')
-    .select('id, delegate_email')
+    .from('team_private')
+    .select('team_id, delegate_email')
     .eq('tournament_id', tournamentId)
     .not('delegate_email', 'is', null)
-  return (data ?? []).some((t) => t.id !== excludeTeamId && t.delegate_email?.toLowerCase() === email)
+  return (data ?? []).some((t) => t.team_id !== excludeTeamId && t.delegate_email?.toLowerCase() === email)
+}
+
+/** Nombre/correo del delegado viven en team_private (solo visible para el admin). */
+async function saveDelegateContact(
+  supabase: SupabaseClient,
+  teamId: string,
+  delegateName: string | null,
+  delegateEmail: string | null
+) {
+  const { error } = await supabase
+    .from('team_private')
+    .update({ delegate_name: delegateName, delegate_email: delegateEmail })
+    .eq('team_id', teamId)
+
+  if (error) {
+    if (error.code === '23505') return { error: EMAIL_IN_USE_MESSAGE }
+    console.error('[saveDelegateContact] error:', error)
+    return { error: 'No se pudieron guardar los datos del delegado.' }
+  }
+  return null
 }
 
 async function uploadTeamLogo(
@@ -72,19 +92,27 @@ export async function createTeam(formData: FormData) {
     logoUrl = upload.url
   }
 
-  const { error } = await supabase.from('teams').insert({
-    tournament_id: tournamentId,
-    name,
-    delegate_email: delegateEmail,
-    delegate_name: delegateName,
-    logo_url: logoUrl,
-    has_scheduling_priority: hasPriority,
-    preferred_slot_id: preferredSlotId,
-  })
+  // Un trigger crea automáticamente la fila en team_private (con su link de invitación)
+  const { data: team, error } = await supabase
+    .from('teams')
+    .insert({
+      tournament_id: tournamentId,
+      name,
+      logo_url: logoUrl,
+      has_scheduling_priority: hasPriority,
+      preferred_slot_id: preferredSlotId,
+    })
+    .select('id')
+    .single()
 
-  if (error) {
-    if (error.code === '23505') return { error: EMAIL_IN_USE_MESSAGE }
-    return { error: error.message }
+  if (error || !team) {
+    console.error('[createTeam] error:', error)
+    return { error: 'No se pudo crear el equipo. Inténtalo de nuevo.' }
+  }
+
+  if (delegateName || delegateEmail) {
+    const contactError = await saveDelegateContact(supabase, team.id, delegateName, delegateEmail)
+    if (contactError) return contactError
   }
 
   redirect(`/dashboard/tournaments/${tournamentId}`)
@@ -109,15 +137,11 @@ export async function updateTeam(formData: FormData) {
 
   const updates: {
     name: string
-    delegate_email: string | null
-    delegate_name: string | null
     has_scheduling_priority: boolean
     preferred_slot_id: string | null
     logo_url?: string
   } = {
     name,
-    delegate_email: delegateEmail,
-    delegate_name: delegateName,
     has_scheduling_priority: hasPriority,
     preferred_slot_id: preferredSlotId,
   }
@@ -131,9 +155,12 @@ export async function updateTeam(formData: FormData) {
   const { error } = await supabase.from('teams').update(updates).eq('id', teamId)
 
   if (error) {
-    if (error.code === '23505') return { error: EMAIL_IN_USE_MESSAGE }
-    return { error: error.message }
+    console.error('[updateTeam] error:', error)
+    return { error: 'No se pudo guardar el equipo. Inténtalo de nuevo.' }
   }
+
+  const contactError = await saveDelegateContact(supabase, teamId, delegateName, delegateEmail)
+  if (contactError) return contactError
 
   redirect(`/dashboard/tournaments/${tournamentId}`)
 }
@@ -143,18 +170,19 @@ export async function unlinkDelegate(formData: FormData) {
   const tournamentId = formData.get('tournament_id') as string
   const teamId = formData.get('team_id') as string
 
+  const { error } = await supabase.from('teams').update({ delegate_id: null }).eq('id', teamId)
+  if (error) console.error('[unlinkDelegate] teams error:', error)
+
   // Un token nuevo invalida el link anterior aunque alguien lo tenga guardado
-  const { error } = await supabase
-    .from('teams')
+  const { error: privateError } = await supabase
+    .from('team_private')
     .update({
-      delegate_id: null,
       delegate_name: null,
       delegate_email: null,
-      delegate_invite_token: crypto.randomUUID().replace(/-/g, ''),
+      invite_token: crypto.randomUUID().replace(/-/g, ''),
     })
-    .eq('id', teamId)
-
-  if (error) console.error('[unlinkDelegate] error:', error)
+    .eq('team_id', teamId)
+  if (privateError) console.error('[unlinkDelegate] team_private error:', privateError)
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}`)
 }
