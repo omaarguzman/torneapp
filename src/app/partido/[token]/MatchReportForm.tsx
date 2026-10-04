@@ -19,7 +19,15 @@ const eventLabels: Record<LocalEvent['type'], { icon: string; label: string }> =
   red_card: { icon: '🟥', label: 'Roja directa' },
 }
 
-export default function MatchReportForm({ token, match }: { token: string; match: MatchData }) {
+export default function MatchReportForm({
+  token,
+  match,
+  readOnly = false,
+}: {
+  token: string
+  match: MatchData
+  readOnly?: boolean
+}) {
   const [events, setEvents] = useState<LocalEvent[]>(
     match.events.map((e) => {
       const player = [...match.home_team.players, ...match.away_team.players].find((p) => p.id === e.player_id)
@@ -81,9 +89,18 @@ export default function MatchReportForm({ token, match }: { token: string; match
   )
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction}>
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="events" value={eventsPayload} />
+
+      {readOnly && (
+        <p className="bg-green-950 border border-green-800 text-green-300 text-sm rounded-lg px-4 py-3 mb-6">
+          ✓ Esta cédula ya fue validada por el administrador del torneo y no se puede modificar.
+        </p>
+      )}
+
+      {/* disabled en el fieldset deshabilita todos los campos y botones que contiene */}
+      <fieldset disabled={readOnly} className="flex flex-col gap-6 min-w-0 disabled:opacity-70">
 
       {/* Marcador */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
@@ -262,13 +279,16 @@ export default function MatchReportForm({ token, match }: { token: string; match
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={isPending || !canSubmit}
-        className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
-      >
-        {isPending ? 'Guardando...' : 'Guardar cédula'}
-      </button>
+      {!readOnly && (
+        <button
+          type="submit"
+          disabled={isPending || !canSubmit}
+          className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
+        >
+          {isPending ? 'Guardando...' : 'Guardar cédula'}
+        </button>
+      )}
+      </fieldset>
     </form>
   )
 }

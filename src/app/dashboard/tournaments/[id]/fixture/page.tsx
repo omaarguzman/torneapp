@@ -21,6 +21,7 @@ type MatchRow = {
   status: string
   score_home: number | null
   score_away: number | null
+  validated_at: string | null
   home_team: { name: string; logo_url: string | null } | null
   away_team: { name: string; logo_url: string | null } | null
   venue: { name: string } | null
@@ -109,7 +110,7 @@ export default async function FixturePage({
       `id, number, week_start,
        matches (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
-         status, score_home, score_away,
+         status, score_home, score_away, validated_at,
          home_team:teams!matches_home_team_id_fkey(name, logo_url),
          away_team:teams!matches_away_team_id_fkey(name, logo_url),
          venue:venues(name)
@@ -196,11 +197,28 @@ export default async function FixturePage({
                               <p className="capitalize">{dateLabel} · {m.start_time.slice(0, 5)}</p>
                               <p>{m.venue?.name}</p>
                             </div>
-                            {tokenByMatch.get(m.id) && (
-                              <CopyLinkButton path={`/partido/${tokenByMatch.get(m.id)}`} label="📋 Link árbitro" />
-                            )}
+                            <div className="flex flex-col items-end gap-1">
+                              <Link
+                                href={`/dashboard/tournaments/${id}/fixture/${m.id}`}
+                                className="text-green-400 hover:text-green-300 text-[11px] font-semibold whitespace-nowrap"
+                              >
+                                {played ? 'Ver cédula' : 'Capturar cédula'}
+                              </Link>
+                              {tokenByMatch.get(m.id) && !m.validated_at && (
+                                <CopyLinkButton path={`/partido/${tokenByMatch.get(m.id)}`} label="📋 Link árbitro" />
+                              )}
+                            </div>
                           </div>
                         </div>
+                        {played && (
+                          <div className="mt-2">
+                            {m.validated_at ? (
+                              <span className="bg-green-950 text-green-400 text-[10px] px-2 py-0.5 rounded-full">✓ Cédula validada</span>
+                            ) : (
+                              <span className="bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">Cédula por validar</span>
+                            )}
+                          </div>
+                        )}
                         {matchSuspensions.length > 0 && (
                           <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-1.5">
                             {matchSuspensions.map((s, i) => (

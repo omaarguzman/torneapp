@@ -19,6 +19,7 @@ export type MatchData = {
   score_home: number | null
   score_away: number | null
   referee_notes: string | null
+  validated: boolean
   venue_name: string
   tournament_name: string
   home_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
@@ -64,7 +65,7 @@ export default async function MatchReportPage({
           {dateLabel} · {match.start_time.slice(0, 5)} · {match.venue_name}
         </p>
 
-        <MatchReportForm token={token} match={match} />
+        <MatchReportForm token={token} match={match} readOnly={match.validated} />
       </div>
     </main>
   )
