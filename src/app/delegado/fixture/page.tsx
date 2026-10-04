@@ -93,21 +93,12 @@ export default async function DelegateFixturePage() {
     suspensionsByMatch.get(s.matchId)!.push(s)
   })
 
-  const { data: matchdays } = (await supabase
-    .from('matchdays')
-    .select(
-      `id, number,
-       matches (
-         id, home_team_id, away_team_id, match_date, start_time, status, score_home, score_away,
-         home_team:teams!matches_home_team_id_fkey(name),
-         away_team:teams!matches_away_team_id_fkey(name),
-         venue:venues(name)
-       )`
-    )
-    .eq('tournament_id', myTeam.tournament_id)
-    .order('number')) as { data: MatchdayRow[] | null }
+  // Con adeudos, la base de datos no le deja leer partidos/eventos directamente;
+  // esta función le entrega el calendario con los marcadores ya vacíos.
+  const { data: fixtureData } = await supabase.rpc('get_delegate_fixture')
+  const matchdays = (fixtureData ?? []) as MatchdayRow[]
 
-  matchdays?.forEach((md) => {
+  matchdays.forEach((md) => {
     md.matches.sort((a, b) => (a.match_date + a.start_time).localeCompare(b.match_date + b.start_time))
   })
 
@@ -118,17 +109,6 @@ export default async function DelegateFixturePage() {
     .eq('paid', false)
 
   const isLocked = (pendingCount ?? 0) > 0
-
-  // Con adeudos, los marcadores se eliminan aquí en el servidor para que nunca
-  // lleguen al navegador (ocultarlos solo visualmente sería fácil de saltar).
-  if (isLocked) {
-    matchdays?.forEach((md) => {
-      md.matches.forEach((m) => {
-        m.score_home = null
-        m.score_away = null
-      })
-    })
-  }
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
