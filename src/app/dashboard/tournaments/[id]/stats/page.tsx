@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { computeStandings } from '@/lib/stats/standings'
+import StatsExportButtons from '@/components/StatsExportButtons'
 
 type EventRow = {
   type: 'goal' | 'yellow_card' | 'red_card'
@@ -89,8 +90,24 @@ export default async function StatsPage({
           ← Volver al torneo
         </Link>
 
-        <h1 className="text-2xl font-black text-white mt-4 mb-1">Estadísticas</h1>
-        <p className="text-gray-500 text-sm mb-8">{tournament.name}</p>
+        <div className="flex items-end justify-between gap-4 flex-wrap mt-4 mb-8">
+          <div>
+            <h1 className="text-2xl font-black text-white mb-1">Estadísticas</h1>
+            <p className="text-gray-500 text-sm">{tournament.name}</p>
+          </div>
+          <StatsExportButtons
+            allowExcel
+            data={{
+              tournamentName: tournament.name,
+              standings,
+              scorers: topScorers,
+              cards: topCards,
+              bestDefense: bestDefense
+                ? { teamName: bestDefense.teamName, goalsAgainst: bestDefense.goalsAgainst }
+                : null,
+            }}
+          />
+        </div>
 
         {/* Tabla de posiciones */}
         <section className="mb-10">

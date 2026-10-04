@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { computeStandings } from '@/lib/stats/standings'
 import PendingChargesNotice from '../PendingChargesNotice'
+import StatsExportButtons from '@/components/StatsExportButtons'
 
 type EventRow = {
   type: 'goal' | 'yellow_card' | 'red_card'
@@ -97,8 +98,19 @@ export default async function DelegateStatsPage() {
           ← Volver a mi equipo
         </Link>
 
-        <h1 className="text-2xl font-black text-white mt-4 mb-1">Estadísticas</h1>
-        <p className="text-gray-500 text-sm mb-8">{tournamentInfo?.name}</p>
+        <div className="flex items-end justify-between gap-4 flex-wrap mt-4 mb-8">
+          <div>
+            <h1 className="text-2xl font-black text-white mb-1">Estadísticas</h1>
+            <p className="text-gray-500 text-sm">{tournamentInfo?.name}</p>
+          </div>
+          <StatsExportButtons
+            data={{
+              tournamentName: tournamentInfo?.name ?? 'Torneo',
+              standings,
+              scorers: topScorers,
+            }}
+          />
+        </div>
 
         <section className="mb-10">
           <h2 className="text-white font-bold mb-3">Tabla de posiciones</h2>
