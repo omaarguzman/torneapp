@@ -7,6 +7,10 @@ const MESSAGES: Record<string, string> = {
     'Esa cuenta ya administra torneos en Torneapp, así que no puede ser también delegado. Usa otra cuenta de Google o regístrate con otro correo.',
   INVALID_ACCOUNT: 'No pudimos verificar tu cuenta para vincularla al equipo. Inténtalo de nuevo.',
   NOT_AUTHENTICATED: 'Tu sesión expiró antes de terminar el registro. Inténtalo de nuevo.',
+  ALREADY_DELEGATE:
+    'Esa cuenta ya es delegado de otro equipo. Cada cuenta solo puede representar a un equipo; usa otra cuenta o pide al administrador que te desvincule del equipo anterior.',
+  EMAIL_IN_USE:
+    'Ese correo ya está registrado como delegado de otro equipo de este torneo. Usa otro correo o contacta al administrador del torneo.',
 }
 
 export function oauthErrorMessage(code: string | null | undefined) {
@@ -16,6 +20,14 @@ export function oauthErrorMessage(code: string | null | undefined) {
 
 /** Extrae el código (ej. ADMIN_ACCOUNT) que lanzan las funciones claim_team_delegate*. */
 export function claimErrorCode(message: string | undefined) {
-  const known = ['INVALID_LINK', 'ALREADY_CLAIMED', 'ADMIN_ACCOUNT', 'INVALID_ACCOUNT', 'NOT_AUTHENTICATED']
+  const known = [
+    'INVALID_LINK',
+    'ALREADY_CLAIMED',
+    'ADMIN_ACCOUNT',
+    'INVALID_ACCOUNT',
+    'NOT_AUTHENTICATED',
+    'ALREADY_DELEGATE',
+    'EMAIL_IN_USE',
+  ]
   return known.find((code) => message?.includes(code)) ?? 'GOOGLE'
 }

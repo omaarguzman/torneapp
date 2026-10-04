@@ -1,7 +1,8 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { friendlyAuthError } from '@/lib/friendlyAuthError'
+import { friendlyAuthError, friendlyLoginError } from '@/lib/friendlyAuthError'
 import { claimErrorCode, oauthErrorMessage } from '@/lib/oauthErrors'
 
 export type DelegateRegisterResult = { success: true } | { error: string } | null
@@ -34,7 +35,7 @@ export async function registerDelegate(
   // vacío. Sin este chequeo, intentaríamos vincular un id que no existe.
   if (!data.user.identities || data.user.identities.length === 0) {
     return {
-      error: 'Ya existe una cuenta con este correo. Si ya te habías registrado antes, cierra esta ventana e inicia sesión normalmente. Si no reconoces esa cuenta, usa un correo distinto.',
+      error: 'Ya existe una cuenta con este correo. Usa la pestaña "Ya tengo cuenta" para iniciar sesión y aceptar la invitación.',
     }
   }
 
@@ -57,4 +58,40 @@ export async function registerDelegate(
   }
 
   return { success: true }
+}
+
+export async function acceptInviteWithPassword(
+  _prevState: DelegateRegisterResult,
+  formData: FormData
+): Promise<DelegateRegisterResult> {
+  const supabase = await createClient()
+
+  const token = formData.get('token') as string
+  const fullName = ((formData.get('full_name') as string) || '').trim() || null
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: formData.get('email') as string,
+    password: formData.get('password') as string,
+  })
+
+  if (error) {
+    console.error('[acceptInviteWithPassword] signIn error:', error.status, error.message)
+    return { error: friendlyLoginError(error.message, error.status) }
+  }
+
+  const { error: claimError } = await supabase.rpc('claim_team_delegate_self', {
+    p_token: token,
+    p_delegate_name: fullName,
+  })
+
+  if (claimError) {
+    console.error('[acceptInviteWithPassword] claim error:', claimError)
+    const code = claimErrorCode(claimError.message)
+    // Igual que en el callback de Google: una cuenta de admin conserva su sesión,
+    // cualquier otro fallo la cierra para no dejarla a medias en esta página
+    if (code !== 'ADMIN_ACCOUNT') await supabase.auth.signOut()
+    return { error: oauthErrorMessage(code)! }
+  }
+
+  redirect('/delegado')
 }

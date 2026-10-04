@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import DelegateRegisterForm from './DelegateRegisterForm'
+import EmailInviteForms from './EmailInviteForms'
 import GoogleButton from '@/components/GoogleButton'
 import { oauthErrorMessage } from '@/lib/oauthErrors'
 
@@ -72,7 +72,7 @@ export default async function TeamInvitePage({
               <div className="flex-1 h-px bg-gray-800" />
             </div>
 
-            <DelegateRegisterForm
+            <EmailInviteForms
               token={token}
               defaultName={invite.delegate_name ?? ''}
               defaultEmail={invite.delegate_email ?? ''}

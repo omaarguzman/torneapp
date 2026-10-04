@@ -4,11 +4,39 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>
+
+const EMAIL_IN_USE_MESSAGE = 'Ese correo ya está asignado al delegado de otro equipo de este torneo.'
+
+function normalizeEmail(raw: FormDataEntryValue | null) {
+  const email = ((raw as string) || '').trim().toLowerCase()
+  return email || null
+}
+
+async function delegateEmailTaken(
+  supabase: SupabaseClient,
+  tournamentId: string,
+  email: string | null,
+  excludeTeamId?: string
+) {
+  if (!email) return false
+  const { data } = await supabase
+    .from('teams')
+    .select('id, delegate_email')
+    .eq('tournament_id', tournamentId)
+    .not('delegate_email', 'is', null)
+  return (data ?? []).some((t) => t.id !== excludeTeamId && t.delegate_email?.toLowerCase() === email)
+}
+
 export async function createTeam(formData: FormData) {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string
   const name = formData.get('name') as string
-  const delegateEmail = (formData.get('delegate_email') as string) || null
+  const delegateEmail = normalizeEmail(formData.get('delegate_email'))
+
+  if (await delegateEmailTaken(supabase, tournamentId, delegateEmail)) {
+    return { error: EMAIL_IN_USE_MESSAGE }
+  }
   const delegateName = (formData.get('delegate_name') as string) || null
   const hasPriority = formData.get('has_scheduling_priority') === 'on'
   const preferredSlotId = hasPriority
@@ -46,7 +74,10 @@ export async function createTeam(formData: FormData) {
     preferred_slot_id: preferredSlotId,
   })
 
-  if (error) return { error: error.message }
+  if (error) {
+    if (error.code === '23505') return { error: EMAIL_IN_USE_MESSAGE }
+    return { error: error.message }
+  }
 
   redirect(`/dashboard/tournaments/${tournamentId}`)
 }
@@ -56,7 +87,11 @@ export async function updateTeam(formData: FormData) {
   const tournamentId = formData.get('tournament_id') as string
   const teamId = formData.get('team_id') as string
   const name = formData.get('name') as string
-  const delegateEmail = (formData.get('delegate_email') as string) || null
+  const delegateEmail = normalizeEmail(formData.get('delegate_email'))
+
+  if (await delegateEmailTaken(supabase, tournamentId, delegateEmail, teamId)) {
+    return { error: EMAIL_IN_USE_MESSAGE }
+  }
   const delegateName = (formData.get('delegate_name') as string) || null
   const hasPriority = formData.get('has_scheduling_priority') === 'on'
   const preferredSlotId = hasPriority
@@ -96,7 +131,10 @@ export async function updateTeam(formData: FormData) {
 
   const { error } = await supabase.from('teams').update(updates).eq('id', teamId)
 
-  if (error) return { error: error.message }
+  if (error) {
+    if (error.code === '23505') return { error: EMAIL_IN_USE_MESSAGE }
+    return { error: error.message }
+  }
 
   redirect(`/dashboard/tournaments/${tournamentId}`)
 }
