@@ -4,6 +4,7 @@ import Link from 'next/link'
 import MatchReportForm from '@/app/partido/[token]/MatchReportForm'
 import type { MatchData } from '@/app/partido/[token]/page'
 import ValidationControls from './ValidationControls'
+import AttendanceEditor from './AttendanceEditor'
 
 export default async function AdminMatchReportPage({
   params,
@@ -73,7 +74,17 @@ export default async function AdminMatchReportPage({
           />
         </div>
 
-        <MatchReportForm key={String(match.validated)} token={tokenRow.token} match={match} readOnly={match.validated} />
+        <MatchReportForm
+          key={String(match.validated)}
+          token={tokenRow.token}
+          match={match}
+          readOnly={match.validated}
+          showAttendance={false}
+        />
+
+        <div className="mt-8">
+          <AttendanceEditor tournamentId={id} match={match} />
+        </div>
       </div>
     </main>
   )

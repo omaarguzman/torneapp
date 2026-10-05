@@ -5,6 +5,7 @@ import { logout } from '@/app/actions/auth'
 import { deletePlayer } from '@/app/actions/players'
 import PendingChargesNotice from './PendingChargesNotice'
 import { resolveCurrentTeam } from '@/lib/delegateTeam'
+import { attendanceStatus, attendanceToneClass, countByPlayer } from '@/lib/attendance'
 
 export default async function DelegateDashboard() {
   const supabase = await createClient()
@@ -46,6 +47,13 @@ export default async function DelegateDashboard() {
   const isLocked = (pendingCharges?.length ?? 0) > 0
 
   const players = (playerRows ?? []).sort((a, b) => (a.jersey_number ?? 999) - (b.jersey_number ?? 999))
+
+  const [{ data: attendanceRows }, { data: tournamentRules }] = await Promise.all([
+    supabase.from('match_attendance').select('player_id').eq('team_id', team.id),
+    supabase.from('tournaments').select('min_matches_required').eq('id', team.tournament_id).single(),
+  ])
+  const attendanceCounts = countByPlayer(attendanceRows ?? [])
+  const minRequired = tournamentRules?.min_matches_required ?? null
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
@@ -134,6 +142,14 @@ export default async function DelegateDashboard() {
                 </div>
                 <span className="text-gray-200 text-sm flex-1 truncate">{player.full_name}</span>
                 {player.position && <span className="text-gray-500 text-xs">{player.position}</span>}
+                {(() => {
+                  const status = attendanceStatus(attendanceCounts.get(player.id) ?? 0, minRequired)
+                  return (
+                    <span className={`text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap ${attendanceToneClass[status.tone]}`}>
+                      {status.label}
+                    </span>
+                  )
+                })()}
                 <form action={deletePlayer}>
                   <input type="hidden" name="player_id" value={player.id} />
                   <input type="hidden" name="tournament_id" value={team.tournament_id} />

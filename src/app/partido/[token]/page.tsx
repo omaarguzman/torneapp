@@ -25,6 +25,7 @@ export type MatchData = {
   home_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
   away_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
   events: MatchEvent[]
+  attendance: string[]
 }
 
 export default async function MatchReportPage({

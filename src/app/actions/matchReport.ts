@@ -15,6 +15,16 @@ export async function submitMatchReport(
   const scoreHome = parseInt(formData.get('score_home') as string)
   const scoreAway = parseInt(formData.get('score_away') as string)
   const eventsRaw = formData.get('events') as string
+  const attendanceRaw = formData.get('attendance') as string | null
+
+  let attendance: string[] | null = null
+  if (attendanceRaw !== null) {
+    try {
+      attendance = JSON.parse(attendanceRaw)
+    } catch {
+      return { error: 'Hubo un problema leyendo la asistencia capturada.' }
+    }
+  }
 
   if (Number.isNaN(scoreHome) || Number.isNaN(scoreAway)) {
     return { error: 'El marcador es obligatorio para ambos equipos.' }
@@ -65,6 +75,8 @@ export async function submitMatchReport(
     p_score_away: scoreAway,
     p_events: events,
     p_referee_notes: refereeNotes,
+    // null = no tocar la asistencia (la cédula del panel del admin no la envía)
+    p_attendance: attendance,
   })
 
   if (error) {

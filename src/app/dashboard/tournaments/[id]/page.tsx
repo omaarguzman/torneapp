@@ -8,6 +8,8 @@ import { deletePlayer } from '@/app/actions/players'
 import CopyLinkButton from '@/components/CopyLinkButton'
 import SectionTabs from './SectionTabs'
 import PaymentsSection from './PaymentsSection'
+import AttendanceSection from './AttendanceSection'
+import { countByPlayer } from '@/lib/attendance'
 import UnlinkDelegateButton from './UnlinkDelegateButton'
 import type { Charge } from '@/lib/charges'
 
@@ -71,6 +73,16 @@ export default async function TournamentPage({
     .order('created_at')
 
   const charges = (chargesData ?? []) as Charge[]
+
+  const [{ data: attendanceRows }, { data: playedMatches }] = await Promise.all([
+    supabase.from('match_attendance').select('player_id').eq('tournament_id', id),
+    supabase.from('matches').select('home_team_id, away_team_id').eq('tournament_id', id).eq('status', 'played'),
+  ])
+  const attendanceCounts = countByPlayer(attendanceRows ?? [])
+  const playedByTeam = new Map<string, number>()
+  ;(playedMatches ?? []).forEach((m) => {
+    ;[m.home_team_id, m.away_team_id].forEach((t) => playedByTeam.set(t, (playedByTeam.get(t) ?? 0) + 1))
+  })
   const teamsWithDebt = new Set(charges.filter((c) => !c.paid).map((c) => c.team_id)).size
 
   return (
@@ -424,6 +436,19 @@ export default async function TournamentPage({
                     tournamentId={id}
                     teams={(teams ?? []).map((t) => ({ id: t.id, name: t.name }))}
                     charges={charges}
+                  />
+                ),
+              },
+              {
+                key: 'attendance',
+                label: 'Asistencia',
+                content: (
+                  <AttendanceSection
+                    tournamentId={id}
+                    minRequired={tournament.min_matches_required ?? null}
+                    teams={(teams ?? []).map((t) => ({ id: t.id, name: t.name, players: t.players ?? [] }))}
+                    counts={attendanceCounts}
+                    playedByTeam={playedByTeam}
                   />
                 ),
               },

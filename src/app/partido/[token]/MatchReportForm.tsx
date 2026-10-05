@@ -23,11 +23,15 @@ export default function MatchReportForm({
   token,
   match,
   readOnly = false,
+  showAttendance = true,
 }: {
   token: string
   match: MatchData
   readOnly?: boolean
+  /** En el panel del admin la asistencia se edita aparte (incluso con la cédula validada). */
+  showAttendance?: boolean
 }) {
+  const [attendance, setAttendance] = useState<Set<string>>(new Set(match.attendance))
   const [events, setEvents] = useState<LocalEvent[]>(
     match.events.map((e) => {
       const player = [...match.home_team.players, ...match.away_team.players].find((p) => p.id === e.player_id)
@@ -78,6 +82,25 @@ export default function MatchReportForm({
   const awayScoreMismatch = scoreAway !== '' && parseInt(scoreAway) !== goalsAway
   const canSubmit = !homeScoreMismatch && !awayScoreMismatch
 
+  // Quien tiene gol o tarjeta asistió: se marca solo y no se puede desmarcar
+  const forcedAttendance = new Set(events.map((e) => e.playerId))
+  const attended = (playerId: string) => attendance.has(playerId) || forcedAttendance.has(playerId)
+
+  function toggleAttendance(playerId: string) {
+    setAttendance((prev) => {
+      const next = new Set(prev)
+      if (next.has(playerId)) next.delete(playerId)
+      else next.add(playerId)
+      return next
+    })
+  }
+
+  function markAll(playerIds: string[]) {
+    setAttendance((prev) => new Set([...prev, ...playerIds]))
+  }
+
+  const attendancePayload = JSON.stringify([...new Set([...attendance, ...forcedAttendance])])
+
   const eventsPayload = JSON.stringify(
     events.map((e) => ({
       player_id: e.playerId,
@@ -92,6 +115,7 @@ export default function MatchReportForm({
     <form action={formAction}>
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="events" value={eventsPayload} />
+      {showAttendance && <input type="hidden" name="attendance" value={attendancePayload} />}
 
       {readOnly && (
         <p className="bg-green-950 border border-green-800 text-green-300 text-sm rounded-lg px-4 py-3 mb-6">
@@ -152,7 +176,18 @@ export default function MatchReportForm({
       {/* Roster de cada equipo con botones rápidos */}
       {[match.home_team, match.away_team].map((team) => (
         <div key={team.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-          <p className="text-white font-semibold text-sm mb-3">{team.name}</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-white font-semibold text-sm">{team.name}</p>
+            {showAttendance && team.players.length > 0 && (
+              <button
+                type="button"
+                onClick={() => markAll(team.players.map((p) => p.id))}
+                className="text-green-400 hover:text-green-300 text-xs font-semibold"
+              >
+                Marcar todos asistieron
+              </button>
+            )}
+          </div>
           <div className="flex flex-col gap-1.5">
             {team.players.length === 0 && (
               <p className="text-gray-600 text-xs">Este equipo no tiene jugadores registrados.</p>
@@ -165,6 +200,17 @@ export default function MatchReportForm({
               return (
                 <div key={p.id} className="bg-gray-800/50 rounded-lg px-3 py-2">
                   <div className="flex items-center gap-2">
+                    {showAttendance && (
+                      <input
+                        type="checkbox"
+                        checked={attended(p.id)}
+                        disabled={forcedAttendance.has(p.id)}
+                        onChange={() => toggleAttendance(p.id)}
+                        title={forcedAttendance.has(p.id) ? 'Tiene gol o tarjeta: asistió' : 'Asistió'}
+                        aria-label={`Asistió ${p.full_name}`}
+                        className="w-4 h-4 accent-green-500 flex-shrink-0"
+                      />
+                    )}
                     <span className="text-gray-500 text-xs w-6 text-center flex-shrink-0">
                       {p.jersey_number ?? '—'}
                     </span>
