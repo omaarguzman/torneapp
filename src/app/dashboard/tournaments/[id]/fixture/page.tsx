@@ -42,10 +42,13 @@ type MatchdayRow = {
 
 export default async function FixturePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ actualizado?: string }>
 }) {
   const { id } = await params
+  const { actualizado } = await searchParams
   const supabase = await createClient()
 
   const { data: tournament } = await supabase
@@ -167,13 +170,29 @@ export default async function FixturePage({
             <h1 className="text-2xl font-black text-white">Fixture</h1>
             <p className="text-gray-500 text-sm">{tournament.name}</p>
           </div>
-          <GenerateFixtureButton
-            tournamentId={id}
-            teamNames={teamNames}
-            hasExistingFixture={(matchdays?.length ?? 0) > 0}
-            hasPlayedMatches={hasPlayedMatches}
-          />
+          <div className="flex flex-col items-end gap-2">
+            {(matchdays?.length ?? 0) > 0 && (
+              <Link
+                href={`/dashboard/tournaments/${id}/fixture/actualizar`}
+                className="border border-green-700 hover:border-green-500 text-green-400 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+              >
+                🔄 Actualizar fixture
+              </Link>
+            )}
+            <GenerateFixtureButton
+              tournamentId={id}
+              teamNames={teamNames}
+              hasExistingFixture={(matchdays?.length ?? 0) > 0}
+              hasPlayedMatches={hasPlayedMatches}
+            />
+          </div>
         </div>
+
+        {actualizado && (
+          <p className="mb-6 text-green-400 text-sm bg-green-950 border border-green-800 rounded-lg px-4 py-3">
+            ✓ Fixture actualizado. Revisa la pestaña Pendientes por si quedaron cruces por programar.
+          </p>
+        )}
 
         {matchdays && matchdays.length > 0 ? (
           <SectionTabs
