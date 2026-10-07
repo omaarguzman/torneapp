@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensions'
 import { resolveCurrentTeam } from '@/lib/delegateTeam'
 import SectionTabs from '@/components/SectionTabs'
+import RolImageButton from '@/components/RolImageButton'
 import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
@@ -150,6 +151,7 @@ export default async function DelegateFixturePage() {
               content: (
               <div>
                 <h2 className="text-white font-bold mb-3">Jornada {md.number}</h2>
+                {md.matches.length > 0 && <RolImageButton matchdayId={md.id} matchdayNumber={md.number} />}
                 <div className="flex flex-col gap-2">
                   {md.matches.map((m) => {
                     const dateLabel = new Date(m.match_date + 'T00:00:00').toLocaleDateString('es-MX', {

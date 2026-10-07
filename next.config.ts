@@ -16,6 +16,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  experimental: {
+    serverActions: {
+      // Logos y fotos pueden pesar hasta 2 MB (src/lib/uploads.ts) + lo que agrega el formulario
+      bodySizeLimit: "2.5mb",
+    },
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

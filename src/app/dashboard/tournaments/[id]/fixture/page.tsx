@@ -9,6 +9,7 @@ import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensio
 import PostponeButton from './PostponeButton'
 import ScheduleMatchForm from './ScheduleMatchForm'
 import ShiftMatchdayForm from './ShiftMatchdayForm'
+import RolImageButton from '@/components/RolImageButton'
 import MatchHistory, { type MatchChange } from './MatchHistory'
 import UndoPostponeButton from './UndoPostponeButton'
 import { matchScheduleLabel, walkoverLabel } from '@/lib/fixtures/matchLabel'
@@ -42,6 +43,7 @@ type MatchdayRow = {
   id: string
   number: number
   week_start: string
+  image_note: string | null
   matches: MatchRow[]
 }
 
@@ -144,7 +146,7 @@ export default async function FixturePage({
   const { data: matchdays } = await supabase
     .from('matchdays')
     .select(
-      `id, number, week_start,
+      `id, number, week_start, image_note,
        matches!matchday_id (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
          status, score_home, score_away, validated_at, walkover, suspended_minute, administrative_result,
@@ -247,6 +249,13 @@ export default async function FixturePage({
                     </span>
                   )}
                 </div>
+                {md.matches.length > 0 && (
+                  <RolImageButton
+                    matchdayId={md.id}
+                    matchdayNumber={md.number}
+                    note={{ tournamentId: id, value: md.image_note }}
+                  />
+                )}
                 {md.matches.length > 0 && !md.matches.some((m) => m.status === 'played') && (
                   <ShiftMatchdayForm
                     tournamentId={id}

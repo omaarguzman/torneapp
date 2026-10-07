@@ -10,6 +10,7 @@ import SectionTabs from '@/components/SectionTabs'
 import PaymentsSection from './PaymentsSection'
 import AttendanceSection from './AttendanceSection'
 import RulesForm from './RulesForm'
+import TournamentLogoForm from './TournamentLogoForm'
 import { countByPlayer } from '@/lib/attendance'
 import UnlinkDelegateButton from './UnlinkDelegateButton'
 import type { Charge } from '@/lib/charges'
@@ -462,6 +463,8 @@ export default async function TournamentPage({
                 key: 'rules',
                 label: 'Reglas',
                 content: (
+                  <div className="flex flex-col gap-6">
+                  <TournamentLogoForm tournamentId={id} logoUrl={tournament.logo_url ?? null} />
                   <RulesForm
                     tournamentId={id}
                     rules={tournament.rules ?? null}
@@ -470,6 +473,7 @@ export default async function TournamentPage({
                     walkoverGoals={tournament.walkover_goals ?? 3}
                     doubleWalkoverRule={tournament.double_walkover_rule ?? 'both_lose'}
                   />
+                  </div>
                 ),
               },
             ]}
