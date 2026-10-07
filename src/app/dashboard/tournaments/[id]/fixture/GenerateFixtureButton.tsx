@@ -7,12 +7,23 @@ export default function GenerateFixtureButton({
   tournamentId,
   teamNames,
   hasExistingFixture,
+  hasPlayedMatches = false,
 }: {
   tournamentId: string
   teamNames: Record<string, string>
   hasExistingFixture: boolean
+  hasPlayedMatches?: boolean
 }) {
   const [state, formAction, isPending] = useActionState(generateFixtures, null)
+
+  if (hasPlayedMatches) {
+    return (
+      <p className="text-gray-500 text-xs max-w-xs">
+        🔒 Ya hay partidos jugados, así que el fixture no se puede regenerar. Usa <strong>Aplazar</strong> y la pestaña{' '}
+        <strong>Pendientes</strong> para reacomodar partidos.
+      </p>
+    )
+  }
 
   return (
     <div>

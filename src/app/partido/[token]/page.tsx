@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import MatchReportForm from './MatchReportForm'
+import { matchScheduleLabel } from '@/lib/fixtures/matchLabel'
 
 export type MatchPlayer = { id: string; full_name: string; jersey_number: number | null }
 
@@ -13,14 +14,14 @@ export type MatchEvent = {
 
 export type MatchData = {
   id: string
-  match_date: string
-  start_time: string
+  match_date: string | null
+  start_time: string | null
   status: string
   score_home: number | null
   score_away: number | null
   referee_notes: string | null
   validated: boolean
-  venue_name: string
+  venue_name: string | null
   tournament_name: string
   home_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
   away_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
@@ -49,11 +50,7 @@ export default async function MatchReportPage({
     )
   }
 
-  const dateLabel = new Date(match.match_date + 'T00:00:00').toLocaleDateString('es-MX', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
+  const pending = match.status === 'pending'
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
@@ -63,10 +60,19 @@ export default async function MatchReportPage({
           {match.home_team.name} vs {match.away_team.name}
         </h1>
         <p className="text-gray-500 text-sm capitalize mb-6">
-          {dateLabel} · {match.start_time.slice(0, 5)} · {match.venue_name}
+          {matchScheduleLabel(match)}
         </p>
 
-        <MatchReportForm token={token} match={match} readOnly={match.validated} />
+        {pending ? (
+          <div className="bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3">
+            <p className="text-yellow-400 text-sm">
+              ⏸ Este partido fue aplazado y todavía no tiene nueva fecha. La cédula se podrá capturar cuando el
+              administrador del torneo lo vuelva a programar.
+            </p>
+          </div>
+        ) : (
+          <MatchReportForm token={token} match={match} readOnly={match.validated} />
+        )}
       </div>
     </main>
   )

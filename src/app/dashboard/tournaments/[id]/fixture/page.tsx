@@ -6,6 +6,10 @@ import CopyLinkButton from '@/components/CopyLinkButton'
 import SectionTabs from '@/components/SectionTabs'
 import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
 import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensions'
+import PostponeButton from './PostponeButton'
+import ScheduleMatchForm from './ScheduleMatchForm'
+import UndoPostponeButton from './UndoPostponeButton'
+import { matchScheduleLabel } from '@/lib/fixtures/matchLabel'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
   yellow_accumulation: 'acumulación de amarillas',
@@ -77,8 +81,29 @@ export default async function FixturePage({
 
   const { data: allMatches } = await supabase
     .from('matches')
-    .select('id, home_team_id, away_team_id, match_date, start_time, status')
+    .select(
+      'id, home_team_id, away_team_id, match_date, start_time, venue_id, status, postponed_from, original_match_date, original_start_time, original_venue_id'
+    )
     .eq('tournament_id', id)
+
+  const pendingMatches = (allMatches ?? [])
+    .filter((m) => m.status === 'pending')
+    .sort((a, b) => (a.postponed_from ?? 999) - (b.postponed_from ?? 999))
+  const scheduledMatches = (allMatches ?? []).filter((m) => m.status !== 'pending')
+  const hasPlayedMatches = scheduledMatches.some((m) => m.status === 'played')
+
+  const { data: venues } = await supabase
+    .from('venues')
+    .select('id, name, venue_slots(day_of_week, start_time, end_time)')
+    .eq('tournament_id', id)
+    .order('name')
+
+  const venueSlots = (venues ?? []).flatMap((v) =>
+    (v.venue_slots ?? []).map((s: { day_of_week: number; start_time: string; end_time: string }) => ({
+      venue_id: v.id,
+      ...s,
+    }))
+  )
 
   const { data: allEvents } = await supabase
     .from('match_events')
@@ -86,12 +111,13 @@ export default async function FixturePage({
     .eq('match.tournament_id', id)
 
   const suspensions = computeSuspensions({
-    matches: (allMatches ?? []).map((m) => ({
+    // Los pendientes no tienen fecha: no cuentan para cumplir suspensiones hasta que se programen
+    matches: scheduledMatches.map((m) => ({
       id: m.id,
       homeTeamId: m.home_team_id,
       awayTeamId: m.away_team_id,
-      matchDate: m.match_date,
-      startTime: m.start_time,
+      matchDate: m.match_date!,
+      startTime: m.start_time!,
       status: m.status,
     })),
     events: (allEvents ?? []).map((e) => ({ matchId: e.match_id, playerId: e.player_id, type: e.type })),
@@ -110,12 +136,12 @@ export default async function FixturePage({
     .from('matchdays')
     .select(
       `id, number, week_start,
-       matches (
+       matches!matchday_id (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
          status, score_home, score_away, validated_at,
          home_team:teams!matches_home_team_id_fkey(name, logo_url),
          away_team:teams!matches_away_team_id_fkey(name, logo_url),
-         venue:venues(name)
+         venue:venues!venue_id(name)
        )`
     )
     .eq('tournament_id', id)
@@ -145,14 +171,22 @@ export default async function FixturePage({
             tournamentId={id}
             teamNames={teamNames}
             hasExistingFixture={(matchdays?.length ?? 0) > 0}
+            hasPlayedMatches={hasPlayedMatches}
           />
         </div>
 
         {matchdays && matchdays.length > 0 ? (
           <SectionTabs
             defaultKey={currentMatchdayId(matchdays)}
-            tabs={matchdays.map((md) => {
-              const playingTeamIds = new Set(md.matches.flatMap((m) => [m.home_team_id, m.away_team_id]))
+            tabs={[
+              ...matchdays.map((md) => {
+              // Un equipo con partido aplazado de esta jornada no "descansa": tiene un pendiente
+              const playingTeamIds = new Set([
+                ...md.matches.flatMap((m) => [m.home_team_id, m.away_team_id]),
+                ...pendingMatches
+                  .filter((p) => p.postponed_from === md.number)
+                  .flatMap((p) => [p.home_team_id, p.away_team_id]),
+              ])
               const restingTeam = teams?.find((t) => !playingTeamIds.has(t.id))
 
               return {
@@ -213,6 +247,13 @@ export default async function FixturePage({
                               {tokenByMatch.get(m.id) && !m.validated_at && (
                                 <CopyLinkButton path={`/partido/${tokenByMatch.get(m.id)}`} label="📋 Link árbitro" />
                               )}
+                              {m.status === 'scheduled' && (
+                                <PostponeButton
+                                  tournamentId={id}
+                                  matchId={m.id}
+                                  label={`${m.home_team?.name ?? '—'} vs ${m.away_team?.name ?? '—'}`}
+                                />
+                              )}
                             </div>
                           </div>
                         </div>
@@ -244,7 +285,71 @@ export default async function FixturePage({
               </div>
                 ),
               }
-            })}
+              }),
+              {
+                key: 'pendientes',
+                label: 'Pendientes',
+                badge: pendingMatches.length > 0 ? String(pendingMatches.length) : undefined,
+                content: (
+                  <div>
+                    <h2 className="text-white font-bold mb-1">Partidos pendientes</h2>
+                    <p className="text-gray-500 text-xs mb-4">
+                      Partidos aplazados que aún no tienen fecha. Al programarlos se acomodan en la jornada que
+                      corresponda a la fecha elegida.
+                    </p>
+                    {pendingMatches.length === 0 ? (
+                      <div className="border border-dashed border-gray-800 rounded-lg p-8 text-center">
+                        <p className="text-gray-500 text-sm">No hay partidos pendientes. 👌</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {pendingMatches.map((p) => (
+                          <div key={p.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                            <p className="text-white text-sm font-medium truncate">
+                              {teamNames[p.home_team_id] ?? '—'} <span className="text-gray-600 text-xs">vs</span>{' '}
+                              {teamNames[p.away_team_id] ?? '—'}
+                            </p>
+                            <span className="inline-block mt-1 bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">
+                              ⏸ {p.postponed_from ? `Aplazado de J${p.postponed_from}` : 'Por programar'}
+                            </span>
+                            {p.original_match_date && p.original_start_time && (
+                              <UndoPostponeButton
+                                tournamentId={id}
+                                matchId={p.id}
+                                originalLabel={matchScheduleLabel({
+                                  status: 'scheduled',
+                                  match_date: p.original_match_date,
+                                  start_time: p.original_start_time,
+                                  venue_name: venues?.find((v) => v.id === p.original_venue_id)?.name ?? null,
+                                })}
+                              />
+                            )}
+                            <details className="mt-3 group">
+                              <summary className="cursor-pointer list-none text-green-400 text-xs font-semibold">
+                                <span className="group-open:hidden">📅 Programar en otra fecha ▾</span>
+                                <span className="hidden group-open:inline text-gray-500">Cerrar ▴</span>
+                              </summary>
+                              <ScheduleMatchForm
+                                tournamentId={id}
+                                matchId={p.id}
+                                venues={(venues ?? []).map((v) => ({ id: v.id, name: v.name }))}
+                                slots={venueSlots}
+                                scheduled={scheduledMatches}
+                                matchdays={(matchdays ?? []).map((md) => ({
+                                  id: md.id,
+                                  number: md.number,
+                                  week_start: md.week_start,
+                                }))}
+                              />
+                            </details>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ),
+              },
+            ]}
           />
         ) : (
           <div className="border border-dashed border-gray-800 rounded-lg p-10 text-center">

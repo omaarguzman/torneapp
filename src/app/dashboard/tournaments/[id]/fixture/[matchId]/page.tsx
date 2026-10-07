@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import MatchReportForm from '@/app/partido/[token]/MatchReportForm'
 import type { MatchData } from '@/app/partido/[token]/page'
+import { matchScheduleLabel } from '@/lib/fixtures/matchLabel'
 import ValidationControls from './ValidationControls'
 import AttendanceEditor from './AttendanceEditor'
 
@@ -35,11 +36,6 @@ export default async function AdminMatchReportPage({
     .eq('id', matchId)
     .single()
 
-  const dateLabel = new Date(match.match_date + 'T00:00:00').toLocaleDateString('es-MX', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
@@ -52,7 +48,7 @@ export default async function AdminMatchReportPage({
           {match.home_team.name} vs {match.away_team.name}
         </h1>
         <p className="text-gray-500 text-sm capitalize mb-6">
-          {dateLabel} · {match.start_time.slice(0, 5)} · {match.venue_name}
+          {matchScheduleLabel(match)}
         </p>
 
         <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 flex items-center justify-between gap-3 flex-wrap">
@@ -74,6 +70,15 @@ export default async function AdminMatchReportPage({
           />
         </div>
 
+        {match.status === 'pending' ? (
+          <div className="bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3">
+            <p className="text-yellow-400 text-sm">
+              ⏸ Este partido está aplazado. Prográmalo desde la pestaña <strong>Pendientes</strong> del fixture para
+              poder capturar su cédula.
+            </p>
+          </div>
+        ) : (
+          <>
         <MatchReportForm
           key={String(match.validated)}
           token={tokenRow.token}
@@ -85,6 +90,8 @@ export default async function AdminMatchReportPage({
         <div className="mt-8">
           <AttendanceEditor tournamentId={id} match={match} />
         </div>
+          </>
+        )}
       </div>
     </main>
   )

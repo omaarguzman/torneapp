@@ -27,7 +27,7 @@ export default function SectionTabs({ tabs, defaultKey }: { tabs: Tab[]; default
 
   return (
     <div>
-      <div ref={barRef} className="relative flex gap-2 mb-6 border-b border-gray-800 overflow-x-auto">
+      <div ref={barRef} className="relative flex gap-2 mb-6 border-b border-gray-800 overflow-x-auto overflow-y-hidden [scrollbar-width:thin] [scrollbar-color:#374151_transparent]">
         {tabs.map((tab) => (
           <button
             key={tab.key}

@@ -27,6 +27,19 @@ export async function generateFixtures(
     return { error: 'El torneo necesita una fecha de inicio para poder generar el fixture.' }
   }
 
+  const { count: playedCount } = await supabase
+    .from('matches')
+    .select('id', { count: 'exact', head: true })
+    .eq('tournament_id', tournamentId)
+    .eq('status', 'played')
+
+  if ((playedCount ?? 0) > 0) {
+    return {
+      error:
+        'Este torneo ya tiene partidos jugados, así que no se puede regenerar el fixture sin perder resultados. Usa "Aplazar" y la pestaña Pendientes para reacomodar partidos.',
+    }
+  }
+
   const { data: teams } = await supabase
     .from('teams')
     .select('id, has_scheduling_priority, preferred_slot:venue_slots(venue_id, day_of_week, start_time, end_time)')
@@ -100,6 +113,14 @@ export async function generateFixtures(
     // Si ya existía un fixture generado antes, lo reemplazamos por completo
     const { error: deleteError } = await supabase.from('matchdays').delete().eq('tournament_id', tournamentId)
     if (deleteError) return { error: 'Error al borrar el fixture anterior: ' + deleteError.message }
+
+    // Los partidos pendientes no cuelgan de ninguna jornada, así que se borran aparte
+    const { error: pendingError } = await supabase
+      .from('matches')
+      .delete()
+      .eq('tournament_id', tournamentId)
+      .is('matchday_id', null)
+    if (pendingError) return { error: 'Error al borrar los partidos pendientes: ' + pendingError.message }
 
     for (const md of result.matchdays) {
       const { data: matchday, error: mdError } = await supabase

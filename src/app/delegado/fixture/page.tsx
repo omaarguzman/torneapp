@@ -26,6 +26,15 @@ type MatchRow = {
   venue: { name: string } | null
 }
 
+type PendingRow = {
+  id: string
+  home_team_id: string
+  away_team_id: string
+  postponed_from: number | null
+  home_team: { name: string } | null
+  away_team: { name: string } | null
+}
+
 type MatchdayRow = {
   id: string
   number: number
@@ -68,6 +77,7 @@ export default async function DelegateFixturePage() {
     .from('matches')
     .select('id, home_team_id, away_team_id, match_date, start_time, status')
     .eq('tournament_id', myTeam.tournament_id)
+    .neq('status', 'pending')
 
   const { data: allEvents } = await supabase
     .from('match_events')
@@ -77,7 +87,7 @@ export default async function DelegateFixturePage() {
   const suspensions = computeSuspensions({
     matches: (allMatches ?? []).map((m) => ({
       id: m.id, homeTeamId: m.home_team_id, awayTeamId: m.away_team_id,
-      matchDate: m.match_date, startTime: m.start_time, status: m.status,
+      matchDate: m.match_date!, startTime: m.start_time!, status: m.status,
     })),
     events: (allEvents ?? []).map((e) => ({ matchId: e.match_id, playerId: e.player_id, type: e.type })),
     rosterByTeam,
@@ -99,6 +109,9 @@ export default async function DelegateFixturePage() {
   matchdays.forEach((md) => {
     md.matches.sort((a, b) => (a.match_date + a.start_time).localeCompare(b.match_date + b.start_time))
   })
+
+  const { data: pendingData } = await supabase.rpc('get_delegate_pending', { p_team_id: myTeam.id })
+  const pendingMatches = (pendingData ?? []) as PendingRow[]
 
   const { count: pendingCount } = await supabase
     .from('team_charges')
@@ -129,7 +142,8 @@ export default async function DelegateFixturePage() {
         {matchdays && matchdays.length > 0 ? (
           <SectionTabs
             defaultKey={currentMatchdayId(matchdays)}
-            tabs={matchdays.map((md) => ({
+            tabs={[
+              ...matchdays.map((md) => ({
               key: md.id,
               label: `J${md.number}`,
               content: (
@@ -184,7 +198,44 @@ export default async function DelegateFixturePage() {
                 </div>
               </div>
               ),
-            }))}
+            })),
+              ...(pendingMatches.length > 0
+                ? [
+                    {
+                      key: 'por-programar',
+                      label: 'Por programar',
+                      badge: String(pendingMatches.length),
+                      content: (
+                        <div>
+                          <h2 className="text-white font-bold mb-1">Partidos por programar</h2>
+                          <p className="text-gray-500 text-xs mb-4">
+                            Partidos aplazados que el administrador del torneo todavía no ha vuelto a programar.
+                          </p>
+                          <div className="flex flex-col gap-2">
+                            {pendingMatches.map((p) => {
+                              const isMyMatch = p.home_team_id === myTeam.id || p.away_team_id === myTeam.id
+                              return (
+                                <div
+                                  key={p.id}
+                                  className={`bg-gray-900 border rounded-lg p-4 flex items-center justify-between flex-wrap gap-2 ${isMyMatch ? 'border-green-800' : 'border-gray-800'}`}
+                                >
+                                  <p className="text-white text-sm font-medium">
+                                    {p.home_team?.name ?? '—'} <span className="text-gray-600 text-xs">vs</span>{' '}
+                                    {p.away_team?.name ?? '—'}
+                                  </p>
+                                  <span className="bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">
+                                    ⏸ {p.postponed_from ? `Aplazado de J${p.postponed_from}` : 'Por programar'}
+                                  </span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
           />
         ) : (
           <div className="border border-dashed border-gray-800 rounded-lg p-10 text-center">
