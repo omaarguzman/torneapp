@@ -5,6 +5,7 @@ import { login } from '@/app/actions/auth'
 import Link from 'next/link'
 import GoogleButton from '@/components/GoogleButton'
 import OAuthErrorNotice from '@/components/OAuthErrorNotice'
+import ResetSuccessNotice from '@/components/ResetSuccessNotice'
 
 export default function LoginPage() {
   const [error, setError] = useState('')
@@ -30,6 +31,7 @@ export default function LoginPage() {
         </div>
 
         <Suspense>
+          <ResetSuccessNotice />
           <OAuthErrorNotice />
         </Suspense>
 
@@ -62,6 +64,11 @@ export default function LoginPage() {
               placeholder="••••••••"
               className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
             />
+            <div className="text-right mt-1.5">
+              <Link href="/recuperar" className="text-green-400 hover:text-green-300 text-xs">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
           </div>
 
           {error && (
