@@ -7,6 +7,7 @@ import {
   slotsForDate,
   type MatchdayWindow,
   type ScheduledMatch,
+  type VenueClosure,
   type VenueSlot,
 } from '@/lib/fixtures/scheduling'
 
@@ -22,6 +23,9 @@ export default function ScheduleMatchForm({
   slots,
   scheduled,
   matchdays,
+  closures = [],
+  initial,
+  mode = 'schedule',
 }: {
   tournamentId: string
   matchId: string
@@ -29,24 +33,28 @@ export default function ScheduleMatchForm({
   slots: VenueSlot[]
   scheduled: ScheduledMatch[]
   matchdays: MatchdayWindow[]
+  closures?: VenueClosure[]
+  /** Valores actuales del partido cuando se va a mover */
+  initial?: { date: string; venueId: string; startTime: string; endTime: string }
+  mode?: 'schedule' | 'move'
 }) {
   const [state, formAction, isPending] = useActionState(scheduleMatch, null)
-  const [date, setDate] = useState('')
-  const [venueId, setVenueId] = useState('')
-  const [startTime, setStartTime] = useState('')
-  const [endTime, setEndTime] = useState('')
+  const [date, setDate] = useState(initial?.date ?? '')
+  const [venueId, setVenueId] = useState(initial?.venueId ?? '')
+  const [startTime, setStartTime] = useState(initial?.startTime.slice(0, 5) ?? '')
+  const [endTime, setEndTime] = useState(initial?.endTime.slice(0, 5) ?? '')
   const [matchdayId, setMatchdayId] = useState('')
   const [confirm, setConfirm] = useState(false)
 
   const venueName = new Map(venues.map((v) => [v.id, v.name]))
-  const suggestions = date ? slotsForDate(date, slots, scheduled, matchId) : []
+  const suggestions = date ? slotsForDate(date, slots, scheduled, matchId, closures) : []
   const autoMatchday = date ? matchdayForDate(matchdays, date) : null
 
   // Cualquier cambio invalida la confirmación de advertencias anteriores
   const touch = () => setConfirm(false)
 
   if (state && 'success' in state) {
-    return <p className="text-green-400 text-xs">✓ Partido programado.</p>
+    return <p className="text-green-400 text-sm">✓ Partido {mode === 'move' ? 'movido' : 'programado'}.</p>
   }
 
   return (
@@ -85,7 +93,7 @@ export default function ScheduleMatchForm({
                   <button
                     key={`${s.venue_id}-${s.start_time}`}
                     type="button"
-                    disabled={s.occupied}
+                    disabled={s.occupied || s.closed}
                     onClick={() => {
                       setVenueId(s.venue_id)
                       setStartTime(s.start_time.slice(0, 5))
@@ -93,7 +101,7 @@ export default function ScheduleMatchForm({
                       touch()
                     }}
                     className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
-                      s.occupied
+                      s.occupied || s.closed
                         ? 'border-gray-800 text-gray-600 line-through cursor-not-allowed'
                         : selected
                           ? 'border-green-500 bg-green-950 text-green-300'
@@ -101,7 +109,7 @@ export default function ScheduleMatchForm({
                     }`}
                   >
                     {venueName.get(s.venue_id) ?? 'Cancha'} · {s.start_time.slice(0, 5)}
-                    {s.occupied && ' (ocupado)'}
+                    {s.closed ? ' (cerrada)' : s.occupied && ' (ocupado)'}
                   </button>
                 )
               })}
@@ -205,7 +213,9 @@ export default function ScheduleMatchForm({
         disabled={isPending}
         className="self-start bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
       >
-        {isPending ? 'Programando...' : 'Programar partido'}
+        {isPending
+          ? mode === 'move' ? 'Moviendo...' : 'Programando...'
+          : mode === 'move' ? 'Mover partido' : 'Programar partido'}
       </button>
     </form>
   )

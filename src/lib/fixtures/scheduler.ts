@@ -130,11 +130,14 @@ export function scheduleFixtures({
   slotTemplates,
   priorities,
   startDate,
+  closedDays = new Set(),
 }: {
   rounds: Pairing[][]
   slotTemplates: SlotTemplate[]
   priorities: Map<string, SlotTemplate>
   startDate: string
+  /** "venueId|YYYY-MM-DD" de canchas cerradas: esos horarios no se usan */
+  closedDays?: Set<string>
 }): SchedulerResult {
   const conflicts = findPriorityConflicts(rounds, priorities)
   if (conflicts.length > 0) {
@@ -152,10 +155,12 @@ export function scheduleFixtures({
     matchdays.push({ number: roundNum, weekStart: toISODate(weekStart) })
 
     const pool = shuffle(
-      slotTemplates.map((t) => ({
-        template: t,
-        date: toISODate(dateForDayOfWeek(weekStart, t.dayOfWeek)),
-      }))
+      slotTemplates
+        .map((t) => ({
+          template: t,
+          date: toISODate(dateForDayOfWeek(weekStart, t.dayOfWeek)),
+        }))
+        .filter((p) => !closedDays.has(`${p.template.venueId}|${p.date}`))
     )
 
     const round = rounds[idx]

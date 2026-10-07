@@ -8,6 +8,8 @@ import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
 import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensions'
 import PostponeButton from './PostponeButton'
 import ScheduleMatchForm from './ScheduleMatchForm'
+import ShiftMatchdayForm from './ShiftMatchdayForm'
+import MatchHistory, { type MatchChange } from './MatchHistory'
 import UndoPostponeButton from './UndoPostponeButton'
 import { matchScheduleLabel } from '@/lib/fixtures/matchLabel'
 
@@ -85,7 +87,7 @@ export default async function FixturePage({
   const { data: allMatches } = await supabase
     .from('matches')
     .select(
-      'id, home_team_id, away_team_id, match_date, start_time, venue_id, status, postponed_from, original_match_date, original_start_time, original_venue_id'
+      'id, home_team_id, away_team_id, match_date, start_time, venue_id, status, postponed_from, postpone_reason, original_match_date, original_start_time, original_venue_id'
     )
     .eq('tournament_id', id)
 
@@ -154,6 +156,18 @@ export default async function FixturePage({
   const { data: tokens } = await supabase.from('match_tokens').select('match_id, token').eq('tournament_id', id)
   const tokenByMatch = new Map((tokens ?? []).map((t) => [t.match_id, t.token]))
 
+  const { data: closures } = await supabase
+    .from('venue_closures')
+    .select('venue_id, closed_on')
+    .eq('tournament_id', id)
+
+  const { data: changes } = await supabase
+    .from('match_changes')
+    .select('id, kind, source, old, new, changed_at, home_team_id, away_team_id')
+    .eq('tournament_id', id)
+    .order('changed_at', { ascending: false })
+    .limit(300)
+
   matchdays?.forEach((md) => {
     md.matches.sort((a, b) => (a.match_date + a.start_time).localeCompare(b.match_date + b.start_time))
   })
@@ -177,6 +191,14 @@ export default async function FixturePage({
                 className="border border-green-700 hover:border-green-500 text-green-400 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
               >
                 🔄 Actualizar fixture
+              </Link>
+            )}
+            {(matchdays?.length ?? 0) > 0 && (
+              <Link
+                href={`/dashboard/tournaments/${id}/fixture/cierres`}
+                className="text-gray-400 hover:text-gray-200 text-xs font-semibold"
+              >
+                🚧 Canchas cerradas
               </Link>
             )}
             <GenerateFixtureButton
@@ -221,6 +243,13 @@ export default async function FixturePage({
                     </span>
                   )}
                 </div>
+                {md.matches.length > 0 && !md.matches.some((m) => m.status === 'played') && (
+                  <ShiftMatchdayForm
+                    tournamentId={id}
+                    matchdayNumber={md.number}
+                    isLast={md.number === matchdays[matchdays.length - 1].number}
+                  />
+                )}
                 <div className="flex flex-col gap-2">
                   {md.matches.map((m) => {
                     const dateLabel = new Date(m.match_date + 'T00:00:00').toLocaleDateString('es-MX', {
@@ -267,6 +296,14 @@ export default async function FixturePage({
                                 <CopyLinkButton path={`/partido/${tokenByMatch.get(m.id)}`} label="📋 Link árbitro" />
                               )}
                               {m.status === 'scheduled' && (
+                                <Link
+                                  href={`/dashboard/tournaments/${id}/fixture/${m.id}/mover`}
+                                  className="text-gray-300 hover:text-white text-[11px] font-semibold whitespace-nowrap"
+                                >
+                                  ✏️ Mover
+                                </Link>
+                              )}
+                              {m.status === 'scheduled' && (
                                 <PostponeButton
                                   tournamentId={id}
                                   matchId={m.id}
@@ -308,6 +345,8 @@ export default async function FixturePage({
               {
                 key: 'pendientes',
                 label: 'Pendientes',
+                icon: '⏸',
+                pinned: true,
                 badge: pendingMatches.length > 0 ? String(pendingMatches.length) : undefined,
                 content: (
                   <div>
@@ -330,6 +369,7 @@ export default async function FixturePage({
                             </p>
                             <span className="inline-block mt-1 bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">
                               ⏸ {p.postponed_from ? `Aplazado de J${p.postponed_from}` : 'Por programar'}
+                              {p.postpone_reason && ` · ${p.postpone_reason}`}
                             </span>
                             {p.original_match_date && p.original_start_time && (
                               <UndoPostponeButton
@@ -353,6 +393,7 @@ export default async function FixturePage({
                                 matchId={p.id}
                                 venues={(venues ?? []).map((v) => ({ id: v.id, name: v.name }))}
                                 slots={venueSlots}
+                                closures={closures ?? []}
                                 scheduled={scheduledMatches}
                                 matchdays={(matchdays ?? []).map((md) => ({
                                   id: md.id,
@@ -365,6 +406,21 @@ export default async function FixturePage({
                         ))}
                       </div>
                     )}
+                  </div>
+                ),
+              },
+              {
+                key: 'historial',
+                label: 'Historial',
+                icon: '🕘',
+                pinned: true,
+                content: (
+                  <div>
+                    <h2 className="text-white font-bold mb-1">Historial de cambios</h2>
+                    <p className="text-gray-500 text-xs mb-4">
+                      Aplazamientos, reprogramaciones, intercambios y demás cambios al calendario (últimos 300).
+                    </p>
+                    <MatchHistory changes={(changes ?? []) as MatchChange[]} teamNames={teamNames} />
                   </div>
                 ),
               },

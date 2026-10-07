@@ -204,6 +204,8 @@ export default async function DelegateFixturePage() {
                     {
                       key: 'por-programar',
                       label: 'Por programar',
+                      icon: '⏸',
+                      pinned: true,
                       badge: String(pendingMatches.length),
                       content: (
                         <div>

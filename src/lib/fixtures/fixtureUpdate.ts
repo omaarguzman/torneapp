@@ -66,7 +66,7 @@ function fingerprintOf(matches: MatchRow[], teamIds: string[]) {
 }
 
 async function loadState(supabase: Supabase, tournamentId: string) {
-  const [{ data: tournament }, { data: teams }, { data: venues }, { data: matchdays }, { data: matches }] =
+  const [{ data: tournament }, { data: teams }, { data: venues }, { data: matchdays }, { data: matches }, { data: closures }] =
     await Promise.all([
       supabase.from('tournaments').select('start_date, double_round').eq('id', tournamentId).single(),
       supabase
@@ -79,6 +79,7 @@ async function loadState(supabase: Supabase, tournamentId: string) {
         .from('matches')
         .select('id, home_team_id, away_team_id, status, matchday_id, match_date, start_time, venue_id')
         .eq('tournament_id', tournamentId),
+      supabase.from('venue_closures').select('venue_id, closed_on').eq('tournament_id', tournamentId),
     ])
   return {
     tournament,
@@ -86,6 +87,7 @@ async function loadState(supabase: Supabase, tournamentId: string) {
     venues: venues ?? [],
     matchdays: matchdays ?? [],
     matches: (matches ?? []) as MatchRow[],
+    closedDays: new Set((closures ?? []).map((c) => `${c.venue_id}|${c.closed_on}`)),
   }
 }
 
@@ -104,7 +106,7 @@ export async function previewFixtureUpdate(
   supabase: Supabase,
   tournamentId: string
 ): Promise<{ error: string } | FixtureUpdatePreview> {
-  const { tournament, teams, venues, matchdays, matches } = await loadState(supabase, tournamentId)
+  const { tournament, teams, venues, matchdays, matches, closedDays } = await loadState(supabase, tournamentId)
 
   if (!tournament) return { error: 'No se encontró el torneo.' }
   if (matchdays.length === 0) return { error: 'Este torneo aún no tiene fixture. Genéralo primero.' }
@@ -160,7 +162,15 @@ export async function previewFixtureUpdate(
   const homeCounts = new Map<string, number>()
   covered.forEach((m) => homeCounts.set(m.home, (homeCounts.get(m.home) ?? 0) + 1))
 
-  const result = buildUpdatePlan({ pairs, roundsCount, slotTemplates, priorities, startDate, homeCounts })
+  const result = buildUpdatePlan({
+    pairs,
+    roundsCount,
+    slotTemplates,
+    priorities,
+    startDate,
+    homeCounts,
+    closedDays,
+  })
 
   // Reutilizar las filas de partidos futuros que ya existen conserva sus links de árbitro
   const pool = [...futureRows]

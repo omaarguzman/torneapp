@@ -199,6 +199,7 @@ export function buildUpdatePlan({
   priorities,
   startDate,
   homeCounts,
+  closedDays,
 }: {
   pairs: PendingPair[]
   roundsCount: number
@@ -206,6 +207,7 @@ export function buildUpdatePlan({
   priorities: Map<string, SlotTemplate>
   startDate: string
   homeCounts: Map<string, number>
+  closedDays?: Set<string>
 }): UpdatePlanResult {
   const filled = fillRounds(pairs, roundsCount, slotTemplates.length)
   const counts = new Map(homeCounts)
@@ -218,7 +220,7 @@ export function buildUpdatePlan({
   // Si el planificador rechaza algún partido (choque de preferencias o falta de
   // horarios), ese partido pasa a pendientes y se vuelve a intentar.
   for (let guard = 0; guard < 1000; guard++) {
-    const result = scheduleFixtures({ rounds, slotTemplates, priorities, startDate })
+    const result = scheduleFixtures({ rounds, slotTemplates, priorities, startDate, closedDays })
     if (result.ok) {
       return { matchdays: result.matchdays, matches: result.matches, leftovers }
     }

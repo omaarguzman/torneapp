@@ -11,6 +11,7 @@ export type ScheduleResult =
   | null
 
 const clearOriginal = {
+  postpone_reason: null,
   original_matchday_id: null,
   original_match_date: null,
   original_start_time: null,
@@ -82,11 +83,19 @@ export async function scheduleMatch(_prev: ScheduleResult, formData: FormData): 
     return { error: 'La hora de fin debe ser posterior a la de inicio.' }
   }
 
-  const [{ data: match }, { data: venue }, { data: scheduled }, { data: slots }, { data: matchdays }, { data: teams }] =
+  const [
+    { data: match },
+    { data: venue },
+    { data: scheduled },
+    { data: slots },
+    { data: matchdays },
+    { data: teams },
+    { data: closures },
+  ] =
     await Promise.all([
       supabase
         .from('matches')
-        .select('id, status, home_team_id, away_team_id')
+        .select('id, status, validated_at, home_team_id, away_team_id')
         .eq('id', matchId)
         .eq('tournament_id', tournamentId)
         .maybeSingle(),
@@ -99,9 +108,13 @@ export async function scheduleMatch(_prev: ScheduleResult, formData: FormData): 
       supabase.from('venue_slots').select('venue_id, day_of_week, start_time, end_time, venue:venues!inner(tournament_id)').eq('venue.tournament_id', tournamentId),
       supabase.from('matchdays').select('id, number, week_start').eq('tournament_id', tournamentId),
       supabase.from('teams').select('id, name').eq('tournament_id', tournamentId),
+      supabase.from('venue_closures').select('venue_id, closed_on').eq('tournament_id', tournamentId),
     ])
 
-  if (!match || match.status !== 'pending') return { error: 'Este partido ya no está pendiente.' }
+  // Sirve para programar un pendiente o para mover uno ya programado (nunca uno jugado)
+  if (!match || !['pending', 'scheduled'].includes(match.status) || match.validated_at) {
+    return { error: 'Este partido ya se jugó o ya no está disponible para programarse.' }
+  }
   if (!venue) return { error: 'Esa cancha no pertenece a este torneo.' }
 
   const names = new Map((teams ?? []).map((t) => [t.id, t.name]))
@@ -114,6 +127,7 @@ export async function scheduleMatch(_prev: ScheduleResult, formData: FormData): 
     startTime,
     scheduled: scheduled ?? [],
     slots: slots ?? [],
+    closures: closures ?? [],
     teamName: (id) => names.get(id) ?? 'Un equipo',
   })
 
@@ -135,7 +149,7 @@ export async function scheduleMatch(_prev: ScheduleResult, formData: FormData): 
       ...clearOriginal,
     })
     .eq('id', matchId)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'scheduled'])
 
   if (error) {
     console.error('[scheduleMatch] error:', error)
@@ -184,6 +198,17 @@ export async function undoPostpone(_prev: UndoResult, formData: FormData): Promi
     .eq('venue_id', match.original_venue_id)
     .eq('start_time', match.original_start_time)
     .limit(1)
+
+  const { data: closed } = await supabase
+    .from('venue_closures')
+    .select('id')
+    .eq('venue_id', match.original_venue_id)
+    .eq('closed_on', match.original_match_date)
+    .limit(1)
+
+  if (closed && closed.length > 0) {
+    return { error: 'Su cancha original está marcada como cerrada ese día. Prográmalo manualmente en otra fecha o cancha.' }
+  }
 
   if (clash && clash.length > 0) {
     return {

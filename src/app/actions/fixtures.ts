@@ -87,6 +87,12 @@ export async function generateFixtures(
     }
   })
 
+  const { data: closures } = await supabase
+    .from('venue_closures')
+    .select('venue_id, closed_on')
+    .eq('tournament_id', tournamentId)
+  const closedDays = new Set((closures ?? []).map((c) => `${c.venue_id}|${c.closed_on}`))
+
   const teamIds = shuffle(teams.map((t) => t.id))
   const rounds = generateRoundRobinRounds(teamIds, tournament.double_round)
 
@@ -95,6 +101,7 @@ export async function generateFixtures(
     slotTemplates,
     priorities,
     startDate: tournament.start_date,
+    closedDays,
   })
 
   if (!result.ok) {

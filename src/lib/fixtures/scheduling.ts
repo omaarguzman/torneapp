@@ -11,6 +11,12 @@ export type VenueSlot = { venue_id: string; day_of_week: number; start_time: str
 
 export type MatchdayWindow = { id: string; number: number; week_start: string }
 
+/** Día en que una cancha no está disponible (ej. evento, mantenimiento). */
+export type VenueClosure = { venue_id: string; closed_on: string }
+
+export const isClosed = (closures: VenueClosure[], venueId: string, date: string) =>
+  closures.some((c) => c.venue_id === venueId && c.closed_on === date)
+
 const hhmm = (time: string | null) => (time ?? '').slice(0, 5)
 
 export function dayOfWeek(date: string) {
@@ -33,12 +39,19 @@ export function matchdayForDate(matchdays: MatchdayWindow[], date: string) {
 }
 
 /** Horarios de las canchas para ese día de la semana, marcando cuáles ya están ocupados. */
-export function slotsForDate(date: string, slots: VenueSlot[], scheduled: ScheduledMatch[], ignoreMatchId?: string) {
+export function slotsForDate(
+  date: string,
+  slots: VenueSlot[],
+  scheduled: ScheduledMatch[],
+  ignoreMatchId?: string,
+  closures: VenueClosure[] = []
+) {
   const dow = dayOfWeek(date)
   return slots
     .filter((s) => s.day_of_week === dow)
     .map((s) => ({
       ...s,
+      closed: isClosed(closures, s.venue_id, date),
       occupied: scheduled.some(
         (m) =>
           m.id !== ignoreMatchId &&
@@ -63,6 +76,7 @@ export function scheduleConflicts(params: {
   startTime: string
   scheduled: ScheduledMatch[]
   slots: VenueSlot[]
+  closures?: VenueClosure[]
   teamName: (id: string) => string
 }) {
   const { matchId, homeTeamId, awayTeamId, date, venueId, startTime, scheduled, slots, teamName } = params
@@ -70,6 +84,9 @@ export function scheduleConflicts(params: {
   const blocking: string[] = []
   const warnings: string[] = []
 
+  if (isClosed(params.closures ?? [], venueId, date)) {
+    blocking.push('Esa cancha está marcada como cerrada ese día.')
+  }
   if (others.some((m) => m.venue_id === venueId && hhmm(m.start_time) === hhmm(startTime))) {
     blocking.push('Esa cancha ya tiene un partido programado en ese día y horario.')
   }
