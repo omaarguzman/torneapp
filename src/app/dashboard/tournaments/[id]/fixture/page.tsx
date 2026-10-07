@@ -320,6 +320,7 @@ export default async function FixturePage({
                             {m.walkover ? (
                               <span className="bg-orange-950 text-orange-300 text-[10px] px-2 py-0.5 rounded-full">
                                 🏳️ W.O. — {walkoverLabel(m.walkover, m.home_team?.name ?? '—', m.away_team?.name ?? '—')}
+                                {!m.validated_at && ' · por validar'}
                               </span>
                             ) : m.validated_at ? (
                               <span className="bg-green-950 text-green-400 text-[10px] px-2 py-0.5 rounded-full">✓ Cédula validada</span>

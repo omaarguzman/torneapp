@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import MatchReportForm from './MatchReportForm'
+import RefereeWalkoverForm from './RefereeWalkoverForm'
 import { matchScheduleLabel, walkoverLabel } from '@/lib/fixtures/matchLabel'
 
 export type MatchPlayer = { id: string; full_name: string; jersey_number: number | null }
@@ -64,7 +65,7 @@ export default async function MatchReportPage({
           {matchScheduleLabel(match)}
         </p>
 
-        {match.walkover ? (
+        {match.walkover && match.validated ? (
           <div className="bg-orange-950/50 border border-orange-900 rounded-lg px-4 py-3">
             <p className="text-orange-300 text-sm">
               🏳️ Este partido se declaró default / W.O.: {walkoverLabel(match.walkover, match.home_team.name, match.away_team.name)}.
@@ -79,7 +80,28 @@ export default async function MatchReportPage({
             </p>
           </div>
         ) : (
-          <MatchReportForm token={token} match={match} readOnly={match.validated} />
+          <>
+            {match.walkover && (
+              <div className="bg-orange-950/50 border border-orange-900 rounded-lg px-4 py-3 mb-4">
+                <p className="text-orange-300 text-sm">
+                  🏳️ W.O. registrado: {walkoverLabel(match.walkover, match.home_team.name, match.away_team.name)}. Falta
+                  que lo valide el administrador del torneo.
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  Si fue un error, cámbialo abajo o captura el resultado normal del partido: eso reemplaza el W.O.
+                </p>
+              </div>
+            )}
+            {!match.validated && (
+              <RefereeWalkoverForm
+                token={token}
+                homeName={match.home_team.name}
+                awayName={match.away_team.name}
+                hasWalkover={!!match.walkover}
+              />
+            )}
+            <MatchReportForm key={match.walkover ?? 'normal'} token={token} match={match} readOnly={match.validated} />
+          </>
         )}
       </div>
     </main>

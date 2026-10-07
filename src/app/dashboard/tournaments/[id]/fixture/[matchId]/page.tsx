@@ -57,7 +57,7 @@ export default async function AdminMatchReportPage({
             <p className="text-gray-500 text-xs uppercase tracking-wide">Estado</p>
             <p className="text-white text-sm font-semibold mt-0.5">
               {walkover
-                ? `🏳️ W.O. — ${walkoverLabel(walkover, match.home_team.name, match.away_team.name)}`
+                ? `🏳️ W.O. — ${walkoverLabel(walkover, match.home_team.name, match.away_team.name)}${match.validated ? '' : ' (capturado por el árbitro, por validar)'}`
                 : match.validated
                 ? `✓ Validada${validation?.validated_at ? ` el ${new Date(validation.validated_at).toLocaleDateString('es-MX')}` : ''}`
                 : match.status === 'played'
@@ -65,7 +65,7 @@ export default async function AdminMatchReportPage({
                   : 'Sin cédula'}
             </p>
           </div>
-          {!walkover && (
+          {!(walkover && match.validated) && (
             <ValidationControls
               tournamentId={id}
               matchId={matchId}

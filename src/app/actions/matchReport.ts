@@ -100,3 +100,32 @@ export async function submitMatchReport(
   revalidatePath('/', 'layout')
   return { success: true }
 }
+
+/** El árbitro registra un default / W.O. desde su link; queda por validar por el admin. */
+export async function submitRefereeWalkover(
+  _prevState: MatchReportResult,
+  formData: FormData
+): Promise<MatchReportResult> {
+  const supabase = await createClient()
+  const token = formData.get('token') as string
+  const absent = formData.get('absent') as string
+
+  if (!['home', 'away', 'both'].includes(absent)) {
+    return { error: 'Elige qué equipo no se presentó.' }
+  }
+
+  const { error } = await supabase.rpc('submit_walkover', { p_token: token, p_absent: absent })
+
+  if (error) {
+    console.error('[submitRefereeWalkover] error:', error)
+    const messages: Record<string, string> = {
+      MATCH_PENDING: 'Este partido fue aplazado y aún no tiene nueva fecha.',
+      MATCH_VALIDATED: 'Esta cédula ya fue validada por el administrador del torneo y no se puede modificar.',
+    }
+    const code = Object.keys(messages).find((c) => error.message.includes(c))
+    return { error: code ? messages[code] : 'No se pudo registrar el W.O. Inténtalo de nuevo.' }
+  }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}
