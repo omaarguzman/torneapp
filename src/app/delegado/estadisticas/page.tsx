@@ -19,7 +19,7 @@ export default async function DelegateStatsPage() {
   if (!user) redirect('/login')
 
   const { team: myTeam } = await resolveCurrentTeam(supabase, user.id)
-  if (!myTeam) redirect('/delegado')
+  if (!myTeam || myTeam.access_blocked) redirect('/delegado')
 
   const tournamentInfo = { name: myTeam.tournament_name }
 

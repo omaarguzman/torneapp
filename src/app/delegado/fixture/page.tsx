@@ -39,7 +39,7 @@ export default async function DelegateFixturePage() {
   if (!user) redirect('/login')
 
   const { team: myTeam } = await resolveCurrentTeam(supabase, user.id)
-  if (!myTeam) redirect('/delegado')
+  if (!myTeam || myTeam.access_blocked) redirect('/delegado')
 
   const { data: teams } = await supabase.from('teams').select('id, name').eq('tournament_id', myTeam.tournament_id)
   const teamNames: Record<string, string> = {}

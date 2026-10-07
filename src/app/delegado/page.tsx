@@ -85,6 +85,25 @@ export default async function DelegateDashboard() {
           </div>
         </div>
 
+        {team.access_blocked ? (
+          <div className="flex flex-col gap-4">
+            <div className="bg-red-950/60 border border-red-800 rounded-lg p-5">
+              <p className="text-red-200 font-semibold">⛔ Acceso bloqueado por el administrador del torneo</p>
+              <p className="text-red-200/80 text-sm mt-1">
+                Mientras el bloqueo esté activo no puedes ver el calendario, la tabla ni las estadísticas, ni registrar
+                jugadores. Ponte en contacto con el administrador del torneo para regularizar tu situación.
+              </p>
+            </div>
+            {isLocked && (
+              <PendingChargesNotice
+                charges={pendingCharges ?? []}
+                title="Pagos pendientes"
+                message="Este es el detalle de lo que tu equipo debe actualmente:"
+              />
+            )}
+          </div>
+        ) : (
+        <>
         {isLocked && (
           <div className="mb-6">
             <PendingChargesNotice
@@ -162,6 +181,8 @@ export default async function DelegateDashboard() {
           <div className="border border-dashed border-gray-800 rounded-lg p-8 text-center">
             <p className="text-gray-500 text-sm">Aún no has registrado jugadores.</p>
           </div>
+        )}
+        </>
         )}
       </div>
     </main>

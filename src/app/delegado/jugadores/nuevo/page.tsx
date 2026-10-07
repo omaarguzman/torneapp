@@ -11,7 +11,7 @@ export default async function NewDelegatePlayerPage() {
   if (!user) redirect('/login')
 
   const { team } = await resolveCurrentTeam(supabase, user.id)
-  if (!team) redirect('/delegado')
+  if (!team || team.access_blocked) redirect('/delegado')
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">

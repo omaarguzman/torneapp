@@ -70,6 +70,18 @@ export async function setChargePaid(formData: FormData) {
   revalidatePath(`/dashboard/tournaments/${tournamentId}`)
 }
 
+export async function setTeamAccessBlocked(formData: FormData) {
+  const supabase = await createClient()
+  const tournamentId = formData.get('tournament_id') as string
+  const teamId = formData.get('team_id') as string
+  const blocked = formData.get('blocked') === 'true'
+
+  const { error } = await supabase.from('teams').update({ access_blocked: blocked }).eq('id', teamId)
+  if (error) console.error('[setTeamAccessBlocked] error:', error)
+
+  revalidatePath(`/dashboard/tournaments/${tournamentId}`)
+}
+
 export async function deleteCharge(formData: FormData) {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string

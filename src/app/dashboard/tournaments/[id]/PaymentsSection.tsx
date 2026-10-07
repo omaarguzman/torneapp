@@ -1,6 +1,7 @@
 import { setChargePaid, deleteCharge } from '@/app/actions/charges'
 import { chargeLabel, formatMoney, totalAmount, type Charge } from '@/lib/charges'
 import ChargeForm from './ChargeForm'
+import BlockAccessButton from './BlockAccessButton'
 
 export default function PaymentsSection({
   tournamentId,
@@ -8,7 +9,7 @@ export default function PaymentsSection({
   charges,
 }: {
   tournamentId: string
-  teams: { id: string; name: string }[]
+  teams: { id: string; name: string; access_blocked: boolean }[]
   charges: Charge[]
 }) {
   const pendingTotal = totalAmount(charges.filter((c) => !c.paid))
@@ -24,7 +25,8 @@ export default function PaymentsSection({
 
       <p className="text-gray-500 text-xs mb-4">
         Mientras un equipo tenga cargos pendientes, su delegado no podrá ver la tabla, las estadísticas ni los
-        marcadores del fixture.
+        marcadores del fixture. Con <span className="text-gray-300">⛔ Bloquear acceso</span> (dentro de cada equipo)
+        tampoco verá el calendario ni podrá registrar jugadores, hasta que lo desbloquees.
       </p>
 
       <div className="mb-6">
@@ -47,6 +49,11 @@ export default function PaymentsSection({
                 <summary className="flex items-center justify-between gap-3 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                   <span className="text-white font-semibold truncate">{team.name}</span>
                   <div className="flex items-center gap-3">
+                    {team.access_blocked && (
+                      <span className="bg-red-900 text-red-200 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
+                        ⛔ Bloqueado
+                      </span>
+                    )}
                     {pending.length > 0 ? (
                       <span className="bg-red-950 text-red-400 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">
                         🔒 Debe {formatMoney(totalAmount(pending))}
@@ -61,6 +68,20 @@ export default function PaymentsSection({
                 </summary>
 
                 <div className="px-4 pb-4 pt-3 border-t border-gray-800 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <span className="text-xs text-gray-500">
+                      {team.access_blocked
+                        ? 'El delegado solo puede ver lo que debe.'
+                        : 'Acceso del delegado activo.'}
+                    </span>
+                    <BlockAccessButton
+                      tournamentId={tournamentId}
+                      teamId={team.id}
+                      teamName={team.name}
+                      blocked={team.access_blocked}
+                    />
+                  </div>
+
                   {teamCharges.length === 0 && (
                     <p className="text-gray-600 text-xs">Sin cargos registrados.</p>
                   )}

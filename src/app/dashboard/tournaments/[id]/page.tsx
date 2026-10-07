@@ -336,6 +336,11 @@ export default async function TournamentPage({
                         {team.delegate_id ? (
                           <span className="flex items-center gap-2">
                             <span className="text-green-500 text-[10px]">✓ Delegado registrado</span>
+                            {team.access_blocked && (
+                              <span className="bg-red-900 text-red-200 text-[10px] px-1.5 py-0.5 rounded-full">
+                                ⛔ Acceso bloqueado
+                              </span>
+                            )}
                             <UnlinkDelegateButton teamId={team.id} tournamentId={id} teamName={team.name} />
                           </span>
                         ) : team.private?.invite_token ? (
@@ -434,7 +439,7 @@ export default async function TournamentPage({
                 content: (
                   <PaymentsSection
                     tournamentId={id}
-                    teams={(teams ?? []).map((t) => ({ id: t.id, name: t.name }))}
+                    teams={(teams ?? []).map((t) => ({ id: t.id, name: t.name, access_blocked: !!t.access_blocked }))}
                     charges={charges}
                   />
                 ),

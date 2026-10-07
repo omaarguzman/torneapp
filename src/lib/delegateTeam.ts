@@ -11,12 +11,14 @@ export type DelegateTeam = {
   logo_url: string | null
   tournament_id: string
   tournament_name: string
+  /** Bloqueo total por el admin: el delegado solo puede ver lo que debe. */
+  access_blocked: boolean
 }
 
 export async function getDelegateTeams(supabase: SupabaseClient, userId: string): Promise<DelegateTeam[]> {
   const { data } = await supabase
     .from('teams')
-    .select('id, name, logo_url, tournament_id, tournament:tournaments(name)')
+    .select('id, name, logo_url, tournament_id, access_blocked, tournament:tournaments(name)')
     .eq('delegate_id', userId)
     .order('created_at')
 
@@ -28,6 +30,7 @@ export async function getDelegateTeams(supabase: SupabaseClient, userId: string)
       logo_url: t.logo_url,
       tournament_id: t.tournament_id,
       tournament_name: (tournament as { name: string } | null)?.name ?? '',
+      access_blocked: !!t.access_blocked,
     }
   })
 }
