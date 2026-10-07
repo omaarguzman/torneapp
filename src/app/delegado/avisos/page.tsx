@@ -4,13 +4,15 @@ import Link from 'next/link'
 import { resolveCurrentTeam } from '@/lib/delegateTeam'
 import { changeKindLabels, describeSnapshot, type ScheduleSnapshot } from '@/lib/fixtures/matchLabel'
 import MarkAsRead from './MarkAsRead'
+import RulesChangeNotice from './RulesChangeNotice'
+import type { RulesSnapshot } from '@/lib/rulesSnapshot'
 
 type Notification = {
   id: string
   kind: string
   source: string | null
-  old: ScheduleSnapshot
-  new: ScheduleSnapshot
+  old: ScheduleSnapshot | RulesSnapshot
+  new: ScheduleSnapshot | RulesSnapshot
   home_team_id: string | null
   away_team_id: string | null
   batch_count: number
@@ -72,7 +74,9 @@ export default async function DelegateNotificationsPage() {
                   })}
                   {!n.read_at && <span className="ml-2 text-green-400 font-semibold">Nuevo</span>}
                 </p>
-                {n.batch_count > 1 ? (
+                {n.kind === 'rules' ? (
+                  <RulesChangeNotice oldS={n.old as RulesSnapshot | null} newS={n.new as RulesSnapshot} />
+                ) : n.batch_count > 1 ? (
                   <>
                     <p className="text-white text-sm font-semibold">
                       🗓️ {n.batch_count} de tus partidos cambiaron{n.source ? ` (${n.source})` : ''}
@@ -88,7 +92,7 @@ export default async function DelegateNotificationsPage() {
                       {teamName.get(n.away_team_id ?? '') ?? '—'}
                     </p>
                     <p className="text-gray-400 text-xs capitalize">
-                      {describeSnapshot(n.old)} → <span className="text-gray-200">{describeSnapshot(n.new)}</span>
+                      {describeSnapshot(n.old as ScheduleSnapshot)} → <span className="text-gray-200">{describeSnapshot(n.new as ScheduleSnapshot)}</span>
                     </p>
                     {n.source && <p className="text-gray-500 text-xs mt-0.5">Motivo: {n.source}</p>}
                   </>

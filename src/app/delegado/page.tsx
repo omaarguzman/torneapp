@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import DisciplinePanel from '@/components/DisciplinePanel'
+import { loadDiscipline } from '@/lib/stats/disciplineData'
+import { deadlineLabel, registrationOpen } from '@/lib/registration'
 import { logout } from '@/app/actions/auth'
 import { deletePlayer } from '@/app/actions/players'
 import PendingChargesNotice from './PendingChargesNotice'
@@ -50,9 +53,12 @@ export default async function DelegateDashboard() {
 
   const [{ data: attendanceRows }, { data: tournamentRules }] = await Promise.all([
     supabase.from('match_attendance').select('player_id').eq('team_id', team.id),
-    supabase.from('tournaments').select('min_matches_required').eq('id', team.tournament_id).single(),
+    supabase.from('tournaments').select('min_matches_required, player_registration_deadline').eq('id', team.tournament_id).single(),
   ])
   const attendanceCounts = countByPlayer(attendanceRows ?? [])
+
+  // Con adeudos la base de datos oculta las cédulas y el reporte saldría vacío: no se muestra
+  const discipline = !team.access_blocked && !isLocked ? await loadDiscipline(supabase, team.tournament_id, team.id) : null
 
   const { count: unreadCount } = await supabase
     .from('notifications')
@@ -60,6 +66,8 @@ export default async function DelegateDashboard() {
     .eq('team_id', team.id)
     .is('read_at', null)
   const minRequired = tournamentRules?.min_matches_required ?? null
+  const deadline = tournamentRules?.player_registration_deadline ?? null
+  const canRegister = registrationOpen(deadline)
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
@@ -134,7 +142,7 @@ export default async function DelegateDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           <Link
             href={`/delegado/fixture`}
             className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
@@ -149,16 +157,39 @@ export default async function DelegateDashboard() {
             <p className="text-gray-500 text-sm">Torneo</p>
             <p className="text-lg font-bold text-white mt-1">{isLocked ? '🔒 Ver tabla' : 'Ver tabla →'}</p>
           </Link>
+          <Link
+            href="/delegado/reglamento"
+            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+          >
+            <p className="text-gray-500 text-sm">Reglas</p>
+            <p className="text-lg font-bold text-white mt-1">📜 Reglamento →</p>
+          </Link>
         </div>
+
+        {discipline && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-white mb-3">Disciplina de mi equipo</h2>
+            <DisciplinePanel report={discipline} emptyText="Ningún jugador de tu equipo está suspendido ni amonestado." />
+          </section>
+        )}
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-white">Mis jugadores</h2>
-          <Link
-            href="/delegado/jugadores/nuevo"
-            className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-          >
-            + Nuevo jugador
-          </Link>
+          {canRegister ? (
+            <div className="flex flex-col items-end gap-1">
+              <Link
+                href="/delegado/jugadores/nuevo"
+                className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              >
+                + Nuevo jugador
+              </Link>
+              {deadline && <span className="text-gray-500 text-[11px]">Puedes registrar hasta el {deadlineLabel(deadline)}</span>}
+            </div>
+          ) : (
+            <span className="text-gray-500 text-xs text-right max-w-[14rem]">
+              🔒 El registro de jugadores cerró el {deadlineLabel(deadline!)}. Para altas, contacta al administrador.
+            </span>
+          )}
         </div>
 
         {players.length > 0 ? (

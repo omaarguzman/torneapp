@@ -50,6 +50,10 @@ export async function updateTournamentRules(_prev: RulesResult, formData: FormDa
   const goals = parseInt((formData.get('walkover_goals') as string) || '3', 10)
   const doubleRule = formData.get('double_walkover_rule') as string
   const yellow = yellowRaw ? parseInt(yellowRaw, 10) : null
+  const deadlineRaw = ((formData.get('player_registration_deadline') as string) || '').trim()
+  if (deadlineRaw && !/^\d{4}-\d{2}-\d{2}$/.test(deadlineRaw)) {
+    return { error: 'La fecha límite de registro no es válida.' }
+  }
 
   if (yellow !== null && (!Number.isInteger(yellow) || yellow < 1 || yellow > 20)) {
     return { error: 'Las amarillas para suspensión deben ser un número entre 1 y 20 (o déjalo vacío).' }
@@ -72,6 +76,7 @@ export async function updateTournamentRules(_prev: RulesResult, formData: FormDa
       red_card_suspension_matches: red,
       walkover_goals: goals,
       double_walkover_rule: doubleRule,
+      player_registration_deadline: deadlineRaw || null,
     })
     .eq('id', tournamentId)
 

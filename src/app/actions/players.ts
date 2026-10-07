@@ -4,6 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { imageExtension, imageProblem } from '@/lib/uploads'
+import { registrationOpen } from '@/lib/registration'
+
+const REGISTRATION_CLOSED =
+  'El plazo para registrar jugadores ya terminó. Si necesitas dar de alta a alguien, pídeselo al administrador del torneo.'
 
 export async function createPlayer(formData: FormData) {
   const supabase = await createClient()
@@ -17,6 +21,18 @@ export async function createPlayer(formData: FormData) {
   const photoFile = formData.get('photo') as File | null
 
   const jerseyNumber = jerseyNumberRaw ? parseInt(jerseyNumberRaw) : null
+
+  // El delegado solo puede registrar jugadores hasta la fecha límite del torneo (el admin, siempre).
+  // Se revisa antes de subir la foto; la base de datos también lo impide.
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  const { data: tournamentRow } = await supabase
+    .from('tournaments')
+    .select('admin_id, player_registration_deadline')
+    .eq('id', tournamentId)
+    .single()
+  if (tournamentRow && tournamentRow.admin_id !== currentUser?.id && !registrationOpen(tournamentRow.player_registration_deadline)) {
+    return { error: REGISTRATION_CLOSED }
+  }
 
   if (curp) {
     const { data: existing } = await supabase
@@ -68,6 +84,7 @@ export async function createPlayer(formData: FormData) {
     if (error.code === '23505') {
       return { error: 'Ya existe un jugador con esa CURP registrado en este torneo.' }
     }
+    if (error.code === '42501') return { error: REGISTRATION_CLOSED }
     return { error: error.message }
   }
 

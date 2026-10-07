@@ -13,6 +13,7 @@ export default function RulesForm({
   redMatches,
   walkoverGoals,
   doubleWalkoverRule,
+  registrationDeadline,
 }: {
   tournamentId: string
   rules: string | null
@@ -20,6 +21,7 @@ export default function RulesForm({
   redMatches: number
   walkoverGoals: number
   doubleWalkoverRule: string
+  registrationDeadline: string | null
 }) {
   const [state, formAction, isPending] = useActionState(updateTournamentRules, null)
 
@@ -31,6 +33,20 @@ export default function RulesForm({
         <label className="text-sm text-gray-400 mb-1 block">Reglamento (texto libre)</label>
         <textarea name="rules" rows={5} defaultValue={rules ?? ''} className={`${inputClass} resize-y`} />
       </div>
+
+      <fieldset className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <legend className="text-white text-sm font-semibold px-1">Registro de jugadores por delegados</legend>
+        <label className="text-xs text-gray-500 mb-1 block">Fecha límite (los delegados pueden registrar jugadores hasta ese día, inclusive)</label>
+        <input
+          name="player_registration_deadline"
+          type="date"
+          defaultValue={registrationDeadline ?? ''}
+          className={`${inputClass} sm:max-w-xs`}
+        />
+        <p className="text-gray-600 text-[11px] mt-2">
+          Déjala vacía para no poner límite. Tú, como administrador, siempre puedes registrar jugadores.
+        </p>
+      </fieldset>
 
       <fieldset className="bg-gray-900 border border-gray-800 rounded-lg p-4">
         <legend className="text-white text-sm font-semibold px-1">Suspensiones</legend>

@@ -46,19 +46,42 @@ type EventRow = {
  * - El conteo total de tarjetas para estadísticas NO se toca aquí — este
  *   cálculo es solo para saber quién no puede jugar el siguiente partido.
  */
-export function computeSuspensions({
-  matches,
-  events,
-  rosterByTeam,
-  yellowThreshold,
-  redSuspensionMatches,
-}: {
+type SuspensionInput = {
   matches: MatchRow[]
   events: EventRow[]
   rosterByTeam: Map<string, string[]>
   yellowThreshold: number | null
   redSuspensionMatches: number
-}): SuspendedEntry[] {
+}
+
+export function computeSuspensions(input: SuspensionInput): SuspendedEntry[] {
+  return analyze(input).entries
+}
+
+export type PlayerDiscipline = {
+  playerId: string
+  teamId: string
+  /** Partidos próximos (ya programados) en los que no puede jugar */
+  upcoming: { matchId: string; reason: SuspensionReason }[]
+  /** Partidos de suspensión que aún no tienen partido asignado (no hay más jornadas programadas) */
+  unassigned: SuspensionReason[]
+  /** Amarillas acumuladas desde la última suspensión (para el umbral del torneo) */
+  yellows: number
+}
+
+/** Situación disciplinaria actual de cada jugador del roster. */
+export function computeDiscipline(input: SuspensionInput): PlayerDiscipline[] {
+  const { entries, players } = analyze(input)
+  const finished = new Set(input.matches.filter((m) => m.status === 'played' || m.status === 'suspended').map((m) => m.id))
+  return players.map((p) => ({
+    ...p,
+    upcoming: entries
+      .filter((e) => e.playerId === p.playerId && !finished.has(e.matchId))
+      .map((e) => ({ matchId: e.matchId, reason: e.reason })),
+  }))
+}
+
+function analyze({ matches, events, rosterByTeam, yellowThreshold, redSuspensionMatches }: SuspensionInput) {
   const sortedMatches = [...matches].sort((a, b) => (a.matchDate + a.startTime).localeCompare(b.matchDate + b.startTime))
 
   const eventsByMatch = new Map<string, EventRow[]>()
@@ -76,6 +99,7 @@ export function computeSuspensions({
   })
 
   const result: SuspendedEntry[] = []
+  const players: Omit<PlayerDiscipline, 'upcoming'>[] = []
 
   rosterByTeam.forEach((playerIds, teamId) => {
     const teamMatchList = teamMatches.get(teamId) ?? []
@@ -113,8 +137,10 @@ export function computeSuspensions({
           }
         }
       }
+
+      players.push({ playerId, teamId, unassigned: [...pendingQueue], yellows: yellowsSinceReset })
     })
   })
 
-  return result
+  return { entries: result, players }
 }

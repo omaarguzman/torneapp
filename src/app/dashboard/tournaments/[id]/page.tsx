@@ -12,6 +12,8 @@ import AttendanceSection from './AttendanceSection'
 import RulesForm from './RulesForm'
 import TournamentLogoForm from './TournamentLogoForm'
 import RolTemplatesSection from './RolTemplatesSection'
+import DisciplinePanel from '@/components/DisciplinePanel'
+import { loadDiscipline } from '@/lib/stats/disciplineData'
 import { countByPlayer } from '@/lib/attendance'
 import UnlinkDelegateButton from './UnlinkDelegateButton'
 import type { Charge } from '@/lib/charges'
@@ -76,6 +78,9 @@ export default async function TournamentPage({
     .order('created_at')
 
   const charges = (chargesData ?? []) as Charge[]
+
+  const discipline = await loadDiscipline(supabase, id)
+  const suspendedCount = discipline.teams.reduce((n, t) => n + t.rows.filter((r) => r.status === 'suspended').length, 0)
 
   const { data: rolTemplates } = await supabase
     .from('rol_templates')
@@ -454,6 +459,12 @@ export default async function TournamentPage({
                 ),
               },
               {
+                key: 'discipline',
+                label: 'Disciplina',
+                badge: suspendedCount > 0 ? `${suspendedCount} suspendido${suspendedCount > 1 ? 's' : ''}` : undefined,
+                content: <DisciplinePanel report={discipline} />,
+              },
+              {
                 key: 'attendance',
                 label: 'Asistencia',
                 content: (
@@ -480,6 +491,7 @@ export default async function TournamentPage({
                     redMatches={tournament.red_card_suspension_matches ?? 1}
                     walkoverGoals={tournament.walkover_goals ?? 3}
                     doubleWalkoverRule={tournament.double_walkover_rule ?? 'both_lose'}
+                    registrationDeadline={tournament.player_registration_deadline ?? null}
                   />
                   </div>
                 ),

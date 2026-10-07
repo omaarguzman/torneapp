@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import PlayerForm from '@/app/dashboard/tournaments/[id]/teams/[teamId]/players/new/PlayerForm'
 import { resolveCurrentTeam } from '@/lib/delegateTeam'
+import { registrationOpen } from '@/lib/registration'
 
 export default async function NewDelegatePlayerPage() {
   const supabase = await createClient()
@@ -12,6 +13,14 @@ export default async function NewDelegatePlayerPage() {
 
   const { team } = await resolveCurrentTeam(supabase, user.id)
   if (!team || team.access_blocked) redirect('/delegado')
+
+  // Fuera de plazo no se muestra el formulario (la base de datos tampoco permitiría guardar)
+  const { data: tournament } = await supabase
+    .from('tournaments')
+    .select('player_registration_deadline')
+    .eq('id', team.tournament_id)
+    .single()
+  if (!registrationOpen(tournament?.player_registration_deadline)) redirect('/delegado')
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
