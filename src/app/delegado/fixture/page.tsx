@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensions'
 import { resolveCurrentTeam } from '@/lib/delegateTeam'
+import SectionTabs from '@/components/SectionTabs'
+import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
   yellow_accumulation: 'acumulación de amarillas',
@@ -125,9 +127,13 @@ export default async function DelegateFixturePage() {
         )}
 
         {matchdays && matchdays.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            {matchdays.map((md) => (
-              <div key={md.id}>
+          <SectionTabs
+            defaultKey={currentMatchdayId(matchdays)}
+            tabs={matchdays.map((md) => ({
+              key: md.id,
+              label: `J${md.number}`,
+              content: (
+              <div>
                 <h2 className="text-white font-bold mb-3">Jornada {md.number}</h2>
                 <div className="flex flex-col gap-2">
                   {md.matches.map((m) => {
@@ -177,8 +183,9 @@ export default async function DelegateFixturePage() {
                   })}
                 </div>
               </div>
-            ))}
-          </div>
+              ),
+            }))}
+          />
         ) : (
           <div className="border border-dashed border-gray-800 rounded-lg p-10 text-center">
             <p className="text-gray-500">El administrador aún no ha generado el fixture.</p>

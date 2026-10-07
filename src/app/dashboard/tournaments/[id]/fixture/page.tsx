@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import GenerateFixtureButton from './GenerateFixtureButton'
 import CopyLinkButton from '@/components/CopyLinkButton'
+import SectionTabs from '@/components/SectionTabs'
+import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
 import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensions'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
@@ -147,13 +149,17 @@ export default async function FixturePage({
         </div>
 
         {matchdays && matchdays.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            {matchdays.map((md) => {
+          <SectionTabs
+            defaultKey={currentMatchdayId(matchdays)}
+            tabs={matchdays.map((md) => {
               const playingTeamIds = new Set(md.matches.flatMap((m) => [m.home_team_id, m.away_team_id]))
               const restingTeam = teams?.find((t) => !playingTeamIds.has(t.id))
 
-              return (
-              <div key={md.id}>
+              return {
+                key: md.id,
+                label: `J${md.number}`,
+                content: (
+              <div>
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-white font-bold">Jornada {md.number}</h2>
                   {restingTeam && (
@@ -236,9 +242,10 @@ export default async function FixturePage({
                   })}
                 </div>
               </div>
-              )
+                ),
+              }
             })}
-          </div>
+          />
         ) : (
           <div className="border border-dashed border-gray-800 rounded-lg p-10 text-center">
             <p className="text-gray-500">Aún no se ha generado el fixture de este torneo.</p>

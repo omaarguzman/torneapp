@@ -6,7 +6,7 @@ import { saveVenueAsTemplate, useVenueTemplate } from '@/app/actions/venueTempla
 import { deleteTeam } from '@/app/actions/teams'
 import { deletePlayer } from '@/app/actions/players'
 import CopyLinkButton from '@/components/CopyLinkButton'
-import SectionTabs from './SectionTabs'
+import SectionTabs from '@/components/SectionTabs'
 import PaymentsSection from './PaymentsSection'
 import AttendanceSection from './AttendanceSection'
 import { countByPlayer } from '@/lib/attendance'
