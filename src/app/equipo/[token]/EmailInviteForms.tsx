@@ -22,7 +22,7 @@ export default function EmailInviteForms({
 
   return (
     <div>
-      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1 mb-5">
+      <div className="flex gap-1 bg-gray-900/70 border border-white/10 rounded-xl p-1 mb-5">
         <button type="button" onClick={() => setMode('new')} className={tabClass(mode === 'new')}>
           Soy nuevo
         </button>

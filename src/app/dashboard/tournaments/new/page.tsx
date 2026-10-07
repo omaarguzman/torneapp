@@ -19,13 +19,13 @@ export default function NewTournamentPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
         <Link href="/dashboard" className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver al panel
         </Link>
 
-        <h1 className="text-2xl font-black text-white mt-4 mb-6">Nuevo torneo</h1>
+        <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4 mb-6">Nuevo torneo</h1>
 
         <form action={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -34,7 +34,7 @@ export default function NewTournamentPage() {
               name="name"
               required
               placeholder="Copa Verano 2026"
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
             />
           </div>
 
@@ -43,7 +43,7 @@ export default function NewTournamentPage() {
             <select
               name="sport_type"
               defaultValue="futbol_11"
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
             >
               <option value="futbol_11">Fútbol 11</option>
               <option value="futbol_7">Fútbol 7</option>
@@ -58,7 +58,7 @@ export default function NewTournamentPage() {
               <input
                 name="start_date"
                 type="date"
-                className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+                className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div>
@@ -66,7 +66,7 @@ export default function NewTournamentPage() {
               <input
                 name="end_date"
                 type="date"
-                className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+                className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function NewTournamentPage() {
               name="rules"
               rows={4}
               placeholder="Ej: Cada equipo debe presentar mínimo 11 jugadores registrados. Tres tarjetas amarillas acumuladas generan una jornada de suspensión..."
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors resize-none"
+              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors resize-none"
             />
           </div>
 
@@ -86,14 +86,14 @@ export default function NewTournamentPage() {
             <select
               name="format"
               defaultValue="single"
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
             >
               <option value="single">Solo ida (una vuelta)</option>
               <option value="double">Ida y vuelta (dos vueltas)</option>
             </select>
           </div>
 
-          <label className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 cursor-pointer">
+          <label className="flex items-center gap-3 bg-gray-900/70 border border-white/10 rounded-xl px-4 py-3 cursor-pointer">
             <input
               type="checkbox"
               name="allow_schedule_priority"
@@ -105,7 +105,7 @@ export default function NewTournamentPage() {
             </span>
           </label>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+          <div className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
             <p className="text-sm text-gray-300 mb-3">Suspensiones automáticas</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -117,7 +117,7 @@ export default function NewTournamentPage() {
                   type="number"
                   min={1}
                   placeholder="Ej. 3"
-                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-400"
                 />
               </div>
               <div>
@@ -129,7 +129,7 @@ export default function NewTournamentPage() {
                   type="number"
                   min={0}
                   defaultValue={1}
-                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-400"
                 />
               </div>
             </div>
@@ -144,7 +144,7 @@ export default function NewTournamentPage() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white font-semibold py-3 rounded-lg transition-colors"
+            className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 font-semibold py-3 rounded-lg transition-colors"
           >
             {loading ? 'Creando...' : 'Crear torneo'}
           </button>

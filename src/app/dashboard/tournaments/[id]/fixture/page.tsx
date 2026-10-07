@@ -192,7 +192,7 @@ export default async function FixturePage({
   })
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <Link href={`/dashboard/tournaments/${id}`} className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver al torneo
@@ -200,7 +200,7 @@ export default async function FixturePage({
 
         <div className="flex items-center justify-between mt-4 mb-8 flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-black text-white">Fixture</h1>
+            <h1 className="font-display text-3xl uppercase tracking-wide text-white">Fixture</h1>
             <p className="text-gray-500 text-sm">{tournament.name}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -255,7 +255,7 @@ export default async function FixturePage({
                 content: (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-white font-bold">Jornada {md.number}</h2>
+                  <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white">Jornada {md.number}</h2>
                   {restingTeam && (
                     <span className="text-gray-500 text-xs">
                       Descansa: <span className="text-gray-300">{restingTeam.name}</span>
@@ -294,7 +294,7 @@ export default async function FixturePage({
                     return (
                       <div
                         key={m.id}
-                        className="bg-gray-900 border border-gray-800 rounded-lg p-4"
+                        className="bg-gray-900/70 border border-white/10 rounded-xl p-4"
                       >
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-3 min-w-0">
@@ -324,7 +324,7 @@ export default async function FixturePage({
                             <div className="flex flex-col items-end gap-1">
                               <Link
                                 href={`/dashboard/tournaments/${id}/fixture/${m.id}`}
-                                className="text-green-400 hover:text-green-300 text-[11px] font-semibold whitespace-nowrap"
+                                className="text-amber-300 hover:text-amber-200 text-[11px] font-semibold whitespace-nowrap"
                               >
                                 {played ? 'Ver cédula' : m.status === 'suspended' ? 'Resolver suspensión' : 'Capturar cédula'}
                               </Link>
@@ -415,7 +415,7 @@ export default async function FixturePage({
                 badge: pendingMatches.length > 0 ? String(pendingMatches.length) : undefined,
                 content: (
                   <div>
-                    <h2 className="text-white font-bold mb-1">Partidos pendientes</h2>
+                    <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-1">Partidos pendientes</h2>
                     <p className="text-gray-500 text-xs mb-4">
                       Partidos aplazados que aún no tienen fecha. Al programarlos se acomodan en la jornada que
                       corresponda a la fecha elegida.
@@ -427,7 +427,7 @@ export default async function FixturePage({
                     ) : (
                       <div className="flex flex-col gap-2">
                         {pendingMatches.map((p) => (
-                          <div key={p.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                          <div key={p.id} className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
                             <p className="text-white text-sm font-medium truncate">
                               {teamNames[p.home_team_id] ?? '—'} <span className="text-gray-600 text-xs">vs</span>{' '}
                               {teamNames[p.away_team_id] ?? '—'}
@@ -481,7 +481,7 @@ export default async function FixturePage({
                 pinned: true,
                 content: (
                   <div>
-                    <h2 className="text-white font-bold mb-1">Historial de cambios</h2>
+                    <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-1">Historial de cambios</h2>
                     <p className="text-gray-500 text-xs mb-4">
                       Aplazamientos, reprogramaciones, intercambios y demás cambios al calendario (últimos 300).
                     </p>

@@ -53,12 +53,12 @@ export default async function DelegateRulesPage() {
   const paragraphs = (current.rules ?? '').replace(/\r\n/g, '\n').split('\n')
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         <Link href="/delegado" className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver a mi equipo
         </Link>
-        <h1 className="text-2xl font-black text-white mt-4 mb-1">📜 Reglamento</h1>
+        <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4 mb-1">📜 Reglamento</h1>
         <p className="text-gray-500 text-sm mb-6">
           {t?.name}
           {updatedOn && (updatedLines.size > 0 || updatedSettings.size > 0) && (
@@ -66,7 +66,7 @@ export default async function DelegateRulesPage() {
           )}
         </p>
 
-        <section className="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6 min-h-32">
+        <section className="bg-gray-900/70 border border-white/10 rounded-xl p-5 mb-6 min-h-32">
           {current.rules?.trim() ? (
             <div className="flex flex-col">
               {paragraphs.map((line, i) =>
@@ -87,8 +87,8 @@ export default async function DelegateRulesPage() {
           ) : null}
         </section>
 
-        <h2 className="text-white font-bold mb-3">Reglas configuradas</h2>
-        <ul className="bg-gray-900 border border-gray-800 rounded-lg divide-y divide-gray-800">
+        <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">Reglas configuradas</h2>
+        <ul className="bg-gray-900/70 border border-white/10 rounded-xl divide-y divide-gray-800">
           {ruleSettings(current).map((r) => (
             <li key={r.key} className={`px-4 py-3 ${updatedSettings.has(r.key) ? 'bg-yellow-950/40' : ''}`}>
               <p className="text-gray-500 text-xs">

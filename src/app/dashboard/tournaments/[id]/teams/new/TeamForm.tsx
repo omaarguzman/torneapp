@@ -76,7 +76,7 @@ export default function TeamForm({
           required
           defaultValue={team?.name}
           placeholder="Los Tigres FC"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
         />
       </div>
 
@@ -87,7 +87,7 @@ export default function TeamForm({
             name="delegate_name"
             defaultValue={team?.delegate_name ?? ''}
             placeholder="Juan Pérez"
-            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
           />
         </div>
         <div>
@@ -97,7 +97,7 @@ export default function TeamForm({
             type="email"
             defaultValue={team?.delegate_email ?? ''}
             placeholder="delegado@correo.com"
-            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
           />
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function TeamForm({
       </div>
 
       {allowSchedulePriority && (
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -173,7 +173,7 @@ export default function TeamForm({
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white font-semibold py-3 rounded-lg transition-colors text-sm"
+          className="flex-1 bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 font-semibold py-3 rounded-lg transition-colors text-sm"
         >
           {loading ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear equipo'}
         </button>

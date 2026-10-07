@@ -25,7 +25,7 @@ export default function RefereeWalkoverForm({
   const chosen = options.find(([value]) => value === absent)?.[1]
 
   return (
-    <details className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 group">
+    <details className="bg-gray-900/70 border border-white/10 rounded-xl p-4 mb-6 group">
       <summary className="cursor-pointer list-none text-gray-300 text-sm font-semibold">
         🏳️ {hasWalkover ? 'Cambiar el W.O.' : '¿Un equipo no se presentó? Registrar default / W.O.'}{' '}
         <span className="group-open:hidden">▾</span>

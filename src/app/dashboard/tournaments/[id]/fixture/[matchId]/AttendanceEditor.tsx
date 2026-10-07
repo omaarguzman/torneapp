@@ -19,7 +19,7 @@ export default function AttendanceEditor({ tournamentId, match }: { tournamentId
   }
 
   return (
-    <form action={formAction} className="bg-gray-900 border border-gray-800 rounded-lg p-5">
+    <form action={formAction} className="bg-gray-900/70 border border-white/10 rounded-xl p-5">
       <input type="hidden" name="tournament_id" value={tournamentId} />
       <input type="hidden" name="match_id" value={match.id} />
 
@@ -36,7 +36,7 @@ export default function AttendanceEditor({ tournamentId, match }: { tournamentId
               <button
                 type="button"
                 onClick={() => setSelected((prev) => new Set([...prev, ...team.players.map((p) => p.id)]))}
-                className="text-green-400 hover:text-green-300 text-xs"
+                className="text-amber-300 hover:text-amber-200 text-xs"
               >
                 Todos
               </button>
@@ -74,7 +74,7 @@ export default function AttendanceEditor({ tournamentId, match }: { tournamentId
         <button
           type="submit"
           disabled={isPending}
-          className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
         >
           {isPending ? 'Guardando...' : 'Guardar asistencia'}
         </button>

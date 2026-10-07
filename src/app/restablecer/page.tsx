@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { LogoMark } from '@/components/Logo'
 import NewPasswordForm from './NewPasswordForm'
 
 /** Se llega aquí desde el enlace del correo, que deja una sesión temporal para cambiar la contraseña. */
@@ -8,11 +9,11 @@ export default async function ResetPasswordPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
-    <main className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <main className="auth-screen">
+      <div className="w-full max-w-sm bg-gray-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur shadow-2xl shadow-black/50">
         <div className="text-center mb-8">
-          <span className="text-4xl">🔒</span>
-          <h1 className="text-2xl font-black text-white mt-2">Nueva contraseña</h1>
+          <LogoMark size={52} className="mx-auto" />
+          <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-3">Nueva contraseña</h1>
           {user?.email && <p className="text-gray-400 text-sm mt-1">{user.email}</p>}
         </div>
 
@@ -25,7 +26,7 @@ export default async function ResetPasswordPage() {
             </p>
             <Link
               href="/recuperar"
-              className="text-center bg-green-500 hover:bg-green-400 text-white font-semibold py-3 rounded-lg transition-colors"
+              className="text-center bg-amber-400 hover:bg-amber-300 text-gray-950 font-semibold py-3 rounded-lg transition-colors"
             >
               Solicitar otro enlace
             </Link>

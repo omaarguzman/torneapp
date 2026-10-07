@@ -18,14 +18,14 @@ export default async function UpdateFixturePage({ params }: { params: Promise<{ 
       <Link href={`/dashboard/tournaments/${id}/fixture`} className="text-gray-500 text-sm hover:text-gray-300">
         ← Volver al fixture
       </Link>
-      <h1 className="text-2xl font-black text-white mt-4">Actualizar fixture</h1>
+      <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4">Actualizar fixture</h1>
       <p className="text-gray-500 text-sm mb-6">{tournament.name}</p>
     </>
   )
 
   if ('error' in preview) {
     return (
-      <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+      <main className="flex-1 p-4 md:p-8">
         <div className="max-w-3xl mx-auto">
           {header}
           <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-4 py-3">{preview.error}</p>
@@ -47,7 +47,7 @@ export default async function UpdateFixturePage({ params }: { params: Promise<{ 
   ].filter(Boolean) as string[]
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {header}
 
@@ -73,7 +73,7 @@ export default async function UpdateFixturePage({ params }: { params: Promise<{ 
             ['Nuevos a Pendientes', String(plan.pending.length)],
             ['Pendientes actuales', String(preview.keptPendingCount)],
           ].map(([label, value]) => (
-            <div key={label} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
+            <div key={label} className="bg-gray-900/70 border border-white/10 rounded-xl px-3 py-2">
               <p className="text-gray-500 text-[11px] uppercase tracking-wide">{label}</p>
               <p className="text-white font-bold">{value}</p>
             </div>
@@ -104,7 +104,7 @@ export default async function UpdateFixturePage({ params }: { params: Promise<{ 
 
         {plan.pending.length > 0 && (
           <section className="mb-6">
-            <h2 className="text-white font-bold mb-1">Van a Pendientes ({plan.pending.length})</h2>
+            <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-1">Van a Pendientes ({plan.pending.length})</h2>
             <p className="text-gray-500 text-xs mb-3">
               Cruces que no caben en las jornadas sin que algún equipo juegue dos veces la misma semana. Los programas
               después desde la pestaña Pendientes (por ejemplo, entre semana).
@@ -119,7 +119,7 @@ export default async function UpdateFixturePage({ params }: { params: Promise<{ 
           </section>
         )}
 
-        <h2 className="text-white font-bold mb-3">Jornadas propuestas</h2>
+        <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">Jornadas propuestas</h2>
         <div className="flex flex-col gap-2">
           {plan.matchdays.map((md) => {
             const matches = plan.matches
@@ -128,7 +128,7 @@ export default async function UpdateFixturePage({ params }: { params: Promise<{ 
             const playing = new Set(matches.flatMap((m) => [m.home_team_id, m.away_team_id]))
             const resting = Object.keys(teamNames).filter((t) => !playing.has(t))
             return (
-              <details key={md.number} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <details key={md.number} className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
                 <summary className="cursor-pointer text-white text-sm font-semibold">
                   Jornada {md.number}{' '}
                   <span className="text-gray-500 font-normal">

@@ -98,3 +98,18 @@ body {
   }
   .reveal { opacity: 1; }
 }
+
+/* Fondo de las pantallas públicas (login, registro, recuperar…) */
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: #030712;
+  background-image:
+    radial-gradient(ellipse 60% 45% at 50% 0%, rgba(245, 200, 76, 0.14), transparent 70%),
+    radial-gradient(ellipse 40% 60% at 0% 0%, rgba(255, 255, 255, 0.07), transparent 70%),
+    radial-gradient(ellipse 40% 60% at 100% 0%, rgba(255, 255, 255, 0.07), transparent 70%),
+    linear-gradient(to top, rgba(5, 46, 22, 0.55), transparent 35%);
+}

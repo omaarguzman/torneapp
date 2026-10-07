@@ -5,6 +5,7 @@ import { login } from '@/app/actions/auth'
 import Link from 'next/link'
 import GoogleButton from '@/components/GoogleButton'
 import OAuthErrorNotice from '@/components/OAuthErrorNotice'
+import { LogoMark } from '@/components/Logo'
 import ResetSuccessNotice from '@/components/ResetSuccessNotice'
 
 export default function LoginPage() {
@@ -22,11 +23,14 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <main className="auth-screen">
+      <div className="w-full max-w-sm bg-gray-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur shadow-2xl shadow-black/50">
         <div className="text-center mb-8">
-          <span className="text-4xl">⚽</span>
-          <h1 className="text-2xl font-black text-white mt-2">Torneapp</h1>
+          <LogoMark size={52} className="mx-auto" />
+          <h1 className="font-display text-3xl uppercase tracking-wide mt-3">
+            <span className="text-white">TORNE</span>
+            <span className="text-amber-400">APP</span>
+          </h1>
           <p className="text-gray-400 text-sm mt-1">Inicia sesión en tu cuenta</p>
         </div>
 
@@ -51,7 +55,7 @@ export default function LoginPage() {
               type="email"
               required
               placeholder="tu@correo.com"
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
             />
           </div>
 
@@ -62,10 +66,10 @@ export default function LoginPage() {
               type="password"
               required
               placeholder="••••••••"
-              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+              className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
             />
             <div className="text-right mt-1.5">
-              <Link href="/recuperar" className="text-green-400 hover:text-green-300 text-xs">
+              <Link href="/recuperar" className="text-amber-300 hover:text-amber-200 text-xs">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
@@ -80,7 +84,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
+            className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 disabled:cursor-not-allowed text-gray-950 font-semibold py-3 rounded-lg transition-colors"
           >
             {loading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
@@ -88,7 +92,7 @@ export default function LoginPage() {
 
         <p className="text-center text-gray-500 text-sm mt-6">
           ¿No tienes cuenta?{' '}
-          <Link href="/register" className="text-green-400 hover:text-green-300">
+          <Link href="/register" className="text-amber-300 hover:text-amber-200">
             Regístrate
           </Link>
         </p>

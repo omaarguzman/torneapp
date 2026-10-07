@@ -70,46 +70,32 @@ export default async function DelegateDashboard() {
   const canRegister = registrationOpen(deadline)
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-gray-900 via-gray-900 to-amber-950/30 p-5 mb-8">
+          <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-amber-400/10 blur-3xl" />
+          <div className="relative flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gray-800 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
               {team.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-xl">⚽</span>
+                <span className="text-2xl">🛡️</span>
               )}
             </div>
-            <div>
-              <h1 className="text-lg font-black text-white">{team.name}</h1>
-              <p className="text-gray-500 text-sm">{team.tournament_name}</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-condensed text-xs uppercase tracking-widest text-amber-300">Panel del delegado</p>
+              <h1 className="font-display text-3xl uppercase tracking-wide text-white truncate">{team.name}</h1>
+              <p className="text-gray-400 text-sm truncate">{team.tournament_name}</p>
             </div>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            {!team.access_blocked && (
+            {!team.access_blocked && (unreadCount ?? 0) > 0 && (
               <Link
                 href="/delegado/avisos"
-                className="relative text-gray-300 hover:text-white text-sm transition-colors"
-                title="Avisos"
+                className="shrink-0 bg-red-600/90 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full"
               >
-                🔔 Avisos
-                {(unreadCount ?? 0) > 0 && (
-                  <span className="ml-1.5 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
+                🔔 {unreadCount} aviso{unreadCount === 1 ? '' : 's'}
               </Link>
             )}
-            {teams.length > 1 && (
-              <Link href="/delegado/equipos" className="text-green-400 hover:text-green-300 text-sm transition-colors">
-                Cambiar equipo
-              </Link>
-            )}
-            <form action={logout}>
-              <button className="text-gray-500 hover:text-white text-sm transition-colors">Cerrar sesión</button>
-            </form>
           </div>
         </div>
 
@@ -145,41 +131,41 @@ export default async function DelegateDashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           <Link
             href={`/delegado/fixture`}
-            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+            className="bg-gray-900/70 border border-white/10 hover:border-amber-400/40 rounded-xl p-5 transition-colors"
           >
             <p className="text-gray-500 text-sm">Calendario</p>
-            <p className="text-lg font-bold text-white mt-1">Ver fixture →</p>
+            <p className="font-condensed text-xl font-bold uppercase tracking-wide text-white mt-1">Ver fixture →</p>
           </Link>
           <Link
             href={`/delegado/estadisticas`}
-            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+            className="bg-gray-900/70 border border-white/10 hover:border-amber-400/40 rounded-xl p-5 transition-colors"
           >
             <p className="text-gray-500 text-sm">Torneo</p>
-            <p className="text-lg font-bold text-white mt-1">{isLocked ? '🔒 Ver tabla' : 'Ver tabla →'}</p>
+            <p className="font-condensed text-xl font-bold uppercase tracking-wide text-white mt-1">{isLocked ? '🔒 Ver tabla' : 'Ver tabla →'}</p>
           </Link>
           <Link
             href="/delegado/reglamento"
-            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+            className="bg-gray-900/70 border border-white/10 hover:border-amber-400/40 rounded-xl p-5 transition-colors"
           >
             <p className="text-gray-500 text-sm">Reglas</p>
-            <p className="text-lg font-bold text-white mt-1">📜 Reglamento →</p>
+            <p className="font-condensed text-xl font-bold uppercase tracking-wide text-white mt-1">📜 Reglamento →</p>
           </Link>
         </div>
 
         {discipline && (
           <section className="mb-8">
-            <h2 className="text-lg font-bold text-white mb-3">Disciplina de mi equipo</h2>
+            <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white mb-3">Disciplina de mi equipo</h2>
             <DisciplinePanel report={discipline} emptyText="Ningún jugador de tu equipo está suspendido ni amonestado." />
           </section>
         )}
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-white">Mis jugadores</h2>
+          <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white">Mis jugadores</h2>
           {canRegister ? (
             <div className="flex flex-col items-end gap-1">
               <Link
                 href="/delegado/jugadores/nuevo"
-                className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                className="bg-amber-400 hover:bg-amber-300 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
               >
                 + Nuevo jugador
               </Link>
@@ -201,7 +187,7 @@ export default async function DelegateDashboard() {
               position: string | null
               photo_url: string | null
             }) => (
-              <div key={player.id} className="flex items-center gap-2.5 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2.5">
+              <div key={player.id} className="flex items-center gap-2.5 bg-gray-900/70 border border-white/10 rounded-xl px-3 py-2.5">
                 <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden text-xs text-gray-400 font-semibold">
                   {player.photo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element

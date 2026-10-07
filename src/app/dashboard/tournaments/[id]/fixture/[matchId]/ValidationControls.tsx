@@ -38,7 +38,7 @@ export default function ValidationControls({
           Reabrir cédula
         </button>
       ) : (
-        <button className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+        <button className="bg-amber-400 hover:bg-amber-300 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
           ✓ Validar cédula
         </button>
       )}

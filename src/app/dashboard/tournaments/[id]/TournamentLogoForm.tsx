@@ -9,7 +9,7 @@ export default function TournamentLogoForm({ tournamentId, logoUrl }: { tourname
   const [state, formAction, isPending] = useActionState(uploadTournamentLogo, null)
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 flex items-center gap-4 flex-wrap">
+    <div className="bg-gray-900/70 border border-white/10 rounded-xl p-4 flex items-center gap-4 flex-wrap">
       <div className="w-20 h-20 rounded-full bg-gray-800 border-2 border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
         {logoUrl ? <img src={logoUrl} alt="Logo del torneo" className="w-full h-full object-contain" /> : <span className="text-3xl">⚽</span>}
       </div>
@@ -28,7 +28,7 @@ export default function TournamentLogoForm({ tournamentId, logoUrl }: { tourname
           <button
             type="submit"
             disabled={isPending}
-            className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-xs font-semibold px-3 py-2 rounded-lg"
+            className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-xs font-semibold px-3 py-2 rounded-lg"
           >
             {isPending ? 'Subiendo...' : logoUrl ? 'Cambiar logo' : 'Subir logo'}
           </button>

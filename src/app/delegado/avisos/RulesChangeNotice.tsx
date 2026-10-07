@@ -46,7 +46,7 @@ export default function RulesChangeNotice({ oldS, newS }: { oldS: RulesSnapshot 
         <p className="text-gray-400 text-xs">Se actualizó el reglamento.</p>
       )}
 
-      <Link href="/delegado/reglamento" className="text-green-400 hover:text-green-300 text-xs">
+      <Link href="/delegado/reglamento" className="text-amber-300 hover:text-amber-200 text-xs">
         Ver reglamento completo →
       </Link>
     </div>

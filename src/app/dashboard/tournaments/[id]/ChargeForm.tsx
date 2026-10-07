@@ -5,7 +5,7 @@ import { createCharge } from '@/app/actions/charges'
 import { CHARGE_CONCEPTS } from '@/lib/charges'
 
 const inputClass =
-  'bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-green-500'
+  'bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-amber-400'
 
 export default function ChargeForm({
   tournamentId,
@@ -57,7 +57,7 @@ export default function ChargeForm({
         <button
           type="submit"
           disabled={isPending}
-          className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+          className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
         >
           {isPending ? 'Guardando...' : '+ Registrar cargo'}
         </button>

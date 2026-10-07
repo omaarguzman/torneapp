@@ -39,13 +39,13 @@ export default async function EditTeamPage({
     .eq('tournament_id', id)
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
         <Link href={`/dashboard/tournaments/${id}`} className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver al torneo
         </Link>
 
-        <h1 className="text-2xl font-black text-white mt-4 mb-6">Editar equipo</h1>
+        <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4 mb-6">Editar equipo</h1>
 
         <TeamForm
           tournamentId={id}

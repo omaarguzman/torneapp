@@ -40,20 +40,20 @@ export default async function AdminMatchReportPage({
 
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
         <Link href={`/dashboard/tournaments/${id}/fixture`} className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver al fixture
         </Link>
 
-        <h1 className="text-xl font-black text-white mt-4 mb-1">
+        <h1 className="font-display text-2xl uppercase tracking-wide text-white mt-4 mb-1">
           {match.home_team.name} vs {match.away_team.name}
         </h1>
         <p className="text-gray-500 text-sm capitalize mb-6">
           {matchScheduleLabel(match)}
         </p>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 flex items-center justify-between gap-3 flex-wrap">
+        <div className="bg-gray-900/70 border border-white/10 rounded-xl p-4 mb-6 flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-gray-500 text-xs uppercase tracking-wide">Estado</p>
             <p className="text-white text-sm font-semibold mt-0.5">

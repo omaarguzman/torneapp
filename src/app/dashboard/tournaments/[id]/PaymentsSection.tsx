@@ -17,7 +17,7 @@ export default function PaymentsSection({
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-white">Pagos por equipo</h2>
+        <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white">Pagos por equipo</h2>
         <span className="text-sm text-gray-400">
           Por cobrar: <span className="text-white font-semibold">{formatMoney(pendingTotal)}</span>
         </span>
@@ -45,7 +45,7 @@ export default function PaymentsSection({
             const paid = teamCharges.filter((c) => c.paid)
 
             return (
-              <details key={team.id} className="group bg-gray-900 border border-gray-800 rounded-lg">
+              <details key={team.id} className="group bg-gray-900/70 border border-white/10 rounded-xl">
                 <summary className="flex items-center justify-between gap-3 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                   <span className="text-white font-semibold truncate">{team.name}</span>
                   <div className="flex items-center gap-3">

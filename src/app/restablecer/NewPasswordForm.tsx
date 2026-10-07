@@ -18,7 +18,7 @@ export default function NewPasswordForm({ email }: { email?: string }) {
           required
           autoComplete="new-password"
           placeholder="Repite la contraseña"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors"
+          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
         />
       </div>
       {state?.error && (
@@ -27,7 +27,7 @@ export default function NewPasswordForm({ email }: { email?: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white font-semibold py-3 rounded-lg transition-colors"
+        className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 font-semibold py-3 rounded-lg transition-colors"
       >
         {isPending ? 'Guardando...' : 'Guardar nueva contraseña'}
       </button>

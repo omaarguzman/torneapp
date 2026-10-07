@@ -100,7 +100,7 @@ export default async function TournamentPage({
   const teamsWithDebt = new Set(charges.filter((c) => !c.paid).map((c) => c.team_id)).size
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <Link href="/dashboard" className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver al panel
@@ -119,24 +119,24 @@ export default async function TournamentPage({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
+          <div className="bg-gray-900/70 border border-white/10 rounded-xl p-5">
             <p className="text-gray-500 text-sm">Equipos</p>
             <p className="text-2xl font-bold text-white mt-1">{teams?.length ?? 0}</p>
           </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
+          <div className="bg-gray-900/70 border border-white/10 rounded-xl p-5">
             <p className="text-gray-500 text-sm">Canchas</p>
             <p className="text-2xl font-bold text-white mt-1">{venues?.length ?? 0}</p>
           </div>
           <Link
             href={`/dashboard/tournaments/${id}/fixture`}
-            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+            className="bg-gray-900/70 border border-white/10 hover:border-amber-400/40 rounded-xl p-5 transition-colors"
           >
             <p className="text-gray-500 text-sm">Jornadas</p>
             <p className="text-2xl font-bold text-white mt-1">Ver fixture →</p>
           </Link>
           <Link
             href={`/dashboard/tournaments/${id}/stats`}
-            className="bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg p-5 transition-colors"
+            className="bg-gray-900/70 border border-white/10 hover:border-amber-400/40 rounded-xl p-5 transition-colors"
           >
             <p className="text-gray-500 text-sm">Estadísticas</p>
             <p className="text-2xl font-bold text-white mt-1">Ver tabla →</p>
@@ -146,7 +146,7 @@ export default async function TournamentPage({
         {(() => {
         const venuesSection = (
         <section>
-          <h2 className="text-lg font-bold text-white mb-4">Canchas y horarios</h2>
+          <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white mb-4">Canchas y horarios</h2>
 
           <div className="flex justify-end mb-2">
             <Link href="/dashboard/venues" className="text-gray-500 hover:text-gray-300 text-xs underline">
@@ -173,7 +173,7 @@ export default async function TournamentPage({
                   ))}
                 </select>
               </div>
-              <button className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors">
+              <button className="bg-amber-400 hover:bg-amber-300 text-gray-950 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors">
                 Usar esta cancha
               </button>
             </form>
@@ -181,7 +181,7 @@ export default async function TournamentPage({
 
           <div className="flex flex-col gap-4 mb-6">
             {venues?.map((venue) => (
-              <details key={venue.id} className="group bg-gray-900 border border-gray-800 rounded-lg">
+              <details key={venue.id} className="group bg-gray-900/70 border border-white/10 rounded-xl">
                 <summary className="flex items-start justify-between p-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                   <div>
                     <p className="text-white font-semibold">{venue.name}</p>
@@ -233,7 +233,7 @@ export default async function TournamentPage({
                       {dayNames.map((day, i) => (
                         <label key={i} className="cursor-pointer">
                           <input type="checkbox" name="days" value={i} className="peer sr-only" />
-                          <span className="block px-2.5 py-1.5 rounded-md text-xs font-medium border border-gray-700 text-gray-400 peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 transition-colors">
+                          <span className="block px-2.5 py-1.5 rounded-md text-xs font-medium border border-gray-700 text-gray-400 peer-checked:bg-amber-400 peer-checked:text-gray-950 peer-checked:border-amber-400 transition-colors">
                             {day.slice(0, 3)}
                           </span>
                         </label>
@@ -293,14 +293,14 @@ export default async function TournamentPage({
               name="name"
               required
               placeholder="Nombre de la cancha (ej. Cancha 1)"
-              className="flex-1 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-green-500"
+              className="flex-1 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-amber-400"
             />
             <input
               name="location"
               placeholder="Ubicación (opcional)"
-              className="flex-1 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-green-500"
+              className="flex-1 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-amber-400"
             />
-            <button className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap">
+            <button className="bg-amber-400 hover:bg-amber-300 text-gray-950 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap">
               + Agregar cancha
             </button>
           </form>
@@ -310,10 +310,10 @@ export default async function TournamentPage({
         const teamsSection = (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">Equipos</h2>
+            <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white">Equipos</h2>
             <Link
               href={`/dashboard/tournaments/${id}/teams/new`}
-              className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              className="bg-amber-400 hover:bg-amber-300 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
             >
               + Nuevo equipo
             </Link>
@@ -322,7 +322,7 @@ export default async function TournamentPage({
           {teams && teams.length > 0 ? (
             <div className="flex flex-col gap-3">
               {teams.map((team) => (
-                <details key={team.id} className="group bg-gray-900 border border-gray-800 rounded-lg">
+                <details key={team.id} className="group bg-gray-900/70 border border-white/10 rounded-xl">
                   <summary className="flex items-start gap-3 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                     <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {team.logo_url ? (
@@ -388,7 +388,7 @@ export default async function TournamentPage({
                       </p>
                       <Link
                         href={`/dashboard/tournaments/${id}/teams/${team.id}/players/new`}
-                        className="text-green-400 hover:text-green-300 text-xs font-semibold"
+                        className="text-amber-300 hover:text-amber-200 text-xs font-semibold"
                       >
                         + Jugador
                       </Link>

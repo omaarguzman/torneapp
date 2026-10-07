@@ -61,7 +61,7 @@ export default async function MatchReportPage({
     <main className="min-h-screen bg-gray-950 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
         <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">{match.tournament_name}</p>
-        <h1 className="text-xl font-black text-white mb-1">
+        <h1 className="font-display text-2xl uppercase tracking-wide text-white mb-1">
           {match.home_team.name} vs {match.away_team.name}
         </h1>
         <p className="text-gray-500 text-sm capitalize mb-6">

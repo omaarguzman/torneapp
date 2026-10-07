@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import EmailInviteForms from './EmailInviteForms'
 import GoogleButton from '@/components/GoogleButton'
+import { LogoMark } from '@/components/Logo'
 import { oauthErrorMessage } from '@/lib/oauthErrors'
 
 type InviteInfo = {
@@ -28,7 +29,7 @@ export default async function TeamInvitePage({
 
   if (!invite) {
     return (
-      <main className="min-h-screen bg-gray-950 flex items-center justify-center p-8">
+      <main className="auth-screen">
         <p className="text-gray-400 text-center">
           Este enlace no corresponde a ningún equipo. Verifica que lo hayas copiado completo.
         </p>
@@ -37,11 +38,11 @@ export default async function TeamInvitePage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <main className="auth-screen">
+      <div className="w-full max-w-sm bg-gray-900/60 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur shadow-2xl shadow-black/50">
         <div className="text-center mb-8">
-          <span className="text-4xl">⚽</span>
-          <h1 className="text-2xl font-black text-white mt-2">{invite.team_name}</h1>
+          <LogoMark size={52} className="mx-auto" />
+          <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-3">{invite.team_name}</h1>
           <p className="text-gray-400 text-sm mt-1">{invite.tournament_name}</p>
         </div>
 
@@ -52,7 +53,7 @@ export default async function TeamInvitePage({
         )}
 
         {invite.already_claimed ? (
-          <div className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-6 text-center">
+          <div className="bg-gray-900/70 border border-white/10 rounded-xl px-4 py-6 text-center">
             <p className="text-gray-300 text-sm">
               Este equipo ya tiene un delegado registrado. Si crees que esto es un error, contacta al
               administrador del torneo.

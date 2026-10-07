@@ -73,7 +73,7 @@ export default function RolImageButton({
       </summary>
 
       {open && (
-        <div className="mt-3 bg-gray-900 border border-gray-800 rounded-lg p-3 flex flex-col gap-3">
+        <div className="mt-3 bg-gray-900/70 border border-white/10 rounded-xl p-3 flex flex-col gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             {admin && (
               <select
@@ -86,7 +86,7 @@ export default function RolImageButton({
                   if (result && 'error' in result) setTemplateError(result.error)
                   else setVersion((v) => v + 1)
                 }}
-                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400"
                 title="Plantilla de esta jornada"
               >
                 <option value="">Plantilla del torneo ({admin.tournamentTemplateLabel})</option>
@@ -100,7 +100,7 @@ export default function RolImageButton({
             <a
               href={`${url}&descargar=1`}
               download={filename}
-              className="bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              className="bg-amber-400 hover:bg-amber-300 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
             >
               ⬇ Descargar
             </a>
@@ -128,7 +128,7 @@ export default function RolImageButton({
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
                 placeholder="Ej. Esta jornada ya se debe jugar con uniformes o playeras iguales"
-                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500 resize-none"
+                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400 resize-none"
               />
               <div className="flex items-center gap-3">
                 <button

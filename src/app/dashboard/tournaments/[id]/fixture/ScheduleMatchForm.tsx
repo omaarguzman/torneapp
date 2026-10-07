@@ -14,7 +14,7 @@ import {
 type Venue = { id: string; name: string }
 
 const inputClass =
-  'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500'
+  'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400'
 
 export default function ScheduleMatchForm({
   tournamentId,
@@ -104,7 +104,7 @@ export default function ScheduleMatchForm({
                       s.occupied || s.closed
                         ? 'border-gray-800 text-gray-600 line-through cursor-not-allowed'
                         : selected
-                          ? 'border-green-500 bg-green-950 text-green-300'
+                          ? 'border-amber-400 bg-amber-400/10 text-amber-200'
                           : 'border-gray-700 text-gray-300 hover:border-green-600'
                     }`}
                   >
@@ -211,7 +211,7 @@ export default function ScheduleMatchForm({
       <button
         type="submit"
         disabled={isPending}
-        className="self-start bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+        className="self-start bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
       >
         {isPending
           ? mode === 'move' ? 'Moviendo...' : 'Programando...'

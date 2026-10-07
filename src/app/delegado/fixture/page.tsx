@@ -124,13 +124,13 @@ export default async function DelegateFixturePage() {
   const isLocked = (pendingCount ?? 0) > 0
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <Link href="/delegado" className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver a mi equipo
         </Link>
 
-        <h1 className="text-2xl font-black text-white mt-4 mb-8">Calendario del torneo</h1>
+        <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4 mb-8">Calendario del torneo</h1>
 
         {isLocked && (
           <div className="bg-red-950/40 border border-red-900 rounded-lg px-4 py-3 mb-6">
@@ -150,7 +150,7 @@ export default async function DelegateFixturePage() {
               label: `J${md.number}`,
               content: (
               <div>
-                <h2 className="text-white font-bold mb-3">Jornada {md.number}</h2>
+                <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">Jornada {md.number}</h2>
                 {md.matches.length > 0 && <RolImageButton matchdayId={md.id} matchdayNumber={md.number} />}
                 <div className="flex flex-col gap-2">
                   {md.matches.map((m) => {
@@ -217,7 +217,7 @@ export default async function DelegateFixturePage() {
                       badge: String(pendingMatches.length),
                       content: (
                         <div>
-                          <h2 className="text-white font-bold mb-1">Partidos por programar</h2>
+                          <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-1">Partidos por programar</h2>
                           <p className="text-gray-500 text-xs mb-4">
                             Partidos aplazados que el administrador del torneo todavía no ha vuelto a programar.
                           </p>

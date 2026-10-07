@@ -38,7 +38,7 @@ export default function PlayerForm({
           name="full_name"
           required
           placeholder="Juan Pérez López"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
         />
       </div>
 
@@ -51,7 +51,7 @@ export default function PlayerForm({
             min={0}
             max={99}
             placeholder="10"
-            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
           />
         </div>
         <div>
@@ -59,7 +59,7 @@ export default function PlayerForm({
           <input
             name="position"
             placeholder="Delantero"
-            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
           />
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function PlayerForm({
           <input
             name="birth_date"
             type="date"
-            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
           />
         </div>
         <div>
@@ -79,7 +79,7 @@ export default function PlayerForm({
             name="curp"
             maxLength={18}
             placeholder="XXXX000000XXXXXX00"
-            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 uppercase"
+            className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 uppercase"
           />
         </div>
       </div>
@@ -110,7 +110,7 @@ export default function PlayerForm({
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white font-semibold py-3 rounded-lg transition-colors text-sm"
+          className="flex-1 bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 font-semibold py-3 rounded-lg transition-colors text-sm"
         >
           {loading ? 'Guardando...' : 'Agregar jugador'}
         </button>

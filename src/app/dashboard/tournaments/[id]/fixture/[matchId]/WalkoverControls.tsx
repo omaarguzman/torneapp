@@ -55,7 +55,7 @@ export default function WalkoverControls({
           : null
 
   return (
-    <details className="bg-gray-900 border border-gray-800 rounded-lg p-4 group">
+    <details className="bg-gray-900/70 border border-white/10 rounded-xl p-4 group">
       <summary className="cursor-pointer list-none text-gray-300 text-sm font-semibold">
         🏳️ Declarar default / W.O. <span className="group-open:hidden">▾</span>
         <span className="hidden group-open:inline">▴</span>

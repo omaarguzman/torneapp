@@ -143,7 +143,7 @@ export default function MatchReportForm({
       <fieldset disabled={readOnly} className="flex flex-col gap-6 min-w-0 disabled:opacity-70">
 
       {/* Marcador */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
+      <div className="bg-gray-900/70 border border-white/10 rounded-xl p-5">
         <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">Marcador final</p>
         <div className="flex items-center justify-center gap-4">
           <div className="flex flex-col items-center gap-1.5">
@@ -191,14 +191,14 @@ export default function MatchReportForm({
 
       {/* Roster de cada equipo con botones rápidos */}
       {[match.home_team, match.away_team].map((team) => (
-        <div key={team.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div key={team.id} className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-white font-semibold text-sm">{team.name}</p>
             {showAttendance && team.players.length > 0 && (
               <button
                 type="button"
                 onClick={() => markAll(team.players.map((p) => p.id))}
-                className="text-green-400 hover:text-green-300 text-xs font-semibold"
+                className="text-amber-300 hover:text-amber-200 text-xs font-semibold"
               >
                 Marcar todos asistieron
               </button>
@@ -289,7 +289,7 @@ export default function MatchReportForm({
         {events.length > 0 ? (
           <div className="flex flex-col gap-1.5">
             {events.map((e) => (
-              <div key={e.id} className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
+              <div key={e.id} className="flex items-center gap-2 bg-gray-900/70 border border-white/10 rounded-xl px-3 py-2">
                 <span className="text-base">{eventLabels[e.type].icon}</span>
                 <span className="text-gray-200 text-sm flex-1 truncate">{e.playerName}</span>
                 <span className="text-gray-500 text-xs">{eventLabels[e.type].label}</span>
@@ -319,7 +319,7 @@ export default function MatchReportForm({
       </div>
 
       {/* Partido suspendido */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+      <div className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
         <label className="flex items-center gap-2 text-white text-sm font-semibold">
           <input
             type="checkbox"
@@ -375,7 +375,7 @@ export default function MatchReportForm({
           rows={3}
           defaultValue={match.referee_notes ?? ''}
           placeholder="Ej: la porra del equipo visitante agredió a un jugador al finalizar el partido..."
-          className="w-full bg-gray-900 border border-gray-800 text-white text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 resize-none"
+          className="w-full bg-gray-900/70 border border-white/10 text-white text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-amber-400 resize-none"
         />
       </div>
 
@@ -392,7 +392,7 @@ export default function MatchReportForm({
         <button
           type="submit"
           disabled={isPending || !canSubmit}
-          className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
+          className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 disabled:cursor-not-allowed text-gray-950 font-semibold py-3 rounded-lg transition-colors"
         >
           {isPending ? 'Guardando...' : suspended ? 'Guardar cédula (partido suspendido)' : 'Guardar cédula'}
         </button>

@@ -17,7 +17,7 @@ export default async function DelegateTeamPicker() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <span className="text-4xl">⚽</span>
-          <h1 className="text-2xl font-black text-white mt-2">Elige tu equipo</h1>
+          <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-2">Elige tu equipo</h1>
           <p className="text-gray-400 text-sm mt-1">Eres delegado de {teams.length} equipos.</p>
         </div>
 
@@ -25,7 +25,7 @@ export default async function DelegateTeamPicker() {
           {teams.map((team) => (
             <form key={team.id} action={selectDelegateTeam}>
               <input type="hidden" name="team_id" value={team.id} />
-              <button className="w-full flex items-center gap-3 bg-gray-900 border border-gray-800 hover:border-green-700 rounded-lg p-4 text-left transition-colors">
+              <button className="w-full flex items-center gap-3 bg-gray-900/70 border border-white/10 hover:border-green-700 rounded-xl p-4 text-left transition-colors">
                 <div className="w-11 h-11 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {team.logo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { PASSWORD_RULES, passwordWarning } from '@/lib/passwordPolicy'
 
 const inputClass =
-  'w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500 transition-colors'
+  'w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors'
 
 /** Campo de contraseña nueva con checklist en vivo. El servidor vuelve a validar. */
 export default function PasswordField({ email }: { email?: string }) {

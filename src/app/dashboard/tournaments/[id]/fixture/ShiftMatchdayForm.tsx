@@ -35,7 +35,7 @@ export default function ShiftMatchdayForm({
           )
           if (!ok) e.preventDefault()
         }}
-        className="mt-3 bg-gray-900 border border-gray-800 rounded-lg p-3 flex flex-col gap-3"
+        className="mt-3 bg-gray-900/70 border border-white/10 rounded-xl p-3 flex flex-col gap-3"
       >
         <input type="hidden" name="tournament_id" value={tournamentId} />
         <input type="hidden" name="matchday_number" value={matchdayNumber} />
@@ -44,7 +44,7 @@ export default function ShiftMatchdayForm({
             name="weeks"
             value={weeks}
             onChange={(e) => setWeeks(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400"
           >
             {WEEK_OPTIONS.map((n) => (
               <option key={n} value={n}>
@@ -72,7 +72,7 @@ export default function ShiftMatchdayForm({
         <button
           type="submit"
           disabled={isPending}
-          className="self-start bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          className="self-start bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
         >
           {isPending ? 'Recorriendo...' : 'Recorrer'}
         </button>

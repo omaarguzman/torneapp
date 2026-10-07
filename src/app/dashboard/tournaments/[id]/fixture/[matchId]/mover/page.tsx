@@ -42,10 +42,10 @@ export default async function MoveMatchPage({
 
   if (match.status !== 'scheduled') {
     return (
-      <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+      <main className="flex-1 p-4 md:p-8">
         <div className="max-w-lg mx-auto">
           <Link href={backHref} className="text-gray-500 text-sm hover:text-gray-300">← Volver al fixture</Link>
-          <h1 className="text-xl font-black text-white mt-4 mb-4">{title}</h1>
+          <h1 className="font-display text-2xl uppercase tracking-wide text-white mt-4 mb-4">{title}</h1>
           <p className="text-yellow-400 text-sm bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3">
             {match.status === 'played'
               ? 'Este partido ya se jugó, así que no se puede mover.'
@@ -80,11 +80,11 @@ export default async function MoveMatchPage({
     })
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
         <Link href={backHref} className="text-gray-500 text-sm hover:text-gray-300">← Volver al fixture</Link>
 
-        <h1 className="text-xl font-black text-white mt-4 mb-1">{title}</h1>
+        <h1 className="font-display text-2xl uppercase tracking-wide text-white mt-4 mb-1">{title}</h1>
         <p className="text-gray-500 text-sm capitalize mb-6">
           {match.matchday_id && `J${matchdayNumber.get(match.matchday_id)} · `}
           {matchScheduleLabel({
@@ -95,8 +95,8 @@ export default async function MoveMatchPage({
           })}
         </p>
 
-        <section className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6">
-          <h2 className="text-white font-bold">✏️ Cambiar fecha, cancha u horario</h2>
+        <section className="bg-gray-900/70 border border-white/10 rounded-xl p-4 mb-6">
+          <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white">✏️ Cambiar fecha, cancha u horario</h2>
           <p className="text-gray-500 text-xs mt-1">
             Al cambiar la fecha, el partido pasa a la jornada de esa semana (puedes elegir otra). Su link de árbitro no
             cambia.
@@ -119,8 +119,8 @@ export default async function MoveMatchPage({
           />
         </section>
 
-        <section className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-          <h2 className="text-white font-bold mb-1">⇄ Intercambiar con otro partido</h2>
+        <section className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
+          <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-1">⇄ Intercambiar con otro partido</h2>
           <p className="text-gray-500 text-xs mb-3">
             Los dos partidos se cambian fecha, cancha, horario y jornada entre sí. Útil cuando un equipo pide otro horario
             y otro partido acepta el cambio.

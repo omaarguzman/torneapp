@@ -77,7 +77,7 @@ export default function DisciplinePanel({ report, emptyText }: { report: Discipl
         </div>
       ) : (
         withRows.map((t) => (
-          <section key={t.id} className="bg-gray-900 border border-gray-800 rounded-lg p-3">
+          <section key={t.id} className="bg-gray-900/70 border border-white/10 rounded-xl p-3">
             <h3 className="text-white font-semibold text-sm mb-2">{t.name}</h3>
             <ul className="flex flex-col gap-1.5">
               {t.rows.map((r) => (

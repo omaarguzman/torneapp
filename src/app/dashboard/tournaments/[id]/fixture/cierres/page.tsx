@@ -24,16 +24,16 @@ export default async function VenueClosuresPage({ params }: { params: Promise<{ 
   const today = new Date().toISOString().slice(0, 10)
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-lg mx-auto">
         <Link href={`/dashboard/tournaments/${id}/fixture`} className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver al fixture
         </Link>
-        <h1 className="text-2xl font-black text-white mt-4">Canchas cerradas</h1>
+        <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4">Canchas cerradas</h1>
         <p className="text-gray-500 text-sm mb-6">{tournament.name}</p>
 
-        <section className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-8">
-          <h2 className="text-white font-bold mb-1">Cerrar una cancha un día</h2>
+        <section className="bg-gray-900/70 border border-white/10 rounded-xl p-4 mb-8">
+          <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-1">Cerrar una cancha un día</h2>
           <p className="text-gray-500 text-xs mb-4">
             Sus partidos programados ese día pasan a Pendientes (con opción de deshacer). Mientras siga cerrada, no se
             podrá programar nada ahí ese día, ni siquiera al generar o actualizar el fixture.
@@ -41,7 +41,7 @@ export default async function VenueClosuresPage({ params }: { params: Promise<{ 
           <CloseVenueForm tournamentId={id} venues={venues ?? []} />
         </section>
 
-        <h2 className="text-white font-bold mb-3">Días cerrados</h2>
+        <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">Días cerrados</h2>
         {(closures ?? []).length === 0 ? (
           <p className="text-gray-500 text-sm">No hay canchas cerradas.</p>
         ) : (
@@ -49,7 +49,7 @@ export default async function VenueClosuresPage({ params }: { params: Promise<{ 
             {(closures ?? []).map((c) => (
               <li
                 key={c.id}
-                className={`bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 flex items-center justify-between gap-3 ${
+                className={`bg-gray-900/70 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between gap-3 ${
                   c.closed_on < today ? 'opacity-60' : ''
                 }`}
               >
@@ -69,7 +69,7 @@ export default async function VenueClosuresPage({ params }: { params: Promise<{ 
                 <form action={reopenVenueDay}>
                   <input type="hidden" name="tournament_id" value={id} />
                   <input type="hidden" name="closure_id" value={c.id} />
-                  <button type="submit" className="text-green-400 hover:text-green-300 text-xs font-semibold whitespace-nowrap">
+                  <button type="submit" className="text-amber-300 hover:text-amber-200 text-xs font-semibold whitespace-nowrap">
                     Reabrir
                   </button>
                 </form>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import {
   buildStatsExcel,
   buildStatsPdf,
@@ -11,6 +11,13 @@ import {
 
 type Action = 'excel' | 'pdf' | 'share'
 
+/** ¿El navegador puede compartir archivos (menú de compartir del celular)? En el servidor, no. */
+function canShareFiles() {
+  if (typeof navigator === 'undefined' || typeof navigator.canShare !== 'function') return false
+  return navigator.canShare({ files: [new File([''], 'probe.pdf', { type: 'application/pdf' })] })
+}
+const noSubscribe = () => () => {}
+
 export default function StatsExportButtons({
   data,
   allowExcel = false,
@@ -20,12 +27,7 @@ export default function StatsExportButtons({
 }) {
   const [busy, setBusy] = useState<Action | null>(null)
   const [error, setError] = useState('')
-  const [canShareFiles, setCanShareFiles] = useState(false)
-
-  useEffect(() => {
-    const probe = new File([''], 'probe.pdf', { type: 'application/pdf' })
-    setCanShareFiles(typeof navigator.canShare === 'function' && navigator.canShare({ files: [probe] }))
-  }, [])
+  const shareSupported = useSyncExternalStore(noSubscribe, canShareFiles, () => false)
 
   async function run(action: Action) {
     setBusy(action)
@@ -67,12 +69,12 @@ export default function StatsExportButtons({
         <button type="button" onClick={() => run('pdf')} disabled={busy !== null} className={buttonClass}>
           {busy === 'pdf' ? 'Generando…' : 'PDF'}
         </button>
-        {canShareFiles && (
+        {shareSupported && (
           <button
             type="button"
             onClick={() => run('share')}
             disabled={busy !== null}
-            className="flex-1 sm:flex-none bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            className="flex-1 sm:flex-none bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
           >
             {busy === 'share' ? 'Preparando…' : 'Compartir'}
           </button>

@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { updateTournamentRules } from '@/app/actions/tournaments'
 
 const inputClass =
-  'w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-500'
+  'w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-amber-400'
 
 export default function RulesForm({
   tournamentId,
@@ -34,7 +34,7 @@ export default function RulesForm({
         <textarea name="rules" rows={5} defaultValue={rules ?? ''} className={`${inputClass} resize-y`} />
       </div>
 
-      <fieldset className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+      <fieldset className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
         <legend className="text-white text-sm font-semibold px-1">Registro de jugadores por delegados</legend>
         <label className="text-xs text-gray-500 mb-1 block">Fecha límite (los delegados pueden registrar jugadores hasta ese día, inclusive)</label>
         <input
@@ -48,7 +48,7 @@ export default function RulesForm({
         </p>
       </fieldset>
 
-      <fieldset className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+      <fieldset className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
         <legend className="text-white text-sm font-semibold px-1">Suspensiones</legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -73,7 +73,7 @@ export default function RulesForm({
         </p>
       </fieldset>
 
-      <fieldset className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+      <fieldset className="bg-gray-900/70 border border-white/10 rounded-xl p-4">
         <legend className="text-white text-sm font-semibold px-1">Default / W.O.</legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -102,7 +102,7 @@ export default function RulesForm({
       <button
         type="submit"
         disabled={isPending}
-        className="self-start bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+        className="self-start bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
       >
         {isPending ? 'Guardando...' : 'Guardar reglas'}
       </button>

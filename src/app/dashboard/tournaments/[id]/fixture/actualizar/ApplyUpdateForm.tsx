@@ -34,7 +34,7 @@ export default function ApplyUpdateForm({
           <button
             type="submit"
             disabled={isPending}
-            className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+            className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
           >
             {isPending ? 'Aplicando...' : '✓ Aplicar cambios'}
           </button>

@@ -13,18 +13,18 @@ export default async function SavedVenuesPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         <Link href="/dashboard" className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver al panel
         </Link>
 
-        <h1 className="text-2xl font-black text-white mt-4 mb-6">Canchas guardadas</h1>
+        <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4 mb-6">Canchas guardadas</h1>
 
         {templates && templates.length > 0 ? (
           <div className="flex flex-col gap-3">
             {templates.map((t) => (
-              <div key={t.id} className="bg-gray-900 border border-gray-800 rounded-lg p-5">
+              <div key={t.id} className="bg-gray-900/70 border border-white/10 rounded-xl p-5">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-white font-semibold">{t.name}</p>

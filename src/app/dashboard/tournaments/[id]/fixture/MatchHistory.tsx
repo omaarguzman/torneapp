@@ -59,7 +59,7 @@ export default function MatchHistory({ changes, teamNames }: { changes: MatchCha
   return (
     <ul className="flex flex-col gap-2">
       {groups.map((g) => (
-        <li key={g[0].id} className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
+        <li key={g[0].id} className="bg-gray-900/70 border border-white/10 rounded-xl px-4 py-3">
           <p className="text-gray-500 text-[11px] mb-1.5">
             {when(g[0].changed_at)}
             {g[0].source && <span className="text-yellow-500"> · {g[0].source}</span>}

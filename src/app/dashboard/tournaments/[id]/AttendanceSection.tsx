@@ -18,11 +18,11 @@ export default function AttendanceSection({
 }) {
   return (
     <section>
-      <h2 className="text-lg font-bold text-white mb-4">Asistencia de jugadores</h2>
+      <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white mb-4">Asistencia de jugadores</h2>
 
       <form
         action={setMinMatchesRequired}
-        className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6 flex items-end gap-3 flex-wrap"
+        className="bg-gray-900/70 border border-white/10 rounded-xl p-4 mb-6 flex items-end gap-3 flex-wrap"
       >
         <input type="hidden" name="tournament_id" value={tournamentId} />
         <div className="flex-1 min-w-[200px]">
@@ -34,7 +34,7 @@ export default function AttendanceSection({
             min={1}
             defaultValue={minRequired ?? ''}
             placeholder="Sin mínimo"
-            className="w-32 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-green-500"
+            className="w-32 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-400"
           />
         </div>
         <button className="bg-gray-800 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg transition-colors">
@@ -43,7 +43,7 @@ export default function AttendanceSection({
       </form>
 
       <p className="text-gray-500 text-xs mb-3">
-        La asistencia se marca en la cédula de cada partido. Puedes corregirla desde el fixture → "Ver cédula".
+        La asistencia se marca en la cédula de cada partido. Puedes corregirla desde el fixture → &ldquo;Ver cédula&rdquo;.
       </p>
 
       {teams.length === 0 ? (
@@ -58,7 +58,7 @@ export default function AttendanceSection({
               : 0
 
             return (
-              <details key={team.id} className="group bg-gray-900 border border-gray-800 rounded-lg">
+              <details key={team.id} className="group bg-gray-900/70 border border-white/10 rounded-xl">
                 <summary className="flex items-center justify-between gap-3 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                   <div className="min-w-0">
                     <p className="text-white font-semibold truncate">{team.name}</p>

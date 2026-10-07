@@ -5,7 +5,7 @@ import { closeVenueDay } from '@/app/actions/fixtureEdits'
 import EditResultNotice from '../EditResultNotice'
 
 const inputClass =
-  'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500'
+  'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400'
 
 export default function CloseVenueForm({
   tournamentId,
@@ -82,7 +82,7 @@ export default function CloseVenueForm({
       <button
         type="submit"
         disabled={isPending}
-        className="self-start bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+        className="self-start bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
       >
         {isPending ? 'Cerrando...' : '🚧 Cerrar cancha ese día'}
       </button>

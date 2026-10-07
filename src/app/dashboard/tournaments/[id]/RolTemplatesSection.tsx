@@ -26,7 +26,7 @@ function Choice({
       name="template"
       value={value}
       className={`flex flex-col text-left rounded-lg overflow-hidden border-2 transition-colors ${
-        selected ? 'border-green-500 ring-2 ring-green-500/40' : 'border-gray-800 hover:border-gray-600'
+        selected ? 'border-amber-400 ring-2 ring-amber-400/40' : 'border-gray-800 hover:border-gray-600'
       }`}
     >
       {children}
@@ -51,7 +51,7 @@ export default function RolTemplatesSection({
   const [uploadState, uploadAction, uploading] = useActionState(uploadRolTemplate, null)
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 flex flex-col gap-4">
+    <div className="bg-gray-900/70 border border-white/10 rounded-xl p-4 flex flex-col gap-4">
       <div>
         <p className="text-white text-sm font-semibold">Plantilla del rol de juegos</p>
         <p className="text-gray-500 text-xs mt-0.5">
@@ -122,7 +122,7 @@ export default function RolTemplatesSection({
             maxLength={60}
             required
             placeholder="Nombre (ej. Final de temporada)"
-            className="flex-1 min-w-[12rem] bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+            className="flex-1 min-w-[12rem] bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-400"
           />
           <input
             type="file"
@@ -134,7 +134,7 @@ export default function RolTemplatesSection({
           <button
             type="submit"
             disabled={uploading}
-            className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-xs font-semibold px-3 py-2 rounded-lg"
+            className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-xs font-semibold px-3 py-2 rounded-lg"
           >
             {uploading ? 'Subiendo...' : 'Subir plantilla'}
           </button>

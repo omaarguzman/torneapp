@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react'
 import { finalizeSuspendedMatch, resumeSuspendedMatch } from '@/app/actions/suspendedMatch'
 
 const scoreClass =
-  'w-16 bg-gray-800 border border-gray-700 text-white text-center text-lg font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-green-500'
+  'w-16 bg-gray-800 border border-gray-700 text-white text-center text-lg font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-400'
 
 export default function SuspendedControls({
   tournamentId,
@@ -101,7 +101,7 @@ export default function SuspendedControls({
         <button
           type="submit"
           disabled={isPending}
-          className="self-start bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          className="self-start bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
         >
           {isPending ? 'Guardando...' : changed ? 'Fijar resultado administrativo' : 'Terminar con el marcador parcial'}
         </button>

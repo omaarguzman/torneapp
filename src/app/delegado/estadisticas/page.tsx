@@ -32,12 +32,12 @@ export default async function DelegateStatsPage() {
 
   if (pendingCharges && pendingCharges.length > 0) {
     return (
-      <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+      <main className="flex-1 p-4 md:p-8">
         <div className="max-w-3xl mx-auto">
           <Link href="/delegado" className="text-gray-500 text-sm hover:text-gray-300">
             ← Volver a mi equipo
           </Link>
-          <h1 className="text-2xl font-black text-white mt-4 mb-1">Estadísticas</h1>
+          <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4 mb-1">Estadísticas</h1>
           <p className="text-gray-500 text-sm mb-8">{tournamentInfo?.name}</p>
           <PendingChargesNotice
             charges={pendingCharges}
@@ -96,7 +96,7 @@ export default async function DelegateStatsPage() {
   const topScorers = Array.from(scorerCounts.values()).sort((a, b) => b.goals - a.goals).slice(0, 10)
 
   return (
-    <main className="min-h-screen bg-gray-950 p-4 md:p-8">
+    <main className="flex-1 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <Link href="/delegado" className="text-gray-500 text-sm hover:text-gray-300">
           ← Volver a mi equipo
@@ -104,7 +104,7 @@ export default async function DelegateStatsPage() {
 
         <div className="flex items-end justify-between gap-4 flex-wrap mt-4 mb-8">
           <div>
-            <h1 className="text-2xl font-black text-white mb-1">Estadísticas</h1>
+            <h1 className="font-display text-3xl uppercase tracking-wide text-white mb-1">Estadísticas</h1>
             <p className="text-gray-500 text-sm">{tournamentInfo?.name}</p>
           </div>
           <StatsExportButtons
@@ -117,8 +117,8 @@ export default async function DelegateStatsPage() {
         </div>
 
         <section className="mb-10">
-          <h2 className="text-white font-bold mb-3">Tabla de posiciones</h2>
-          <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-x-auto">
+          <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">Tabla de posiciones</h2>
+          <div className="bg-gray-900/70 border border-white/10 rounded-xl overflow-x-auto">
             <table className="w-full text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
               <thead>
                 <tr className="text-gray-500 text-xs border-b border-gray-800">
@@ -161,8 +161,8 @@ export default async function DelegateStatsPage() {
         </section>
 
         <section>
-          <h2 className="text-white font-bold mb-3">⚽ Goleadores</h2>
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-2">
+          <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">⚽ Goleadores</h2>
+          <div className="bg-gray-900/70 border border-white/10 rounded-xl p-2">
             {topScorers.length > 0 ? (
               <div className="flex flex-col">
                 {topScorers.map((s, i) => (

@@ -37,7 +37,7 @@ export default function DelegateRegisterForm({
           required
           defaultValue={defaultName}
           placeholder="Juan Pérez"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
         />
         {defaultName && (
           <p className="text-gray-600 text-xs mt-1">
@@ -54,7 +54,7 @@ export default function DelegateRegisterForm({
           required
           defaultValue={defaultEmail}
           placeholder="tu@correo.com"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
         />
         {defaultEmail && (
           <p className="text-gray-600 text-xs mt-1">
@@ -72,7 +72,7 @@ export default function DelegateRegisterForm({
           type="password"
           required
           placeholder="Repite la contraseña"
-          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-500"
+          className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400"
         />
       </div>
 
@@ -85,7 +85,7 @@ export default function DelegateRegisterForm({
       <button
         type="submit"
         disabled={isPending}
-        className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 text-white font-semibold py-3 rounded-lg transition-colors"
+        className="bg-amber-400 hover:bg-amber-300 disabled:bg-amber-400/40 disabled:text-gray-700 text-gray-950 font-semibold py-3 rounded-lg transition-colors"
       >
         {isPending ? 'Creando cuenta...' : 'Registrarme como delegado'}
       </button>
