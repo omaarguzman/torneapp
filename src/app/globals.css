@@ -1,26 +1,100 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #030712;
+  --foreground: #f9fafb;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Identidad Torneapp: Barlow para texto, Anton para títulos, Barlow Condensed para cifras y etiquetas */
+  --font-sans: var(--font-barlow);
+  --font-display: var(--font-anton);
+  --font-condensed: var(--font-barlow-condensed);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-barlow), system-ui, sans-serif;
+}
+
+/* Texto dorado metálico para títulos */
+.text-gold {
+  background-image: linear-gradient(180deg, #fff6c9 0%, #f5d061 40%, #d4a017 65%, #a16207 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Animaciones de la landing ---------- */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50% { transform: translateY(-14px) rotate(var(--r, 0deg)); }
+}
+@keyframes beam {
+  0%, 100% { transform: rotate(var(--from)); opacity: 0.55; }
+  50% { transform: rotate(var(--to)); opacity: 0.9; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toast-in {
+  0% { opacity: 0; transform: translateY(12px) scale(0.96); }
+  12%, 85% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.98); }
+}
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(0.4em); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+@keyframes score-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); color: #fde047; }
+  100% { transform: scale(1); }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-beam { animation: beam 7s ease-in-out infinite; transform-origin: top center; }
+.animate-marquee { animation: marquee 40s linear infinite; }
+.animate-word { animation: word-in 0.5s ease-out both; }
+.animate-toast { animation: toast-in 3.2s ease-in-out both; }
+.animate-progress { animation: progress linear both; transform-origin: left; }
+.animate-live { animation: pulse-dot 1.6s ease-in-out infinite; }
+.animate-score { animation: score-pop 0.6s ease-out; }
+.text-gold-shimmer {
+  background-image: linear-gradient(100deg, #a16207 0%, #f5d061 25%, #fff6c9 40%, #f5d061 55%, #a16207 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+.reveal { opacity: 0; }
+.reveal.is-visible { animation: fade-up 0.7s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-beam, .animate-marquee, .animate-word, .animate-toast,
+  .animate-progress, .animate-live, .animate-score, .text-gold-shimmer, .reveal.is-visible {
+    animation: none !important;
+  }
+  .reveal { opacity: 1; }
 }
