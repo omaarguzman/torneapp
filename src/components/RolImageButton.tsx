@@ -2,32 +2,35 @@
 
 /* eslint-disable @next/next/no-img-element -- vista previa de un PNG generado al momento */
 import { useActionState, useState } from 'react'
-import { saveMatchdayNote, type NoteResult } from '@/app/actions/rolImage'
+import { saveMatchdayNote, setMatchdayTemplate, type NoteResult } from '@/app/actions/rolImage'
 
-const THEME_OPTIONS = [
-  ['auto', 'Automático (según la fecha)'],
-  ['estadio', '⚽ Estadio'],
-  ['patrio', '🇲🇽 Mes patrio'],
-  ['muertos', '💀 Día de Muertos'],
-  ['navidad', '🎄 Navidad'],
-  ['primavera', '🌸 Primavera'],
-] as const
+export type TemplateOption = { value: string; label: string }
 
 /**
  * Imagen oficial del rol de una jornada: vista previa, descargar y compartir.
- * Con `note` (solo admin) también permite editar la nota que aparece en la imagen.
+ * Con `admin` también permite elegir la plantilla de la jornada y editar la
+ * nota; el delegado ve siempre la plantilla que estableció el admin.
  */
 export default function RolImageButton({
   matchdayId,
   matchdayNumber,
-  note,
+  admin,
 }: {
   matchdayId: string
   matchdayNumber: number
-  note?: { tournamentId: string; value: string | null }
+  admin?: {
+    tournamentId: string
+    note: string | null
+    /** Plantilla propia de la jornada ('' = la del torneo) */
+    template: string
+    tournamentTemplateLabel: string
+    options: TemplateOption[]
+  }
 }) {
+  const note = admin ? { tournamentId: admin.tournamentId, value: admin.note } : undefined
   const [open, setOpen] = useState(false)
-  const [theme, setTheme] = useState('auto')
+  const [template, setTemplate] = useState(admin?.template ?? '')
+  const [templateError, setTemplateError] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
   const [sharing, setSharing] = useState(false)
   const [noteText, setNoteText] = useState(note?.value ?? '')
@@ -37,7 +40,7 @@ export default function RolImageButton({
     return result
   }, null)
 
-  const url = `/api/rol/${matchdayId}?tema=${theme}&v=${version}`
+  const url = `/api/rol/${matchdayId}?v=${version}`
   const filename = `rol-jornada-${matchdayNumber}.png`
 
   async function share() {
@@ -72,17 +75,28 @@ export default function RolImageButton({
       {open && (
         <div className="mt-3 bg-gray-900 border border-gray-800 rounded-lg p-3 flex flex-col gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <select
-              value={theme}
-              onChange={(e) => setTheme(e.target.value)}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
-            >
-              {THEME_OPTIONS.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+            {admin && (
+              <select
+                value={template}
+                onChange={async (e) => {
+                  const value = e.target.value
+                  setTemplate(value)
+                  setTemplateError(null)
+                  const result = await setMatchdayTemplate(admin.tournamentId, matchdayId, value)
+                  if (result && 'error' in result) setTemplateError(result.error)
+                  else setVersion((v) => v + 1)
+                }}
+                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+                title="Plantilla de esta jornada"
+              >
+                <option value="">Plantilla del torneo ({admin.tournamentTemplateLabel})</option>
+                {admin.options.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            )}
             <a
               href={`${url}&descargar=1`}
               download={filename}
@@ -99,6 +113,8 @@ export default function RolImageButton({
               {sharing ? 'Preparando...' : '📤 Compartir'}
             </button>
           </div>
+
+          {templateError && <p className="text-red-400 text-xs">{templateError}</p>}
 
           {note && (
             <form action={noteAction} className="flex flex-col gap-2">

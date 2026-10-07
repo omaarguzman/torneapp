@@ -11,6 +11,7 @@ import PaymentsSection from './PaymentsSection'
 import AttendanceSection from './AttendanceSection'
 import RulesForm from './RulesForm'
 import TournamentLogoForm from './TournamentLogoForm'
+import RolTemplatesSection from './RolTemplatesSection'
 import { countByPlayer } from '@/lib/attendance'
 import UnlinkDelegateButton from './UnlinkDelegateButton'
 import type { Charge } from '@/lib/charges'
@@ -75,6 +76,12 @@ export default async function TournamentPage({
     .order('created_at')
 
   const charges = (chargesData ?? []) as Charge[]
+
+  const { data: rolTemplates } = await supabase
+    .from('rol_templates')
+    .select('id, name, image_url')
+    .eq('tournament_id', id)
+    .order('created_at')
 
   const [{ data: attendanceRows }, { data: playedMatches }] = await Promise.all([
     supabase.from('match_attendance').select('player_id').eq('tournament_id', id),
@@ -465,6 +472,7 @@ export default async function TournamentPage({
                 content: (
                   <div className="flex flex-col gap-6">
                   <TournamentLogoForm tournamentId={id} logoUrl={tournament.logo_url ?? null} />
+                  <RolTemplatesSection tournamentId={id} current={tournament.rol_template ?? 'auto'} customs={rolTemplates ?? []} />
                   <RulesForm
                     tournamentId={id}
                     rules={tournament.rules ?? null}

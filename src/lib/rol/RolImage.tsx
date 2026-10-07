@@ -1,7 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- la imagen la dibuja el generador de PNG, no el navegador */
-import type { CSSProperties } from 'react'
-import type { RolTheme } from './themes'
-import type { RolArt } from './buildArt'
+import type { CSSProperties, ReactNode } from 'react'
+import { CANVAS, type Box, type TemplateLayout } from './templates'
 
 export type RolMatch = {
   homeName: string
@@ -23,62 +22,31 @@ export type RolData = {
   note: string | null
 }
 
-export const WIDTH = 1080
-const PAD = 32
-const GAP = 20
-const COL_W = (WIDTH - PAD * 2 - GAP) / 2
-const CARD_HEADER = 64
-const ROW_H = 86
-const ROW_GAP = 10
-const CARD_PAD = 12
-const HEADER_H = 390
-/** Temas con papel picado arriba: el encabezado baja para no encimarse */
-const picadoOffset = (key: string) => (key === 'muertos' || key === 'patrio' ? 96 : 0)
-const DATE_H = 104
+/** Ilustraciones ya rasterizadas que usa el diseño */
+export type RolArt = { background: string | null; shield: string; banner: string; ball: string }
 
-const cardHeight = (rows: number) => CARD_HEADER + CARD_PAD * 2 + rows * ROW_H + Math.max(0, rows - 1) * ROW_GAP
+export const WIDTH = CANVAS.width
+export const HEIGHT = CANVAS.height
 
-/** Reparte las canchas de un día en dos columnas, siempre en la más corta. Con una sola cancha, ancho completo. */
-function layoutColumns(venues: RolVenue[]) {
-  if (venues.length === 1) return { columns: [venues], height: cardHeight(venues[0].matches.length), full: true }
-  const columns: RolVenue[][] = [[], []]
-  const heights = [0, 0]
-  for (const v of venues) {
-    const i = heights[0] <= heights[1] ? 0 : 1
-    columns[i].push(v)
-    heights[i] += (columns[i].length > 1 ? GAP : 0) + cardHeight(v.matches.length)
-  }
-  return { columns, height: Math.max(...heights), full: false }
-}
+const GOLD = '#d4af37'
+const PANEL_BG = '#0b0b0e'
+const SECTION_HEADER = 50
 
-const noteLines = (note: string) => Math.max(1, Math.ceil(note.length / 44))
-
-/** Altura total: la imagen crece con el contenido para que siempre quepa toda la jornada. */
-export function rolHeight(data: RolData, theme: RolTheme) {
-  let h = HEADER_H + picadoOffset(theme.key) + DATE_H
-  const multipleDates = data.groups.length > 1
-  for (const g of data.groups) h += (multipleDates ? 66 : 0) + layoutColumns(g.venues).height + 26
-  if (data.resting.length > 0) h += 170
-  if (data.note) h += 130 + noteLines(data.note) * 46
-  h += 90 // pie y margen
-  return Math.max(1350, Math.ceil(h))
-}
+// ---------- Textos ----------
 
 const fmt = (date: string, opts: Intl.DateTimeFormatOptions) =>
   new Date(`${date}T00:00:00Z`).toLocaleDateString('es-MX', { ...opts, timeZone: 'UTC' }).toUpperCase().replace(',', '')
 
+/** "12 - 13 DE DICIEMBRE 2026", "SÁBADO 10 DE OCTUBRE 2026" o "30 DE ABRIL - 1 DE MAYO 2026". */
 function datesLabel(dates: string[]) {
   if (dates.length === 0) return ''
-  if (dates.length === 1) {
-    return fmt(dates[0], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(/ DE (\d{4})$/, ' $1')
-  }
-  const sameMonth = dates.every((d) => d.slice(0, 7) === dates[0].slice(0, 7))
-  if (sameMonth) {
-    const days = dates.map((d) => fmt(d, { weekday: 'long', day: 'numeric' }))
-    const joined = days.length === 2 ? days.join(' Y ') : `${days.slice(0, -1).join(', ')} Y ${days[days.length - 1]}`
-    return `${joined} DE ${fmt(dates[0], { month: 'long' })} ${dates[0].slice(0, 4)}`
-  }
-  return dates.map((d) => fmt(d, { weekday: 'short', day: 'numeric', month: 'short' })).join(' · ')
+  const year = dates[dates.length - 1].slice(0, 4)
+  if (dates.length === 1) return `${fmt(dates[0], { weekday: 'long', day: 'numeric', month: 'long' })} ${year}`
+  const first = dates[0]
+  const last = dates[dates.length - 1]
+  const day = (d: string) => String(Number(d.slice(8, 10))).padStart(2, '0')
+  if (first.slice(0, 7) === last.slice(0, 7)) return `${day(first)} - ${day(last)} DE ${fmt(first, { month: 'long' })} ${year}`
+  return `${day(first)} DE ${fmt(first, { month: 'long' })} - ${day(last)} DE ${fmt(last, { month: 'long' })} ${year}`
 }
 
 const initials = (name: string) =>
@@ -90,59 +58,48 @@ const initials = (name: string) =>
     .join('')
     .toUpperCase()
 
-/** Tamaño de letra para que el nombre quepa (máximo 2 renglones), estimando ~0.5 em por letra. */
-function nameFontSize(name: string, width: number, base: number) {
-  const longestWord = Math.max(...name.split(/\s+/).map((w) => w.length), 1)
-  return Math.max(15, Math.floor(Math.min(base, width / (0.5 * longestWord), (4.2 * width) / (name.length + 2))))
+/** Tamaño de letra para que un texto quepa en un ancho (fuente condensada, ~0.5 em por letra). */
+const fit = (text: string, width: number, max: number, min = 12, perChar = 0.5) =>
+  Math.max(min, Math.floor(Math.min(max, width / (perChar * Math.max(text.length, 1)))))
+
+/** Tamaño para que un nombre quepa en máximo dos renglones (por la palabra más larga y el total). */
+function twoLineSize(name: string, width: number, max: number) {
+  const longest = Math.max(...name.split(/\s+/).map((w) => w.length), 1)
+  return Math.max(11, Math.floor(Math.min(max, width / (0.48 * longest), (1.9 * width) / (0.48 * (name.length + 1)))))
 }
 
-/** Texto dorado metálico: capa de contorno y sombra detrás, degradado dorado al frente. */
-function GoldText({ text, size, style }: { text: string; size: number; style?: CSSProperties }) {
-  const base: CSSProperties = { display: 'flex', fontFamily: 'Anton', fontSize: size, lineHeight: 1.05, letterSpacing: 1 }
+/** Tamaño de letra de la nota para que quepa en el panel. */
+function noteSize(text: string, width: number, height: number) {
+  for (let fs = 22; fs > 12; fs--) {
+    const perLine = Math.floor(width / (0.44 * fs))
+    const lines = Math.ceil(text.length / Math.max(perLine, 1))
+    if (lines * fs * 1.36 <= height) return fs
+  }
+  return 12
+}
+
+/** Texto metálico: capa de contorno y sombra detrás, degradado al frente. */
+function MetalText({ text, size, gradient, style }: { text: string; size: number; gradient: string; style?: CSSProperties }) {
+  const base: CSSProperties = { display: 'flex', fontFamily: 'Anton', fontSize: size, lineHeight: 1.05 }
   return (
     <div style={{ display: 'flex', position: 'relative', ...style }}>
-      <div
-        style={{
-          ...base,
-          color: '#3b2300',
-          WebkitTextStroke: `${Math.round(size * 0.11)}px #2a1800`,
-          textShadow: '0 7px 0 rgba(0,0,0,0.55)',
-        }}
-      >
+      <div style={{ ...base, color: '#1a1206', WebkitTextStroke: `${Math.round(size * 0.1)}px #1a1206`, textShadow: '0 6px 0 rgba(0,0,0,0.55)' }}>
         {text}
       </div>
-      <div
-        style={{
-          ...base,
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          backgroundImage: 'linear-gradient(180deg, #fffbe0 0%, #fde047 38%, #eab308 62%, #a16207 100%)',
-          backgroundClip: 'text',
-          color: 'transparent',
-        }}
-      >
+      <div style={{ ...base, position: 'absolute', top: 0, left: 0, backgroundImage: gradient, backgroundClip: 'text', color: 'transparent' }}>
         {text}
       </div>
     </div>
   )
 }
 
-/** Texto blanco grueso con contorno oscuro y sombra. */
-const heavyWhite = (size: number, stroke = '#0b1220'): CSSProperties => ({
-  display: 'flex',
-  fontFamily: 'Anton',
-  fontSize: size,
-  lineHeight: 1.05,
-  color: '#ffffff',
-  WebkitTextStroke: `${Math.max(2, Math.round(size * 0.05))}px ${stroke}`,
-  textShadow: '0 5px 0 rgba(0,0,0,0.55)',
-})
+const GOLD_GRADIENT = 'linear-gradient(180deg, #fff6c9 0%, #f5d061 40%, #d4a017 62%, #8a5a0b 100%)'
+const CHROME_GRADIENT = 'linear-gradient(180deg, #ffffff 0%, #e5e7eb 45%, #9ca3af 60%, #f3f4f6 100%)'
 
-function Logo({ src, name, size, theme }: { src: string | null; name: string; size: number; theme: RolTheme }) {
-  if (src) {
-    return <img src={src} alt={name} width={size} height={size} style={{ width: size, height: size, objectFit: 'contain' }} />
-  }
+// ---------- Piezas ----------
+
+function Logo({ src, name, size }: { src: string | null; name: string; size: number }) {
+  if (src) return <img src={src} alt={name} width={size} height={size} style={{ width: size, height: size, objectFit: 'contain' }} />
   return (
     <div
       style={{
@@ -150,13 +107,13 @@ function Logo({ src, name, size, theme }: { src: string | null; name: string; si
         width: size,
         height: size,
         borderRadius: size,
-        background: `radial-gradient(circle at 35% 30%, ${theme.accent}, ${theme.accentDark})`,
-        color: '#ffffff',
         alignItems: 'center',
         justifyContent: 'center',
+        background: 'linear-gradient(180deg, #2b2b30, #111114)',
+        border: `2px solid ${GOLD}`,
+        color: '#f5d061',
         fontFamily: 'Anton',
         fontSize: size * 0.4,
-        border: `3px solid ${theme.gold[1]}`,
       }}
     >
       {initials(name)}
@@ -164,296 +121,362 @@ function Logo({ src, name, size, theme }: { src: string | null; name: string; si
   )
 }
 
-type Art = RolArt
+const FieldIcon = ({ size }: { size: number }) => (
+  <svg width={size * 1.4} height={size} viewBox="0 0 42 30">
+    <rect x="1.5" y="1.5" width="39" height="27" rx="2" fill="none" stroke="#f5d061" strokeWidth="2" />
+    <line x1="21" y1="1.5" x2="21" y2="28.5" stroke="#f5d061" strokeWidth="2" />
+    <circle cx="21" cy="15" r="5" fill="none" stroke="#f5d061" strokeWidth="2" />
+    <rect x="1.5" y="9" width="6" height="12" fill="none" stroke="#f5d061" strokeWidth="2" />
+    <rect x="34.5" y="9" width="6" height="12" fill="none" stroke="#f5d061" strokeWidth="2" />
+  </svg>
+)
 
-function MatchRow({ m, theme, full, art }: { m: RolMatch; theme: RolTheme; full: boolean; art: Art }) {
-  const logo = full ? 62 : 46
-  const nameWidth = full ? 300 : 98
-  const base = full ? 30 : 23
-  const nameStyle: CSSProperties = {
-    display: 'flex',
-    flex: 1,
-    fontFamily: 'Barlow',
-    fontWeight: 800,
-    lineHeight: 1.02,
-    color: '#0f172a',
-    textTransform: 'uppercase',
-    overflow: 'hidden',
-    maxHeight: ROW_H - 14,
+const CalendarIcon = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <rect x="2.5" y="4.5" width="19" height="17" rx="2.5" fill="none" stroke="#ffffff" strokeWidth="1.8" />
+    <line x1="2.5" y1="9.5" x2="21.5" y2="9.5" stroke="#ffffff" strokeWidth="1.8" />
+    <rect x="6.5" y="2" width="2" height="5" rx="1" fill="#ffffff" />
+    <rect x="15.5" y="2" width="2" height="5" rx="1" fill="#ffffff" />
+    <rect x="6" y="12.5" width="3" height="2.4" fill="#ffffff" />
+    <rect x="10.5" y="12.5" width="3" height="2.4" fill="#ffffff" />
+    <rect x="15" y="12.5" width="3" height="2.4" fill="#ffffff" />
+    <rect x="6" y="16.5" width="3" height="2.4" fill="#ffffff" />
+    <rect x="10.5" y="16.5" width="3" height="2.4" fill="#ffffff" />
+  </svg>
+)
+
+const MegaphoneIcon = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <path d="M3 10v4h3l6 4V6L6 10H3z" fill="#f5d061" />
+    <path d="M15 9c1 .8 1.5 1.8 1.5 3s-.5 2.2-1.5 3" stroke="#f5d061" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+    <path d="M17.5 6.5c1.8 1.4 2.8 3.3 2.8 5.5s-1 4.1-2.8 5.5" stroke="#f5d061" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+  </svg>
+)
+
+const panelStyle = (extra?: CSSProperties): CSSProperties => ({
+  display: 'flex',
+  background: PANEL_BG,
+  border: `3px solid ${GOLD}`,
+  borderRadius: 14,
+  overflow: 'hidden',
+  ...extra,
+})
+
+const abs = (b: Box): CSSProperties => ({ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h })
+
+// ---------- Partidos ----------
+
+type Section = { title: string; matches: RolMatch[] }
+
+/** Reparte las canchas en dos columnas equilibrando renglones (una sola cancha se parte en dos). */
+function distribute(sections: Section[]): [Section[], Section[]] {
+  if (sections.length === 1) {
+    const s = sections[0]
+    if (s.matches.length <= 1) return [[s], []]
+    const half = Math.ceil(s.matches.length / 2)
+    return [[{ title: s.title, matches: s.matches.slice(0, half) }], [{ title: s.title, matches: s.matches.slice(half) }]]
   }
-  return (
-    <div style={{ display: 'flex', height: ROW_H, alignItems: 'stretch', borderRadius: 12, borderBottom: '3px solid rgba(0,0,0,0.35)' }}>
-      <div
-        style={{
-          display: 'flex',
-          width: full ? 124 : 94,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundImage: `linear-gradient(180deg, ${theme.gold[0]} 0%, ${theme.gold[1]} 100%)`,
-          color: theme.goldText,
-          fontFamily: 'Anton',
-          fontSize: full ? 42 : 34,
-          borderRadius: '12px 0 0 12px',
-          borderRight: '3px solid rgba(0,0,0,0.25)',
-        }}
-      >
-        {m.time}
-      </div>
+  const cols: [Section[], Section[]] = [[], []]
+  const load = [0, 0]
+  for (const s of [...sections]) {
+    const i = load[0] <= load[1] ? 0 : 1
+    cols[i].push(s)
+    load[i] += s.matches.length + 0.6
+  }
+  return cols
+}
+
+function MatchRow({ m, h, width }: { m: RolMatch; h: number; width: number }) {
+  const compact = h < 64
+  const timeW = compact ? 92 : 118
+  const rowStyle: CSSProperties = {
+    display: 'flex',
+    height: h,
+    alignItems: 'center',
+    borderRadius: 8,
+    border: '1.5px solid rgba(212,175,55,0.55)',
+    backgroundImage: 'linear-gradient(180deg, #1c1c21 0%, #0e0e11 100%)',
+  }
+  const time = (
+    <div style={{ display: 'flex', width: timeW, justifyContent: 'center' }}>
+      <MetalText text={m.time} size={Math.min(compact ? 30 : 40, Math.floor(h * (compact ? 0.62 : 0.42)))} gradient={GOLD_GRADIENT} />
+    </div>
+  )
+
+  if (compact) {
+    const logo = Math.floor(h * 0.72)
+    const nameW = (width - timeW - logo * 2 - 60) / 2
+    const name = (t: string, align: 'flex-end' | 'flex-start') => (
       <div
         style={{
           display: 'flex',
           flex: 1,
-          alignItems: 'center',
-          gap: 6,
-          padding: '0 12px',
-          backgroundImage: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 55%, #dbe2ea 100%)',
-          borderRadius: '0 12px 12px 0',
+          justifyContent: align,
+          fontFamily: 'Barlow',
+          fontWeight: 800,
+          fontSize: fit(t, nameW, Math.floor(h * 0.42), 11, 0.48),
+          color: '#ffffff',
+          textTransform: 'uppercase',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
         }}
       >
-        <div style={{ ...nameStyle, fontSize: nameFontSize(m.homeName, nameWidth, base), justifyContent: 'flex-end', textAlign: 'right' }}>
-          {m.homeName}
-        </div>
-        <Logo src={m.homeLogo} name={m.homeName} size={logo} theme={theme} />
-        <div style={{ display: 'flex', position: 'relative', width: full ? 70 : 52, height: full ? 52 : 42, alignItems: 'center', justifyContent: 'center' }}>
-          <img src={art.vs} alt="" width={full ? 70 : 52} height={full ? 52 : 42} style={{ position: 'absolute', top: 0, left: 0 }} />
-          <div style={{ display: 'flex', fontFamily: 'Anton', fontSize: full ? 32 : 24, color: theme.goldText, transform: 'skewX(-10deg)' }}>VS</div>
-        </div>
-        <Logo src={m.awayLogo} name={m.awayName} size={logo} theme={theme} />
-        <div style={{ ...nameStyle, fontSize: nameFontSize(m.awayName, nameWidth, base), textAlign: 'left' }}>{m.awayName}</div>
+        {t}
       </div>
-    </div>
-  )
-}
+    )
+    return (
+      <div style={rowStyle}>
+        {time}
+        {name(m.homeName, 'flex-end')}
+        <div style={{ display: 'flex', margin: '0 6px' }}>
+          <Logo src={m.homeLogo} name={m.homeName} size={logo} />
+        </div>
+        <div style={{ display: 'flex', fontFamily: 'Anton', fontSize: Math.floor(h * 0.4), color: '#f5d061' }}>VS</div>
+        <div style={{ display: 'flex', margin: '0 6px' }}>
+          <Logo src={m.awayLogo} name={m.awayName} size={logo} />
+        </div>
+        {name(m.awayName, 'flex-start')}
+        <div style={{ display: 'flex', width: 8 }} />
+      </div>
+    )
+  }
 
-function VenueCard({ venue, theme, width, full, art }: { venue: RolVenue; theme: RolTheme; width: number; full: boolean; art: Art }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width,
-        borderRadius: 18,
-        background: 'rgba(6,10,22,0.9)',
-        border: `3px solid ${theme.accent}`,
-        boxShadow: '0 12px 24px rgba(0,0,0,0.55)',
-        overflow: 'hidden',
-      }}
-    >
+  const logo = Math.floor(h * 0.5)
+  const teamW = (width - timeW - 76) / 2
+  const team = (t: string, src: string | null) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: teamW, gap: 3 }}>
+      <Logo src={src} name={t} size={logo} />
       <div
         style={{
           display: 'flex',
-          height: CARD_HEADER,
-          alignItems: 'center',
-          gap: 12,
-          padding: '0 18px',
-          backgroundImage: `linear-gradient(180deg, ${theme.accent} 0%, ${theme.accentDark} 100%)`,
-          borderBottom: `3px solid ${theme.gold[1]}`,
+          fontFamily: 'Barlow',
+          fontWeight: 800,
+          fontSize: twoLineSize(t, teamW - 8, Math.min(22, Math.floor(h * 0.2))),
+          lineHeight: 1,
+          color: '#ffffff',
+          textTransform: 'uppercase',
+          textAlign: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          maxHeight: Math.floor(h * 0.42),
         }}
       >
-        <img src={art.ball} alt="" width={42} height={42} />
-        <div
-          style={{
-            display: 'flex',
-            fontFamily: 'Barlow',
-            fontWeight: 800,
-            fontSize: 32,
-            color: '#ffffff',
-            textTransform: 'uppercase',
-            letterSpacing: 1,
-            textShadow: '0 3px 0 rgba(0,0,0,0.5)',
-          }}
-        >
-          {venue.name}
+        {t}
+      </div>
+    </div>
+  )
+  return (
+    <div style={rowStyle}>
+      {time}
+      {team(m.homeName, m.homeLogo)}
+      <div style={{ display: 'flex', position: 'relative', width: 76, height: h, alignItems: 'flex-start', justifyContent: 'center' }}>
+        <svg width="76" height={h} viewBox={`0 0 76 ${h}`} style={{ position: 'absolute', top: 0, left: 0 }}>
+          <polygon points={`4,0 72,0 38,${h * 0.78}`} fill="#050506" stroke="rgba(212,175,55,0.35)" strokeWidth="1.5" />
+        </svg>
+        <div style={{ display: 'flex', marginTop: h * 0.12, fontFamily: 'Anton', fontSize: Math.floor(h * 0.3), color: '#ffffff', transform: 'skewX(-8deg)' }}>
+          VS
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: ROW_GAP, padding: CARD_PAD }}>
-        {venue.matches.map((m, i) => (
-          <MatchRow key={i} m={m} theme={theme} full={full} art={art} />
-        ))}
-      </div>
+      {team(m.awayName, m.awayLogo)}
     </div>
   )
 }
 
-export function RolImage({ data, theme, height, art }: { data: RolData; theme: RolTheme; height: number; art: RolArt }) {
-  const multipleDates = data.groups.length > 1
-  const nameSize = data.tournamentName.length > 34 ? 34 : data.tournamentName.length > 24 ? 42 : 50
-
+function SectionBlock({ s, rowH, width, layout }: { s: Section; rowH: number; width: number; layout: TemplateLayout }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        width: WIDTH,
-        height,
-        fontFamily: 'Barlow',
-        color: '#ffffff',
-        background: '#050b16',
-      }}
-    >
-      <img
-        src={art.background}
-        alt=""
-        width={WIDTH}
-        height={height}
-        style={{ position: 'absolute', top: 0, left: 0 }}
-      />
-
-      <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', flex: 1, padding: `0 ${PAD}px` }}>
-        {/* Encabezado: escudo + títulos */}
-        <div style={{ display: 'flex', alignItems: 'center', height: HEADER_H + picadoOffset(theme.key), paddingTop: 10 + picadoOffset(theme.key) }}>
-          <div style={{ display: 'flex', position: 'relative', width: 300, height: 338, flexShrink: 0 }}>
-            <img src={art.shield} alt="" width={300} height={338} />
-            <div
-              style={{
-                display: 'flex',
-                position: 'absolute',
-                top: 70,
-                left: 80,
-                width: 140,
-                height: 140,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <img
-                src={data.tournamentLogo ?? art.ball}
-                alt={data.tournamentName}
-                width={data.tournamentLogo ? 140 : 118}
-                height={data.tournamentLogo ? 140 : 118}
-                style={{ objectFit: 'contain' }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, marginLeft: 12 }}>
-            <GoldText text="PROGRAMACIÓN" size={92} />
-            <div style={{ display: 'flex', position: 'relative', width: 640, height: 150, alignItems: 'center', justifyContent: 'center', marginTop: -4 }}>
-              <img src={art.jornada} alt="" width={640} height={150} style={{ position: 'absolute', top: 0, left: 0 }} />
-              <div style={{ ...heavyWhite(116), transform: 'skewX(-8deg)' }}>JORNADA {data.matchdayNumber}</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6, maxWidth: 700 }}>
-              <div style={{ display: 'flex', width: 34, height: 8, background: theme.gold[1], borderRadius: 4 }} />
-              <div style={{ ...heavyWhite(nameSize), fontFamily: 'Barlow', fontWeight: 800, textAlign: 'center', textTransform: 'uppercase' }}>
-                {data.tournamentName}
-              </div>
-              <div style={{ display: 'flex', width: 34, height: 8, background: theme.gold[1], borderRadius: 4 }} />
-            </div>
-          </div>
-        </div>
-
-        {/* Fecha(s) */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: DATE_H }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 18,
-              padding: '10px 34px',
-              borderRadius: 40,
-              backgroundImage: 'linear-gradient(180deg, rgba(15,23,42,0.92), rgba(2,6,23,0.92))',
-              border: `3px solid ${theme.gold[1]}`,
-              boxShadow: '0 8px 18px rgba(0,0,0,0.55)',
-            }}
-          >
-            <svg width="44" height="44" viewBox="0 0 24 24">
-              <rect x="2.5" y="4.5" width="19" height="17" rx="2.5" fill={theme.gold[0]} stroke="#3b2300" strokeWidth="0.8" />
-              <rect x="2.5" y="4.5" width="19" height="5" rx="2" fill={theme.gold[1]} />
-              <rect x="6.5" y="2" width="2.2" height="5" rx="1" fill="#3b2300" />
-              <rect x="15.3" y="2" width="2.2" height="5" rx="1" fill="#3b2300" />
-              <rect x="6" y="12" width="3" height="2.5" fill="#3b2300" />
-              <rect x="10.5" y="12" width="3" height="2.5" fill="#3b2300" />
-              <rect x="15" y="12" width="3" height="2.5" fill="#3b2300" />
-              <rect x="6" y="16" width="3" height="2.5" fill="#3b2300" />
-              <rect x="10.5" y="16" width="3" height="2.5" fill="#3b2300" />
-            </svg>
-            <div style={{ display: 'flex', fontWeight: 800, fontSize: 38, letterSpacing: 1, textShadow: '0 3px 0 rgba(0,0,0,0.5)' }}>
-              {datesLabel(data.groups.map((g) => g.date))}
-            </div>
-          </div>
-        </div>
-
-        {/* Partidos por día y cancha */}
-        {data.groups.map((g) => {
-          const { columns, full } = layoutColumns(g.venues)
-          return (
-            <div key={g.date} style={{ display: 'flex', flexDirection: 'column', marginBottom: 26 }}>
-              {multipleDates && (
-                <div style={{ display: 'flex', height: 66, alignItems: 'center' }}>
-                  <GoldText text={fmt(g.date, { weekday: 'long', day: 'numeric', month: 'long' })} size={42} />
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: GAP, alignItems: 'flex-start' }}>
-                {columns.map((col, ci) => (
-                  <div key={ci} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
-                    {col.map((v) => (
-                      <VenueCard key={v.name} venue={v} theme={theme} width={full ? WIDTH - PAD * 2 : COL_W} full={full} art={art} />
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
-        })}
-
-        {/* Descansa */}
-        {data.resting.length > 0 && (
-          <div style={{ display: 'flex', position: 'relative', height: 150, marginBottom: 20, alignItems: 'center', padding: '0 70px' }}>
-            <img src={art.rest} alt="" width={WIDTH - PAD * 2} height={150} style={{ position: 'absolute', top: 0, left: 0 }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
-              <div style={{ ...heavyWhite(58), transform: 'skewX(-10deg)' }}>{data.resting.length > 1 ? 'DESCANSAN' : 'DESCANSA'}</div>
-              {data.resting.slice(0, 3).map((t) => (
-                <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <Logo src={t.logo} name={t.name} size={84} theme={theme} />
-                  <GoldText text={t.name.toUpperCase()} size={data.resting.length > 1 ? 34 : 54} style={{ transform: 'skewX(-10deg)' }} />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Nota del administrador */}
-        {data.note && (
-          <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', alignItems: 'center', marginTop: 34, marginBottom: 20 }}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: '100%',
-                padding: '52px 40px 26px',
-                borderRadius: 20,
-                background: 'rgba(6,10,22,0.92)',
-                border: `4px solid ${theme.gold[1]}`,
-                boxShadow: '0 12px 28px rgba(0,0,0,0.6)',
-              }}
-            >
-              <div style={{ display: 'flex', fontWeight: 800, fontSize: 38, lineHeight: 1.22, textAlign: 'center', textTransform: 'uppercase', textShadow: '0 3px 0 rgba(0,0,0,0.5)' }}>
-                {data.note}
-              </div>
-            </div>
-            <div style={{ display: 'flex', position: 'absolute', top: -38, width: 260, height: 82, alignItems: 'center', justifyContent: 'center' }}>
-              <img src={art.note} alt="" width={260} height={82} style={{ position: 'absolute', top: 0, left: 0 }} />
-              <div style={{ ...heavyWhite(54), transform: 'skewX(-10deg)' }}>NOTA:</div>
-            </div>
-          </div>
-        )}
-
-        {/* Pie */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div
+        style={{
+          display: 'flex',
+          height: SECTION_HEADER,
+          alignItems: 'center',
+          gap: 14,
+          padding: '0 16px',
+          borderRadius: 8,
+          backgroundImage: `linear-gradient(90deg, ${layout.header[0]} 0%, ${layout.header[1]} 55%, ${layout.header[0]} 100%)`,
+        }}
+      >
+        <FieldIcon size={24} />
         <div
           style={{
             display: 'flex',
-            marginTop: 'auto',
-            paddingBottom: 24,
-            justifyContent: 'center',
-            fontWeight: 600,
-            fontSize: 22,
-            color: 'rgba(255,255,255,0.75)',
-            textShadow: '0 2px 0 rgba(0,0,0,0.6)',
+            fontFamily: 'Anton',
+            fontSize: fit(s.title, width - 110, 32, 16, 0.5),
+            color: layout.headerText,
+            transform: 'skewX(-8deg)',
+            textTransform: 'uppercase',
           }}
         >
-          Rol generado con Torneapp
+          {s.title}
+        </div>
+      </div>
+      {s.matches.map((m, i) => (
+        <MatchRow key={i} m={m} h={rowH} width={width} />
+      ))}
+    </div>
+  )
+}
+
+// ---------- Imagen completa ----------
+
+export function RolImage({ data, layout, art }: { data: RolData; layout: TemplateLayout; art: RolArt }) {
+  const multipleDates = data.groups.length > 1
+  const sections: Section[] = data.groups.flatMap((g) =>
+    g.venues.map((v) => ({
+      title: multipleDates ? `${fmt(g.date, { weekday: 'short', day: 'numeric' }).replace('.', '')} · ${v.name}` : v.name,
+      matches: v.matches,
+    }))
+  )
+  const columns = distribute(sections)
+
+  // Alto de renglón común: el que permita que quepa la columna más cargada
+  const PAD = 10
+  const colW = (layout.cards.w - 18) / 2
+  const innerW = colW - PAD * 2 - 6
+  const rowHFor = (col: Section[]) => {
+    const rows = col.reduce((n, s) => n + s.matches.length, 0)
+    if (rows === 0) return 104
+    const fixed = col.length * (SECTION_HEADER + 6) + (col.length - 1) * 10 + (rows - col.length) * 6 + PAD * 2 + 6
+    return (layout.cards.h - fixed) / rows
+  }
+  const rowH = Math.max(30, Math.min(104, Math.floor(Math.min(rowHFor(columns[0]), rowHFor(columns[1])))))
+
+  const number = String(data.matchdayNumber)
+  const numberBox = (() => {
+    const b = layout.number
+    const fs = Math.min(b.h * 0.8, Math.max(b.h * 0.5, (b.w + 6) / (0.56 * number.length)))
+    const w = Math.max(b.w + 12, Math.ceil(0.58 * number.length * fs) + 22)
+    return { box: { x: b.x + b.w / 2 - w / 2, y: b.y - 6, w, h: b.h + 12 }, fs }
+  })()
+
+  const dateText = datesLabel(data.groups.map((g) => g.date))
+  const panelW = (layout.panels.w - 18) / 2
+
+  const filler: ReactNode = (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 }}>
+      <Logo src={data.tournamentLogo ?? art.ball} name={data.tournamentName} size={120} />
+      <div style={{ display: 'flex', fontFamily: 'Anton', fontSize: fit(data.tournamentName, colW - 60, 34, 16), color: '#f5d061', textAlign: 'center', textTransform: 'uppercase' }}>
+        {data.tournamentName}
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ display: 'flex', position: 'relative', width: WIDTH, height: HEIGHT, background: '#0b0b0e', fontFamily: 'Barlow', color: '#ffffff' }}>
+      {art.background && <img src={art.background} alt="" width={WIDTH} height={HEIGHT} style={{ position: 'absolute', top: 0, left: 0 }} />}
+
+      {/* Fondo limpio (plantilla del admin): escudo, título y banda los dibuja la app */}
+      {!layout.baked && (
+        <div style={{ display: 'flex', position: 'absolute', top: 0, left: 0, width: WIDTH, height: 420 }}>
+          <img src={art.shield} alt="" width={186} height={210} style={{ position: 'absolute', left: layout.shieldCenter.x - 93, top: 4 }} />
+          <div style={{ display: 'flex', position: 'absolute', top: 206, left: 0, width: WIDTH, justifyContent: 'center', alignItems: 'flex-end', gap: 18 }}>
+            <MetalText text="JORNADA" size={100} gradient={CHROME_GRADIENT} style={{ transform: 'skewX(-8deg)' }} />
+            <MetalText text={number} size={112} gradient={GOLD_GRADIENT} style={{ transform: 'skewX(-8deg)' }} />
+          </div>
+          <div style={{ display: 'flex', position: 'absolute', top: 324, left: WIDTH / 2 - 250, width: 500, height: 70, alignItems: 'center', justifyContent: 'center' }}>
+            <img src={art.banner} alt="" width={500} height={70} style={{ position: 'absolute', top: 0, left: 0 }} />
+            <div style={{ display: 'flex', fontFamily: 'Anton', fontSize: 44, color: '#141414', letterSpacing: 2, transform: 'skewX(-8deg)' }}>ROL DE JUEGOS</div>
+          </div>
+        </div>
+      )}
+
+      {/* Logo del torneo dentro del escudo */}
+      {(data.tournamentLogo || !layout.baked) && (
+        <div
+          style={{
+            display: 'flex',
+            position: 'absolute',
+            left: layout.shieldCenter.x - 80,
+            top: layout.shieldCenter.y - 80,
+            width: 160,
+            height: 160,
+            borderRadius: 160,
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'radial-gradient(circle at 40% 35%, #2a2a30, #09090b)',
+            border: `5px solid ${GOLD}`,
+          }}
+        >
+          <img src={data.tournamentLogo ?? art.ball} alt={data.tournamentName} width={118} height={118} style={{ objectFit: 'contain' }} />
+        </div>
+      )}
+
+      {/* Número de jornada (tapa el "1" de ejemplo de la plantilla) */}
+      {layout.baked && (
+        <div style={{ ...abs(numberBox.box), ...panelStyle({ alignItems: 'center', justifyContent: 'center', borderRadius: 16, border: `4px solid ${GOLD}` }) }}>
+          <MetalText text={number} size={Math.floor(numberBox.fs)} gradient={GOLD_GRADIENT} style={{ transform: 'skewX(-8deg)' }} />
+        </div>
+      )}
+
+      {/* Fecha */}
+      <div
+        style={{
+          ...abs(layout.date),
+          ...panelStyle({ alignItems: 'center', justifyContent: 'center', gap: 14, borderRadius: 10, border: `2px solid ${GOLD}` }),
+        }}
+      >
+        <CalendarIcon size={30} />
+        <div style={{ display: 'flex', fontWeight: 800, fontSize: fit(dateText, layout.date.w - 90, 34, 16, 0.5), letterSpacing: 1 }}>{dateText}</div>
+      </div>
+
+      {/* Partidos en dos columnas */}
+      <div style={{ ...abs(layout.cards), display: 'flex', gap: 18 }}>
+        {columns.map((col, ci) => (
+          <div key={ci} style={panelStyle({ flexDirection: 'column', width: colW, height: layout.cards.h, padding: PAD, gap: 10 })}>
+            {col.length === 0 ? filler : col.map((s, i) => <SectionBlock key={i} s={s} rowH={rowH} width={innerW} layout={layout} />)}
+          </div>
+        ))}
+      </div>
+
+      {/* Descansa y notas */}
+      <div style={{ ...abs(layout.panels), display: 'flex', gap: 18 }}>
+        <div style={panelStyle({ width: panelW, height: layout.panels.h, alignItems: 'center', padding: '0 20px', gap: 18 })}>
+          <img src={art.ball} alt="" width={72} height={72} />
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 8 }}>
+            <div style={{ display: 'flex', fontFamily: 'Anton', fontSize: 28, color: '#f5d061', transform: 'skewX(-8deg)' }}>
+              {data.resting.length > 1 ? 'EQUIPOS QUE DESCANSAN' : 'EQUIPO QUE DESCANSA'}
+            </div>
+            {data.resting.length === 0 ? (
+              <div style={{ display: 'flex', fontWeight: 600, fontSize: 22, color: 'rgba(255,255,255,0.75)' }}>Todos los equipos juegan esta jornada</div>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
+                {data.resting.slice(0, 3).map((t) => (
+                  <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Logo src={t.logo} name={t.name} size={data.resting.length > 1 ? 44 : 60} />
+                    <div
+                      style={{
+                        display: 'flex',
+                        fontFamily: 'Barlow',
+                        fontWeight: 800,
+                        fontSize: data.resting.length > 1 ? 20 : fit(t.name, panelW - 220, 32, 18, 0.5),
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {t.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div style={panelStyle({ width: panelW, height: layout.panels.h, padding: '14px 22px', gap: 14 })}>
+          <MegaphoneIcon size={44} />
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 6 }}>
+            <div style={{ display: 'flex', fontFamily: 'Anton', fontSize: 28, color: '#f5d061', transform: 'skewX(-8deg)' }}>NOTAS</div>
+            <div
+              style={{
+                display: 'flex',
+                fontWeight: 600,
+                fontSize: data.note ? noteSize(data.note, panelW - 110, layout.panels.h - 74) : 21,
+                lineHeight: 1.22,
+                color: data.note ? '#ffffff' : 'rgba(255,255,255,0.65)',
+                overflow: 'hidden',
+              }}
+            >
+              {data.note ?? 'Sin avisos para esta jornada.'}
+            </div>
+          </div>
         </div>
       </div>
     </div>

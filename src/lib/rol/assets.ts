@@ -88,3 +88,37 @@ export function rasterize(key: string, svg: string, format: 'png' | 'jpeg' = 'pn
   artCache.set(key, job)
   return job
 }
+
+/**
+ * Fondo de una plantilla ajustado al lienzo (1122×1402, recortando lo que
+ * sobre) y convertido a JPG. Las incluidas se leen del proyecto; las de cada
+ * admin se descargan de Storage. Se guarda en memoria por plantilla.
+ */
+export function loadTemplateBackground(key: string, source: { file: string } | { url: string }): Promise<string | null> {
+  const cacheKey = `tpl:${key}`
+  const cached = artCache.get(cacheKey)
+  if (cached) return cached
+  const job = (async () => {
+    try {
+      let input: Buffer
+      if ('file' in source) {
+        const { readFile } = await import('node:fs/promises')
+        const { join } = await import('node:path')
+        input = await readFile(join(process.cwd(), 'public', 'rol', 'plantillas', source.file))
+      } else {
+        const res = await fetch(source.url)
+        if (!res.ok) return null
+        input = Buffer.from(await res.arrayBuffer())
+      }
+      const sharp = (await import('sharp')).default
+      const out = await sharp(input).resize(1122, 1402, { fit: 'cover', position: 'centre' }).jpeg({ quality: 88 }).toBuffer()
+      return `data:image/jpeg;base64,${out.toString('base64')}`
+    } catch (err) {
+      console.error('[rol] no se pudo cargar la plantilla', key, err)
+      artCache.delete(cacheKey)
+      return null
+    }
+  })()
+  artCache.set(cacheKey, job as Promise<string>)
+  return job
+}

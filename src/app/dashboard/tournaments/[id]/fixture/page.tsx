@@ -10,6 +10,7 @@ import PostponeButton from './PostponeButton'
 import ScheduleMatchForm from './ScheduleMatchForm'
 import ShiftMatchdayForm from './ShiftMatchdayForm'
 import RolImageButton from '@/components/RolImageButton'
+import { BUILTIN_TEMPLATES, templateLabel } from '@/lib/rol/templates'
 import MatchHistory, { type MatchChange } from './MatchHistory'
 import UndoPostponeButton from './UndoPostponeButton'
 import { matchScheduleLabel, walkoverLabel } from '@/lib/fixtures/matchLabel'
@@ -44,6 +45,7 @@ type MatchdayRow = {
   number: number
   week_start: string
   image_note: string | null
+  rol_template: string | null
   matches: MatchRow[]
 }
 
@@ -60,7 +62,7 @@ export default async function FixturePage({
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('name, yellow_card_suspension_threshold, red_card_suspension_matches')
+    .select('name, yellow_card_suspension_threshold, red_card_suspension_matches, rol_template')
     .eq('id', id)
     .single()
 
@@ -146,7 +148,7 @@ export default async function FixturePage({
   const { data: matchdays } = await supabase
     .from('matchdays')
     .select(
-      `id, number, week_start, image_note,
+      `id, number, week_start, image_note, rol_template,
        matches!matchday_id (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
          status, score_home, score_away, validated_at, walkover, suspended_minute, administrative_result,
@@ -161,6 +163,17 @@ export default async function FixturePage({
   // Los links de árbitro viven en match_tokens, que solo puede leer el admin
   const { data: tokens } = await supabase.from('match_tokens').select('match_id, token').eq('tournament_id', id)
   const tokenByMatch = new Map((tokens ?? []).map((t) => [t.match_id, t.token]))
+
+  const { data: customTemplates } = await supabase
+    .from('rol_templates')
+    .select('id, name')
+    .eq('tournament_id', id)
+    .order('created_at')
+  const templateOptions = [
+    { value: 'auto', label: 'Automática por temporada' },
+    ...BUILTIN_TEMPLATES.map((t) => ({ value: t.key, label: t.label })),
+    ...(customTemplates ?? []).map((c) => ({ value: `custom:${c.id}`, label: `🖼️ ${c.name}` })),
+  ]
 
   const { data: closures } = await supabase
     .from('venue_closures')
@@ -253,7 +266,13 @@ export default async function FixturePage({
                   <RolImageButton
                     matchdayId={md.id}
                     matchdayNumber={md.number}
-                    note={{ tournamentId: id, value: md.image_note }}
+                    admin={{
+                      tournamentId: id,
+                      note: md.image_note,
+                      template: md.rol_template ?? '',
+                      tournamentTemplateLabel: templateLabel(tournament.rol_template ?? 'auto', customTemplates ?? []),
+                      options: templateOptions,
+                    }}
                   />
                 )}
                 {md.matches.length > 0 && !md.matches.some((m) => m.status === 'played') && (

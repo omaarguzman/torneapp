@@ -16,6 +16,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // Las plantillas del rol se leen del disco al generar la imagen
+  outputFileTracingIncludes: {
+    "/api/rol/*": ["./public/rol/plantillas/**/*"],
+  },
   experimental: {
     serverActions: {
       // Logos y fotos pueden pesar hasta 2 MB (src/lib/uploads.ts) + lo que agrega el formulario
