@@ -48,6 +48,14 @@ export default function MatchReportForm({
   const [scoreHome, setScoreHome] = useState(match.score_home?.toString() ?? '')
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() ?? '')
   const [state, formAction, isPending] = useActionState(submitMatchReport, null)
+  const isResumption = match.status === 'scheduled' && match.suspended_minute !== null
+  const [suspended, setSuspended] = useState(match.status === 'suspended')
+  const [suspendedMinute, setSuspendedMinute] = useState(
+    match.status === 'suspended' ? (match.suspended_minute?.toString() ?? '') : ''
+  )
+  const [suspensionReason, setSuspensionReason] = useState(
+    match.status === 'suspended' ? (match.suspension_reason ?? '') : ''
+  )
 
   function addEvent(playerId: string, playerName: string, teamId: string, type: LocalEvent['type']) {
     setEvents((prev) => [
@@ -116,6 +124,14 @@ export default function MatchReportForm({
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="events" value={eventsPayload} />
       {showAttendance && <input type="hidden" name="attendance" value={attendancePayload} />}
+
+      {isResumption && (
+        <p className="bg-sky-950 border border-sky-800 text-sky-300 text-sm rounded-lg px-4 py-3 mb-6">
+          ↻ Reanudación: este partido se suspendió en el minuto {match.suspended_minute} con marcador{' '}
+          {match.score_home ?? 0}–{match.score_away ?? 0}. Los goles y tarjetas de antes ya están capturados; agrega lo
+          que pase a partir de ahí y guarda el resultado final.
+        </p>
+      )}
 
       {readOnly && (
         <p className="bg-green-950 border border-green-800 text-green-300 text-sm rounded-lg px-4 py-3 mb-6">
@@ -302,6 +318,53 @@ export default function MatchReportForm({
         )}
       </div>
 
+      {/* Partido suspendido */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <label className="flex items-center gap-2 text-white text-sm font-semibold">
+          <input
+            type="checkbox"
+            name="suspended"
+            checked={suspended}
+            onChange={(e) => setSuspended(e.target.checked)}
+          />
+          ⛔ El partido se suspendió antes de terminar
+        </label>
+        {suspended && (
+          <div className="mt-3 grid grid-cols-[6rem_1fr] gap-2">
+            <div>
+              <label className="text-gray-500 text-xs mb-1 block">Minuto</label>
+              <input
+                type="number"
+                name="suspended_minute"
+                min={1}
+                max={200}
+                required
+                value={suspendedMinute}
+                onChange={(e) => setSuspendedMinute(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="text-gray-500 text-xs mb-1 block">Motivo</label>
+              <input
+                type="text"
+                name="suspension_reason"
+                maxLength={200}
+                required
+                placeholder="Ej. lluvia, falta de luz, riña"
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2"
+              />
+            </div>
+            <p className="col-span-2 text-gray-500 text-xs">
+              Captura el marcador, goles y tarjetas hasta el momento de la suspensión. El administrador del torneo
+              decidirá si se reanuda en otra fecha o se da un resultado final.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Notas del árbitro */}
       <div>
         <label className="text-gray-500 text-xs uppercase tracking-wide mb-2 block">
@@ -331,7 +394,7 @@ export default function MatchReportForm({
           disabled={isPending || !canSubmit}
           className="bg-green-500 hover:bg-green-400 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
         >
-          {isPending ? 'Guardando...' : 'Guardar cédula'}
+          {isPending ? 'Guardando...' : suspended ? 'Guardar cédula (partido suspendido)' : 'Guardar cédula'}
         </button>
       )}
       </fieldset>

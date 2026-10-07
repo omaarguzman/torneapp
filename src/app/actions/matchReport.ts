@@ -69,6 +69,16 @@ export async function submitMatchReport(
 
   const refereeNotes = (formData.get('referee_notes') as string) || null
 
+  const suspended = formData.get('suspended') === 'on'
+  const suspendedMinute = suspended ? parseInt(formData.get('suspended_minute') as string, 10) : null
+  const suspensionReason = suspended ? ((formData.get('suspension_reason') as string) || '').trim().slice(0, 200) : null
+  if (suspended && (!Number.isInteger(suspendedMinute) || suspendedMinute! < 1 || suspendedMinute! > 200)) {
+    return { error: 'Indica el minuto en que se suspendió el partido (entre 1 y 200).' }
+  }
+  if (suspended && !suspensionReason) {
+    return { error: 'Indica el motivo de la suspensión.' }
+  }
+
   const { error } = await supabase.rpc('submit_match_report', {
     p_token: token,
     p_score_home: scoreHome,
@@ -77,6 +87,8 @@ export async function submitMatchReport(
     p_referee_notes: refereeNotes,
     // null = no tocar la asistencia (la cédula del panel del admin no la envía)
     p_attendance: attendance,
+    p_suspended_minute: suspendedMinute,
+    p_suspension_reason: suspensionReason,
   })
 
   if (error) {

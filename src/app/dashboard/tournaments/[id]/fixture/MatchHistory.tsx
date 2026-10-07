@@ -1,10 +1,4 @@
-type Snapshot = {
-  date: string | null
-  time: string | null
-  venue: string | null
-  matchday: number | null
-  status: string
-} | null
+import { changeKindLabels as kindLabels, describeSnapshot as describe, type ScheduleSnapshot as Snapshot } from '@/lib/fixtures/matchLabel'
 
 export type MatchChange = {
   id: string
@@ -15,18 +9,6 @@ export type MatchChange = {
   changed_at: string
   home_team_id: string | null
   away_team_id: string | null
-}
-
-const kindLabels: Record<string, string> = {
-  postponed: '⏸ Aplazado',
-  scheduled: '📅 Programado',
-  moved: '✏️ Movido',
-}
-
-function describe(s: Snapshot) {
-  if (!s || s.status === 'pending' || !s.date) return 'Pendientes'
-  const date = new Date(s.date + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
-  return [s.matchday ? `J${s.matchday}` : null, date, s.time?.slice(0, 5), s.venue].filter(Boolean).join(' · ')
 }
 
 function when(iso: string) {

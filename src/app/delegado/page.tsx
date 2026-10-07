@@ -53,6 +53,12 @@ export default async function DelegateDashboard() {
     supabase.from('tournaments').select('min_matches_required').eq('id', team.tournament_id).single(),
   ])
   const attendanceCounts = countByPlayer(attendanceRows ?? [])
+
+  const { count: unreadCount } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('team_id', team.id)
+    .is('read_at', null)
   const minRequired = tournamentRules?.min_matches_required ?? null
 
   return (
@@ -74,6 +80,20 @@ export default async function DelegateDashboard() {
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
+            {!team.access_blocked && (
+              <Link
+                href="/delegado/avisos"
+                className="relative text-gray-300 hover:text-white text-sm transition-colors"
+                title="Avisos"
+              >
+                🔔 Avisos
+                {(unreadCount ?? 0) > 0 && (
+                  <span className="ml-1.5 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
             {teams.length > 1 && (
               <Link href="/delegado/equipos" className="text-green-400 hover:text-green-300 text-sm transition-colors">
                 Cambiar equipo

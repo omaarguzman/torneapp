@@ -92,7 +92,8 @@ export function computeSuspensions({
           continue
         }
 
-        if (match.status !== 'played') continue
+        // Las tarjetas de un partido suspendido cuentan desde que se capturan
+        if (match.status !== 'played' && match.status !== 'suspended') continue
 
         const matchEvents = (eventsByMatch.get(match.id) ?? []).filter((e) => e.playerId === playerId)
         const reds = matchEvents.filter((e) => e.type === 'red_card').length

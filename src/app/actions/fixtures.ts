@@ -31,7 +31,7 @@ export async function generateFixtures(
     .from('matches')
     .select('id', { count: 'exact', head: true })
     .eq('tournament_id', tournamentId)
-    .eq('status', 'played')
+    .in('status', ['played', 'suspended'])
 
   if ((playedCount ?? 0) > 0) {
     return {

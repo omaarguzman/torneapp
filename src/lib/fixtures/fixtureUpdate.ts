@@ -45,6 +45,7 @@ type MatchRow = {
   match_date: string | null
   start_time: string | null
   venue_id: string | null
+  suspended_minute: number | null
 }
 
 type SlotRow = { venue_id: string; day_of_week: number; start_time: string; end_time: string }
@@ -77,7 +78,7 @@ async function loadState(supabase: Supabase, tournamentId: string) {
       supabase.from('matchdays').select('id, number, week_start').eq('tournament_id', tournamentId).order('number'),
       supabase
         .from('matches')
-        .select('id, home_team_id, away_team_id, status, matchday_id, match_date, start_time, venue_id')
+        .select('id, home_team_id, away_team_id, status, matchday_id, match_date, start_time, venue_id, suspended_minute')
         .eq('tournament_id', tournamentId),
       supabase.from('venue_closures').select('venue_id, closed_on').eq('tournament_id', tournamentId),
     ])
@@ -133,10 +134,11 @@ export async function previewFixtureUpdate(
     }
   })
 
-  // Se conserva todo hasta la última jornada con algún partido jugado
+  // Se conserva todo hasta la última jornada con algún partido jugado (o suspendido / por reanudar,
+  // que ya tienen goles y tarjetas capturados)
   const numberById = new Map(matchdays.map((md) => [md.id, md.number]))
   const playedNumbers = matches
-    .filter((m) => m.status === 'played' && m.matchday_id)
+    .filter((m) => (m.status === 'played' || m.status === 'suspended' || m.suspended_minute !== null) && m.matchday_id)
     .map((m) => numberById.get(m.matchday_id!) ?? 0)
   const firstNumber = (playedNumbers.length > 0 ? Math.max(...playedNumbers) : 0) + 1
 

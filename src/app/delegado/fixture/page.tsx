@@ -175,6 +175,10 @@ export default async function DelegateFixturePage() {
                                 {m.score_home} – {m.score_away}
                                 {m.walkover && <span className="ml-1 text-orange-300 text-[10px] font-semibold">W.O.</span>}
                               </span>
+                            ) : m.status === 'suspended' ? (
+                              <span className="text-red-300 text-xs font-semibold bg-red-950 px-2 py-0.5 rounded" title="Partido suspendido">
+                                ⛔ Suspendido
+                              </span>
                             ) : (
                               <span className="text-gray-600 text-xs">vs</span>
                             )}

@@ -23,6 +23,9 @@ export type MatchData = {
   referee_notes: string | null
   validated: boolean
   walkover: string | null
+  /** Minuto en que se suspendió; en un partido programado indica que es una reanudación */
+  suspended_minute: number | null
+  suspension_reason: string | null
   venue_name: string | null
   tournament_name: string
   home_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
@@ -90,6 +93,15 @@ export default async function MatchReportPage({
                 <p className="text-gray-400 text-xs mt-1">
                   Si fue un error, cámbialo abajo o captura el resultado normal del partido: eso reemplaza el W.O.
                 </p>
+              </div>
+            )}
+            {match.status === 'suspended' && (
+              <div className="bg-red-950/40 border border-red-900 rounded-lg px-4 py-3 mb-4">
+                <p className="text-red-300 text-sm">
+                  ⛔ Partido marcado como suspendido en el minuto {match.suspended_minute}. El administrador del torneo
+                  decidirá si se reanuda o se da un resultado final.
+                </p>
+                <p className="text-gray-400 text-xs mt-1">Mientras tanto puedes corregir la cédula abajo.</p>
               </div>
             )}
             {!match.validated && (

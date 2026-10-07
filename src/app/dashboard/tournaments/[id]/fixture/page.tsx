@@ -31,6 +31,8 @@ type MatchRow = {
   score_away: number | null
   validated_at: string | null
   walkover: string | null
+  suspended_minute: number | null
+  administrative_result: boolean | null
   home_team: { name: string; logo_url: string | null } | null
   away_team: { name: string; logo_url: string | null } | null
   venue: { name: string } | null
@@ -96,7 +98,7 @@ export default async function FixturePage({
     .filter((m) => m.status === 'pending')
     .sort((a, b) => (a.postponed_from ?? 999) - (b.postponed_from ?? 999))
   const scheduledMatches = (allMatches ?? []).filter((m) => m.status !== 'pending')
-  const hasPlayedMatches = scheduledMatches.some((m) => m.status === 'played')
+  const hasPlayedMatches = scheduledMatches.some((m) => m.status === 'played' || m.status === 'suspended')
 
   const { data: venues } = await supabase
     .from('venues')
@@ -145,7 +147,7 @@ export default async function FixturePage({
       `id, number, week_start,
        matches!matchday_id (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
-         status, score_home, score_away, validated_at, walkover,
+         status, score_home, score_away, validated_at, walkover, suspended_minute, administrative_result,
          home_team:teams!matches_home_team_id_fkey(name, logo_url),
          away_team:teams!matches_away_team_id_fkey(name, logo_url),
          venue:venues!venue_id(name)
@@ -275,6 +277,10 @@ export default async function FixturePage({
                               <span className="text-white text-sm font-bold bg-gray-800 px-2 py-0.5 rounded">
                                 {m.score_home} – {m.score_away}
                               </span>
+                            ) : m.status === 'suspended' ? (
+                              <span className="text-red-300 text-sm font-bold bg-red-950 px-2 py-0.5 rounded" title="Marcador parcial">
+                                {m.score_home ?? 0} – {m.score_away ?? 0}
+                              </span>
                             ) : (
                               <span className="text-gray-600 text-xs">vs</span>
                             )}
@@ -292,7 +298,7 @@ export default async function FixturePage({
                                 href={`/dashboard/tournaments/${id}/fixture/${m.id}`}
                                 className="text-green-400 hover:text-green-300 text-[11px] font-semibold whitespace-nowrap"
                               >
-                                {played ? 'Ver cédula' : 'Capturar cédula'}
+                                {played ? 'Ver cédula' : m.status === 'suspended' ? 'Resolver suspensión' : 'Capturar cédula'}
                               </Link>
                               {tokenByMatch.get(m.id) && !m.validated_at && (
                                 <CopyLinkButton path={`/partido/${tokenByMatch.get(m.id)}`} label="📋 Link árbitro" />
@@ -315,8 +321,32 @@ export default async function FixturePage({
                             </div>
                           </div>
                         </div>
-                        {played && (
+                        {m.status === 'suspended' && (
                           <div className="mt-2">
+                            <span className="bg-red-950 text-red-300 text-[10px] px-2 py-0.5 rounded-full">
+                              ⛔ Suspendido en el min {m.suspended_minute} · por resolver
+                            </span>
+                          </div>
+                        )}
+                        {m.status === 'scheduled' && m.suspended_minute !== null && (
+                          <div className="mt-2">
+                            <span className="bg-sky-950 text-sky-300 text-[10px] px-2 py-0.5 rounded-full">
+                              ↻ Reanudación desde el min {m.suspended_minute} ({m.score_home ?? 0}–{m.score_away ?? 0})
+                            </span>
+                          </div>
+                        )}
+                        {played && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {m.administrative_result && (
+                              <span className="bg-purple-950 text-purple-300 text-[10px] px-2 py-0.5 rounded-full">
+                                ⚖️ Resultado administrativo
+                              </span>
+                            )}
+                            {m.suspended_minute !== null && !m.administrative_result && (
+                              <span className="bg-sky-950 text-sky-300 text-[10px] px-2 py-0.5 rounded-full">
+                                ⛔ Suspendido en el min {m.suspended_minute}
+                              </span>
+                            )}
                             {m.walkover ? (
                               <span className="bg-orange-950 text-orange-300 text-[10px] px-2 py-0.5 rounded-full">
                                 🏳️ W.O. — {walkoverLabel(m.walkover, m.home_team?.name ?? '—', m.away_team?.name ?? '—')}

@@ -7,6 +7,7 @@ import { matchScheduleLabel, walkoverLabel } from '@/lib/fixtures/matchLabel'
 import ValidationControls from './ValidationControls'
 import AttendanceEditor from './AttendanceEditor'
 import WalkoverControls from './WalkoverControls'
+import SuspendedControls from './SuspendedControls'
 
 export default async function AdminMatchReportPage({
   params,
@@ -56,7 +57,9 @@ export default async function AdminMatchReportPage({
           <div>
             <p className="text-gray-500 text-xs uppercase tracking-wide">Estado</p>
             <p className="text-white text-sm font-semibold mt-0.5">
-              {walkover
+              {match.status === 'suspended'
+                ? 'Suspendido, por resolver'
+                : walkover
                 ? `🏳️ W.O. — ${walkoverLabel(walkover, match.home_team.name, match.away_team.name)}${match.validated ? '' : ' (capturado por el árbitro, por validar)'}`
                 : match.validated
                 ? `✓ Validada${validation?.validated_at ? ` el ${new Date(validation.validated_at).toLocaleDateString('es-MX')}` : ''}`
@@ -65,7 +68,7 @@ export default async function AdminMatchReportPage({
                   : 'Sin cédula'}
             </p>
           </div>
-          {!(walkover && match.validated) && (
+          {!(walkover && match.validated) && match.status !== 'suspended' && (
             <ValidationControls
               tournamentId={id}
               matchId={matchId}
@@ -74,6 +77,21 @@ export default async function AdminMatchReportPage({
             />
           )}
         </div>
+
+        {match.status === 'suspended' && (
+          <div className="mb-6">
+            <SuspendedControls
+              tournamentId={id}
+              matchId={matchId}
+              homeName={match.home_team.name}
+              awayName={match.away_team.name}
+              minute={match.suspended_minute}
+              reason={match.suspension_reason}
+              partialHome={match.score_home ?? 0}
+              partialAway={match.score_away ?? 0}
+            />
+          </div>
+        )}
 
         {(walkover || match.status === 'scheduled') && (
           <div className="mb-6">
