@@ -14,7 +14,15 @@ type MatchRow = {
   matchDate: string
   startTime: string
   status: string
+  /** Equipo(s) que no se presentaron (W.O.) */
+  walkover?: 'home' | 'away' | 'both' | null
 }
+
+/** ¿Este equipo fue el que no se presentó? */
+const absent = (m: MatchRow, teamId: string) =>
+  m.walkover === 'both' ||
+  (m.walkover === 'home' && m.homeTeamId === teamId) ||
+  (m.walkover === 'away' && m.awayTeamId === teamId)
 
 type EventRow = {
   matchId: string
@@ -33,6 +41,8 @@ type EventRow = {
  * - Si el torneo tiene un umbral de amarillas acumuladas, cada amarilla
  *   "simple" (sin expulsión ese partido) suma al contador; al llegar al
  *   umbral se genera 1 partido de suspensión y el contador vuelve a 0.
+ * - Un W.O. cuenta como partido cumplido de suspensión solo para el equipo
+ *   que sí se presentó; para el que faltó, la suspensión pasa al siguiente.
  * - El conteo total de tarjetas para estadísticas NO se toca aquí — este
  *   cálculo es solo para saber quién no puede jugar el siguiente partido.
  */
@@ -76,6 +86,7 @@ export function computeSuspensions({
 
       for (const match of teamMatchList) {
         if (pendingQueue.length > 0) {
+          if (absent(match, teamId)) continue
           const reason = pendingQueue.shift()!
           result.push({ matchId: match.id, playerId, teamId, reason })
           continue

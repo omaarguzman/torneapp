@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import MatchReportForm from '@/app/partido/[token]/MatchReportForm'
 import type { MatchData } from '@/app/partido/[token]/page'
-import { matchScheduleLabel } from '@/lib/fixtures/matchLabel'
+import { matchScheduleLabel, walkoverLabel } from '@/lib/fixtures/matchLabel'
 import ValidationControls from './ValidationControls'
 import AttendanceEditor from './AttendanceEditor'
+import WalkoverControls from './WalkoverControls'
 
 export default async function AdminMatchReportPage({
   params,
@@ -30,11 +31,11 @@ export default async function AdminMatchReportPage({
   const match = data as MatchData | null
   if (!match) notFound()
 
-  const { data: validation } = await supabase
-    .from('matches')
-    .select('validated_at')
-    .eq('id', matchId)
-    .single()
+  const [{ data: validation }, { data: rules }] = await Promise.all([
+    supabase.from('matches').select('validated_at, walkover').eq('id', matchId).single(),
+    supabase.from('tournaments').select('walkover_goals, double_walkover_rule').eq('id', id).single(),
+  ])
+  const walkover = validation?.walkover ?? null
 
 
   return (
@@ -55,20 +56,38 @@ export default async function AdminMatchReportPage({
           <div>
             <p className="text-gray-500 text-xs uppercase tracking-wide">Estado</p>
             <p className="text-white text-sm font-semibold mt-0.5">
-              {match.validated
+              {walkover
+                ? `🏳️ W.O. — ${walkoverLabel(walkover, match.home_team.name, match.away_team.name)}`
+                : match.validated
                 ? `✓ Validada${validation?.validated_at ? ` el ${new Date(validation.validated_at).toLocaleDateString('es-MX')}` : ''}`
                 : match.status === 'played'
                   ? 'Capturada, por validar'
                   : 'Sin cédula'}
             </p>
           </div>
-          <ValidationControls
-            tournamentId={id}
-            matchId={matchId}
-            validated={match.validated}
-            hasReport={match.status === 'played'}
-          />
+          {!walkover && (
+            <ValidationControls
+              tournamentId={id}
+              matchId={matchId}
+              validated={match.validated}
+              hasReport={match.status === 'played'}
+            />
+          )}
         </div>
+
+        {(walkover || match.status === 'scheduled') && (
+          <div className="mb-6">
+            <WalkoverControls
+              tournamentId={id}
+              matchId={matchId}
+              homeName={match.home_team.name}
+              awayName={match.away_team.name}
+              walkover={walkover}
+              walkoverGoals={rules?.walkover_goals ?? 3}
+              doubleRule={rules?.double_walkover_rule === 'draw' ? 'draw' : 'both_lose'}
+            />
+          </div>
+        )}
 
         {match.status === 'pending' ? (
           <div className="bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3">
@@ -77,7 +96,7 @@ export default async function AdminMatchReportPage({
               poder capturar su cédula.
             </p>
           </div>
-        ) : (
+        ) : walkover ? null : (
           <>
         <MatchReportForm
           key={String(match.validated)}

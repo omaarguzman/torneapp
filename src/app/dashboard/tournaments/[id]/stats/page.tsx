@@ -33,9 +33,11 @@ export default async function StatsPage({
 
   const { data: matches } = await supabase
     .from('matches')
-    .select('home_team_id, away_team_id, score_home, score_away')
+    .select('home_team_id, away_team_id, score_home, score_away, walkover')
     .eq('tournament_id', id)
     .eq('status', 'played')
+
+  const { data: doubleRule } = await supabase.from('tournaments').select('double_walkover_rule').eq('id', id).single()
 
   const standings = computeStandings(
     teams ?? [],
@@ -46,7 +48,9 @@ export default async function StatsPage({
         awayTeamId: m.away_team_id,
         scoreHome: m.score_home as number,
         scoreAway: m.score_away as number,
-      }))
+        walkover: m.walkover,
+      })),
+    doubleRule?.double_walkover_rule === 'draw' ? 'draw' : 'both_lose'
   )
 
   const { data: events } = (await supabase

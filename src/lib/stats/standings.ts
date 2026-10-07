@@ -12,12 +12,20 @@ export type TeamStat = {
   points: number
 }
 
+export type Walkover = 'home' | 'away' | 'both'
+export type DoubleWalkoverRule = 'both_lose' | 'draw'
+
 type MatchResult = {
   homeTeamId: string
   awayTeamId: string
   scoreHome: number
   scoreAway: number
+  /** Equipo(s) que no se presentaron; el marcador ya trae el resultado administrativo */
+  walkover?: Walkover | null
 }
+
+/** Doble W.O. con la regla "ambos pierden": cuenta como jugado y perdido, sin puntos. */
+const bothLose = (m: MatchResult, rule: DoubleWalkoverRule) => m.walkover === 'both' && rule === 'both_lose'
 
 /**
  * Calcula la tabla de posiciones con el sistema estándar (3/1/0) y
@@ -27,7 +35,8 @@ type MatchResult = {
  */
 export function computeStandings(
   teams: { id: string; name: string; logo_url: string | null }[],
-  matches: MatchResult[]
+  matches: MatchResult[],
+  doubleWalkoverRule: DoubleWalkoverRule = 'both_lose'
 ): TeamStat[] {
   const stats = new Map<string, TeamStat>()
 
@@ -59,7 +68,10 @@ export function computeStandings(
     away.goalsFor += m.scoreAway
     away.goalsAgainst += m.scoreHome
 
-    if (m.scoreHome > m.scoreAway) {
+    if (bothLose(m, doubleWalkoverRule)) {
+      home.lost++
+      away.lost++
+    } else if (m.scoreHome > m.scoreAway) {
       home.won++
       home.points += 3
       away.lost++
@@ -86,6 +98,7 @@ export function computeStandings(
     let gf = 0
     let ga = 0
     for (const m of matches) {
+      if (bothLose(m, doubleWalkoverRule)) continue
       if (m.homeTeamId === teamId && opponentIds.has(m.awayTeamId)) {
         gf += m.scoreHome
         ga += m.scoreAway

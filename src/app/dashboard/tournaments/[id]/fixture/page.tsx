@@ -11,7 +11,7 @@ import ScheduleMatchForm from './ScheduleMatchForm'
 import ShiftMatchdayForm from './ShiftMatchdayForm'
 import MatchHistory, { type MatchChange } from './MatchHistory'
 import UndoPostponeButton from './UndoPostponeButton'
-import { matchScheduleLabel } from '@/lib/fixtures/matchLabel'
+import { matchScheduleLabel, walkoverLabel } from '@/lib/fixtures/matchLabel'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
   yellow_accumulation: 'acumulación de amarillas',
@@ -30,6 +30,7 @@ type MatchRow = {
   score_home: number | null
   score_away: number | null
   validated_at: string | null
+  walkover: string | null
   home_team: { name: string; logo_url: string | null } | null
   away_team: { name: string; logo_url: string | null } | null
   venue: { name: string } | null
@@ -87,7 +88,7 @@ export default async function FixturePage({
   const { data: allMatches } = await supabase
     .from('matches')
     .select(
-      'id, home_team_id, away_team_id, match_date, start_time, venue_id, status, postponed_from, postpone_reason, original_match_date, original_start_time, original_venue_id'
+      'id, home_team_id, away_team_id, match_date, start_time, venue_id, status, walkover, postponed_from, postpone_reason, original_match_date, original_start_time, original_venue_id'
     )
     .eq('tournament_id', id)
 
@@ -124,6 +125,7 @@ export default async function FixturePage({
       matchDate: m.match_date!,
       startTime: m.start_time!,
       status: m.status,
+      walkover: m.walkover,
     })),
     events: (allEvents ?? []).map((e) => ({ matchId: e.match_id, playerId: e.player_id, type: e.type })),
     rosterByTeam,
@@ -143,7 +145,7 @@ export default async function FixturePage({
       `id, number, week_start,
        matches!matchday_id (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
-         status, score_home, score_away, validated_at,
+         status, score_home, score_away, validated_at, walkover,
          home_team:teams!matches_home_team_id_fkey(name, logo_url),
          away_team:teams!matches_away_team_id_fkey(name, logo_url),
          venue:venues!venue_id(name)
@@ -315,7 +317,11 @@ export default async function FixturePage({
                         </div>
                         {played && (
                           <div className="mt-2">
-                            {m.validated_at ? (
+                            {m.walkover ? (
+                              <span className="bg-orange-950 text-orange-300 text-[10px] px-2 py-0.5 rounded-full">
+                                🏳️ W.O. — {walkoverLabel(m.walkover, m.home_team?.name ?? '—', m.away_team?.name ?? '—')}
+                              </span>
+                            ) : m.validated_at ? (
                               <span className="bg-green-950 text-green-400 text-[10px] px-2 py-0.5 rounded-full">✓ Cédula validada</span>
                             ) : (
                               <span className="bg-yellow-950 text-yellow-500 text-[10px] px-2 py-0.5 rounded-full">Cédula por validar</span>

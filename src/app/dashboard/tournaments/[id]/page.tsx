@@ -9,6 +9,7 @@ import CopyLinkButton from '@/components/CopyLinkButton'
 import SectionTabs from '@/components/SectionTabs'
 import PaymentsSection from './PaymentsSection'
 import AttendanceSection from './AttendanceSection'
+import RulesForm from './RulesForm'
 import { countByPlayer } from '@/lib/attendance'
 import UnlinkDelegateButton from './UnlinkDelegateButton'
 import type { Charge } from '@/lib/charges'
@@ -454,6 +455,20 @@ export default async function TournamentPage({
                     teams={(teams ?? []).map((t) => ({ id: t.id, name: t.name, players: t.players ?? [] }))}
                     counts={attendanceCounts}
                     playedByTeam={playedByTeam}
+                  />
+                ),
+              },
+              {
+                key: 'rules',
+                label: 'Reglas',
+                content: (
+                  <RulesForm
+                    tournamentId={id}
+                    rules={tournament.rules ?? null}
+                    yellowThreshold={tournament.yellow_card_suspension_threshold ?? null}
+                    redMatches={tournament.red_card_suspension_matches ?? 1}
+                    walkoverGoals={tournament.walkover_goals ?? 3}
+                    doubleWalkoverRule={tournament.double_walkover_rule ?? 'both_lose'}
                   />
                 ),
               },

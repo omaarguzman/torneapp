@@ -13,3 +13,10 @@ export function matchScheduleLabel(match: {
   })
   return [dateLabel, match.start_time?.slice(0, 5), match.venue_name].filter(Boolean).join(' · ')
 }
+
+/** "Pumas FC no se presentó" / "Ninguno de los dos equipos se presentó" */
+export function walkoverLabel(walkover: string, home: string, away: string) {
+  return walkover === 'both'
+    ? 'Ninguno de los dos equipos se presentó'
+    : `${walkover === 'home' ? home : away} no se presentó`
+}

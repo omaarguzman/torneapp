@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import MatchReportForm from './MatchReportForm'
-import { matchScheduleLabel } from '@/lib/fixtures/matchLabel'
+import { matchScheduleLabel, walkoverLabel } from '@/lib/fixtures/matchLabel'
 
 export type MatchPlayer = { id: string; full_name: string; jersey_number: number | null }
 
@@ -21,6 +21,7 @@ export type MatchData = {
   score_away: number | null
   referee_notes: string | null
   validated: boolean
+  walkover: string | null
   venue_name: string | null
   tournament_name: string
   home_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
@@ -63,7 +64,14 @@ export default async function MatchReportPage({
           {matchScheduleLabel(match)}
         </p>
 
-        {pending ? (
+        {match.walkover ? (
+          <div className="bg-orange-950/50 border border-orange-900 rounded-lg px-4 py-3">
+            <p className="text-orange-300 text-sm">
+              🏳️ Este partido se declaró default / W.O.: {walkoverLabel(match.walkover, match.home_team.name, match.away_team.name)}.
+              No hay cédula que capturar.
+            </p>
+          </div>
+        ) : pending ? (
           <div className="bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3">
             <p className="text-yellow-400 text-sm">
               ⏸ Este partido fue aplazado y todavía no tiene nueva fecha. La cédula se podrá capturar cuando el

@@ -21,6 +21,7 @@ type MatchRow = {
   status: string
   score_home: number | null
   score_away: number | null
+  walkover: string | null
   home_team: { name: string } | null
   away_team: { name: string } | null
   venue: { name: string } | null
@@ -75,7 +76,7 @@ export default async function DelegateFixturePage() {
 
   const { data: allMatches } = await supabase
     .from('matches')
-    .select('id, home_team_id, away_team_id, match_date, start_time, status')
+    .select('id, home_team_id, away_team_id, match_date, start_time, status, walkover')
     .eq('tournament_id', myTeam.tournament_id)
     .neq('status', 'pending')
 
@@ -87,7 +88,7 @@ export default async function DelegateFixturePage() {
   const suspensions = computeSuspensions({
     matches: (allMatches ?? []).map((m) => ({
       id: m.id, homeTeamId: m.home_team_id, awayTeamId: m.away_team_id,
-      matchDate: m.match_date!, startTime: m.start_time!, status: m.status,
+      matchDate: m.match_date!, startTime: m.start_time!, status: m.status, walkover: m.walkover,
     })),
     events: (allEvents ?? []).map((e) => ({ matchId: e.match_id, playerId: e.player_id, type: e.type })),
     rosterByTeam,
@@ -172,6 +173,7 @@ export default async function DelegateFixturePage() {
                             ) : played ? (
                               <span className="text-white text-sm font-bold bg-gray-800 px-2 py-0.5 rounded">
                                 {m.score_home} – {m.score_away}
+                                {m.walkover && <span className="ml-1 text-orange-300 text-[10px] font-semibold">W.O.</span>}
                               </span>
                             ) : (
                               <span className="text-gray-600 text-xs">vs</span>
