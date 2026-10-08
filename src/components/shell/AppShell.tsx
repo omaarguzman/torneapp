@@ -21,10 +21,10 @@ export default function AppShell({
   children: ReactNode
 }) {
   return (
-    <div className="relative flex-1 flex flex-col bg-gray-950">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(ellipse_at_top,rgba(245,200,76,0.10),transparent_65%)]" />
+    <div className="relative flex-1 flex flex-col bg-gray-950 print:bg-white">
+      <div className="print:hidden pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(ellipse_at_top,rgba(245,200,76,0.10),transparent_65%)]" />
 
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-gray-950/85 backdrop-blur">
+      <header className="print:hidden sticky top-0 z-30 border-b border-white/10 bg-gray-950/85 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center gap-x-6 gap-y-2">
           <Link href={homeHref} className="flex flex-col shrink-0">
             <Logo size={26} />

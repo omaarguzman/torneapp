@@ -14,6 +14,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         { href: '/dashboard', label: 'Mis torneos', icon: '🏆', exact: true },
         { href: '/dashboard/venues', label: 'Canchas guardadas', icon: '🏟️' },
         { href: '/dashboard/tournaments/new', label: 'Nuevo torneo', icon: '＋' },
+        { href: '/dashboard/ayuda', label: 'Ayuda', icon: '❓' },
       ]}
     >
       {children}

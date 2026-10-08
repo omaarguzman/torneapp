@@ -30,6 +30,7 @@ export default async function DelegateLayout({ children }: { children: ReactNode
     )
   }
   if (teams.length > 1) links.push({ href: '/delegado/equipos', label: 'Cambiar equipo', icon: '⇄' })
+  links.push({ href: '/delegado/ayuda', label: 'Ayuda', icon: '❓' })
 
   return (
     <AppShell homeHref="/delegado" subtitle={team ? `${team.name} · ${team.tournament_name}` : user?.email} links={links}>
