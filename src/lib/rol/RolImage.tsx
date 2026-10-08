@@ -28,8 +28,8 @@ export type RolArt = { background: string | null; shield: string; banner: string
 export const WIDTH = CANVAS.width
 export const HEIGHT = CANVAS.height
 
-const GOLD = '#d4af37'
-const PANEL_BG = '#0b0b0e'
+export const GOLD = '#d4af37'
+export const PANEL_BG = '#0b0b0e'
 const SECTION_HEADER = 50
 
 // ---------- Textos ----------
@@ -59,7 +59,7 @@ const initials = (name: string) =>
     .toUpperCase()
 
 /** Tamaño de letra para que un texto quepa en un ancho (fuente condensada, ~0.5 em por letra). */
-const fit = (text: string, width: number, max: number, min = 12, perChar = 0.5) =>
+export const fit = (text: string, width: number, max: number, min = 12, perChar = 0.5) =>
   Math.max(min, Math.floor(Math.min(max, width / (perChar * Math.max(text.length, 1)))))
 
 /** Tamaño para que un nombre quepa en máximo dos renglones (por la palabra más larga y el total). */
@@ -79,7 +79,7 @@ function noteSize(text: string, width: number, height: number) {
 }
 
 /** Texto metálico: capa de contorno y sombra detrás, degradado al frente. */
-function MetalText({ text, size, gradient, style }: { text: string; size: number; gradient: string; style?: CSSProperties }) {
+export function MetalText({ text, size, gradient, style }: { text: string; size: number; gradient: string; style?: CSSProperties }) {
   const base: CSSProperties = { display: 'flex', fontFamily: 'Anton', fontSize: size, lineHeight: 1.05 }
   return (
     <div style={{ display: 'flex', position: 'relative', ...style }}>
@@ -93,12 +93,12 @@ function MetalText({ text, size, gradient, style }: { text: string; size: number
   )
 }
 
-const GOLD_GRADIENT = 'linear-gradient(180deg, #fff6c9 0%, #f5d061 40%, #d4a017 62%, #8a5a0b 100%)'
-const CHROME_GRADIENT = 'linear-gradient(180deg, #ffffff 0%, #e5e7eb 45%, #9ca3af 60%, #f3f4f6 100%)'
+export const GOLD_GRADIENT = 'linear-gradient(180deg, #fff6c9 0%, #f5d061 40%, #d4a017 62%, #8a5a0b 100%)'
+export const CHROME_GRADIENT = 'linear-gradient(180deg, #ffffff 0%, #e5e7eb 45%, #9ca3af 60%, #f3f4f6 100%)'
 
 // ---------- Piezas ----------
 
-function Logo({ src, name, size }: { src: string | null; name: string; size: number }) {
+export function Logo({ src, name, size }: { src: string | null; name: string; size: number }) {
   if (src) return <img src={src} alt={name} width={size} height={size} style={{ width: size, height: size, objectFit: 'contain' }} />
   return (
     <div
@@ -153,7 +153,7 @@ const MegaphoneIcon = ({ size }: { size: number }) => (
   </svg>
 )
 
-const panelStyle = (extra?: CSSProperties): CSSProperties => ({
+export const panelStyle = (extra?: CSSProperties): CSSProperties => ({
   display: 'flex',
   background: PANEL_BG,
   border: `3px solid ${GOLD}`,
@@ -162,7 +162,7 @@ const panelStyle = (extra?: CSSProperties): CSSProperties => ({
   ...extra,
 })
 
-const abs = (b: Box): CSSProperties => ({ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h })
+export const abs = (b: Box): CSSProperties => ({ position: 'absolute', left: b.x, top: b.y, width: b.w, height: b.h })
 
 // ---------- Partidos ----------
 

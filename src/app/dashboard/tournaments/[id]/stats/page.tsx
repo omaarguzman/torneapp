@@ -20,7 +20,7 @@ export default async function StatsPage({
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('name')
+    .select('name, logo_url')
     .eq('id', id)
     .single()
 
@@ -100,9 +100,11 @@ export default async function StatsPage({
             <p className="text-gray-500 text-sm">{tournament.name}</p>
           </div>
           <StatsExportButtons
+            tournamentId={id}
             allowExcel
             data={{
               tournamentName: tournament.name,
+              tournamentLogo: tournament.logo_url ?? null,
               standings,
               scorers: topScorers,
               cards: topCards,

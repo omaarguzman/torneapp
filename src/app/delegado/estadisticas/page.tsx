@@ -21,7 +21,8 @@ export default async function DelegateStatsPage() {
   const { team: myTeam } = await resolveCurrentTeam(supabase, user.id)
   if (!myTeam || myTeam.access_blocked) redirect('/delegado')
 
-  const tournamentInfo = { name: myTeam.tournament_name }
+  const { data: tournamentRow } = await supabase.from('tournaments').select('logo_url').eq('id', myTeam.tournament_id).single()
+  const tournamentInfo = { name: myTeam.tournament_name, logo: tournamentRow?.logo_url ?? null }
 
   const { data: pendingCharges } = await supabase
     .from('team_charges')
@@ -108,8 +109,10 @@ export default async function DelegateStatsPage() {
             <p className="text-gray-500 text-sm">{tournamentInfo?.name}</p>
           </div>
           <StatsExportButtons
+            tournamentId={myTeam.tournament_id}
             data={{
               tournamentName: tournamentInfo?.name ?? 'Torneo',
+              tournamentLogo: tournamentInfo.logo,
               standings,
               scorers: topScorers,
             }}

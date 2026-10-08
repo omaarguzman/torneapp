@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
   // Las plantillas del rol se leen del disco al generar la imagen
   outputFileTracingIncludes: {
     "/api/rol/*": ["./public/rol/plantillas/**/*"],
+    "/api/tabla/*": ["./public/rol/plantillas/**/*"],
   },
   experimental: {
     serverActions: {

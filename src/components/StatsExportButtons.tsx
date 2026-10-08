@@ -1,15 +1,11 @@
 'use client'
 
 import { useState, useSyncExternalStore } from 'react'
-import {
-  buildStatsExcel,
-  buildStatsPdf,
-  downloadBlob,
-  exportFileName,
-  type StatsExportData,
-} from '@/lib/stats/exportStats'
+import { buildStatsExcel, downloadBlob, exportFileName, type StatsExportData } from '@/lib/stats/exportStats'
+import { pdfFromImages, shareOrDownload } from '@/lib/pdfFromImages'
+import ExportPreview from './ExportPreview'
 
-type Action = 'excel' | 'pdf' | 'share'
+type Action = 'excel' | 'share'
 
 /** ¿El navegador puede compartir archivos (menú de compartir del celular)? En el servidor, no. */
 function canShareFiles() {
@@ -18,16 +14,31 @@ function canShareFiles() {
 }
 const noSubscribe = () => () => {}
 
+/**
+ * Exportar estadísticas. El PDF (y lo que se comparte) son dos páginas sobre la
+ * plantilla del rol de juegos: la tabla y, aparte, goleadores, mejor defensa y
+ * tarjetas. El Excel (solo admin) lleva las tablas completas.
+ */
 export default function StatsExportButtons({
+  tournamentId,
   data,
   allowExcel = false,
 }: {
+  tournamentId: string
   data: StatsExportData
   allowExcel?: boolean
 }) {
   const [busy, setBusy] = useState<Action | null>(null)
   const [error, setError] = useState('')
+  const [preview, setPreview] = useState<string[] | null>(null)
   const shareSupported = useSyncExternalStore(noSubscribe, canShareFiles, () => false)
+
+  const fileName = exportFileName(data.tournamentName, 'pdf')
+  // Marca de tiempo para no reutilizar una imagen vieja del navegador
+  const pageUrls = () => {
+    const v = Date.now()
+    return [1, 2].map((p) => `/api/tabla/${tournamentId}?pagina=${p}&v=${v}`)
+  }
 
   async function run(action: Action) {
     setBusy(action)
@@ -36,18 +47,9 @@ export default function StatsExportButtons({
       if (action === 'excel') {
         downloadBlob(await buildStatsExcel(data), exportFileName(data.tournamentName, 'xlsx'))
       } else {
-        const pdf = await buildStatsPdf(data)
-        const fileName = exportFileName(data.tournamentName, 'pdf')
-        if (action === 'pdf') {
-          downloadBlob(pdf, fileName)
-        } else {
-          const file = new File([pdf], fileName, { type: 'application/pdf' })
-          await navigator.share({ files: [file], title: data.tournamentName })
-        }
+        await shareOrDownload(await pdfFromImages(pageUrls()), fileName, data.tournamentName)
       }
     } catch (err) {
-      // Cerrar el menú de compartir no es un error real
-      if (err instanceof DOMException && err.name === 'AbortError') return
       console.error('[StatsExportButtons] error:', err)
       setError('No se pudo generar el archivo. Inténtalo de nuevo.')
     } finally {
@@ -66,8 +68,8 @@ export default function StatsExportButtons({
             {busy === 'excel' ? 'Generando…' : 'Excel'}
           </button>
         )}
-        <button type="button" onClick={() => run('pdf')} disabled={busy !== null} className={buttonClass}>
-          {busy === 'pdf' ? 'Generando…' : 'PDF'}
+        <button type="button" onClick={() => setPreview(pageUrls())} disabled={busy !== null} className={buttonClass}>
+          📄 PDF
         </button>
         {shareSupported && (
           <button
@@ -81,6 +83,9 @@ export default function StatsExportButtons({
         )}
       </div>
       {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+      {preview && (
+        <ExportPreview title={`Estadísticas · ${data.tournamentName}`} pages={preview} fileName={fileName} onClose={() => setPreview(null)} />
+      )}
     </div>
   )
 }

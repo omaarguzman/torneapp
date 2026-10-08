@@ -16,6 +16,8 @@ export type TemplateLayout = {
   shieldCenter: { x: number; y: number }
   /** Zona del número de jornada a tapar (solo en plantillas con título dibujado) */
   number: Box
+  /** Zona del título + fecha ("JORNADA 1 · ROL DE JUEGOS"): se tapa en las imágenes de estadísticas */
+  headline: Box
   date: Box
   cards: Box
   panels: Box
@@ -36,6 +38,7 @@ export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
     baked: true,
     shieldCenter: { x: 537, y: 122 },
     number: { x: 758, y: 228, w: 80, h: 104 },
+    headline: { x: 288, y: 224, w: 554, h: 232 },
     date: { x: 318, y: 402, w: 488, h: 52 },
     cards: { x: 143, y: 458, w: 840, h: 444 },
     panels: { x: 143, y: 906, w: 840, h: 148 },
@@ -49,6 +52,7 @@ export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
     baked: true,
     shieldCenter: { x: 560, y: 120 },
     number: { x: 752, y: 186, w: 98, h: 212 },
+    headline: { x: 270, y: 184, w: 636, h: 266 },
     date: { x: 322, y: 396, w: 494, h: 52 },
     cards: { x: 88, y: 456, w: 948, h: 472 },
     panels: { x: 88, y: 932, w: 948, h: 150 },
@@ -62,6 +66,7 @@ export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
     baked: true,
     shieldCenter: { x: 562, y: 120 },
     number: { x: 748, y: 200, w: 92, h: 194 },
+    headline: { x: 288, y: 196, w: 580, h: 252 },
     date: { x: 344, y: 392, w: 434, h: 54 },
     cards: { x: 84, y: 456, w: 956, h: 466 },
     panels: { x: 84, y: 932, w: 952, h: 146 },
@@ -75,6 +80,7 @@ export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
     baked: true,
     shieldCenter: { x: 562, y: 120 },
     number: { x: 752, y: 200, w: 94, h: 198 },
+    headline: { x: 282, y: 194, w: 668, h: 256 },
     date: { x: 320, y: 396, w: 490, h: 52 },
     cards: { x: 86, y: 458, w: 952, h: 462 },
     panels: { x: 86, y: 928, w: 950, h: 146 },
@@ -88,6 +94,7 @@ export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
     baked: true,
     shieldCenter: { x: 560, y: 120 },
     number: { x: 746, y: 180, w: 78, h: 162 },
+    headline: { x: 282, y: 176, w: 552, h: 272 },
     date: { x: 346, y: 392, w: 428, h: 54 },
     cards: { x: 82, y: 456, w: 952, h: 482 },
     panels: { x: 86, y: 940, w: 946, h: 164 },
@@ -101,6 +108,7 @@ export const BUILTIN_TEMPLATES: BuiltinTemplate[] = [
     baked: true,
     shieldCenter: { x: 562, y: 120 },
     number: { x: 754, y: 190, w: 94, h: 210 },
+    headline: { x: 276, y: 184, w: 590, h: 266 },
     date: { x: 350, y: 396, w: 424, h: 52 },
     cards: { x: 82, y: 458, w: 956, h: 466 },
     panels: { x: 82, y: 930, w: 956, h: 146 },
@@ -114,6 +122,7 @@ export const CUSTOM_LAYOUT: TemplateLayout = {
   baked: false,
   shieldCenter: { x: 561, y: 100 },
   number: { x: 0, y: 0, w: 0, h: 0 },
+  headline: { x: 200, y: 214, w: 722, h: 238 },
   date: { x: 300, y: 400, w: 522, h: 52 },
   cards: { x: 82, y: 462, w: 958, h: 462 },
   panels: { x: 82, y: 934, w: 958, h: 146 },

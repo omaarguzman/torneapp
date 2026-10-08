@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- vista previa de un PNG generado al momento */
 import { useActionState, useState } from 'react'
 import { saveMatchdayNote, setMatchdayTemplate, type NoteResult } from '@/app/actions/rolImage'
+import ExportPreview from './ExportPreview'
 
 export type TemplateOption = { value: string; label: string }
 
@@ -33,6 +34,7 @@ export default function RolImageButton({
   const [templateError, setTemplateError] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
   const [sharing, setSharing] = useState(false)
+  const [pdfPreview, setPdfPreview] = useState(false)
   const [noteText, setNoteText] = useState(note?.value ?? '')
   const [noteState, noteAction, savingNote] = useActionState(async (prev: NoteResult, formData: FormData) => {
     const result = await saveMatchdayNote(prev, formData)
@@ -102,19 +104,34 @@ export default function RolImageButton({
               download={filename}
               className="bg-amber-400 hover:bg-amber-300 text-gray-950 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
             >
-              ⬇ Descargar
+              ⬇ Imagen
             </a>
+            <button
+              type="button"
+              onClick={() => setPdfPreview(true)}
+              className="border border-gray-700 hover:border-amber-400 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              📄 PDF
+            </button>
             <button
               type="button"
               onClick={share}
               disabled={sharing}
-              className="border border-gray-700 hover:border-green-600 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:text-gray-600"
+              className="border border-gray-700 hover:border-amber-400 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:text-gray-600"
             >
               {sharing ? 'Preparando...' : '📤 Compartir'}
             </button>
           </div>
 
           {templateError && <p className="text-red-400 text-xs">{templateError}</p>}
+          {pdfPreview && (
+            <ExportPreview
+              title={`Rol de la jornada ${matchdayNumber}`}
+              pages={[url]}
+              fileName={`rol-jornada-${matchdayNumber}.pdf`}
+              onClose={() => setPdfPreview(false)}
+            />
+          )}
 
           {note && (
             <form action={noteAction} className="flex flex-col gap-2">
