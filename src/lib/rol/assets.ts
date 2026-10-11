@@ -17,6 +17,25 @@ async function loadFont(family: string) {
   return (await fetch(url)).arrayBuffer()
 }
 
+/** Solo se descargan imágenes de nuestro propio Storage (bucket logos). */
+const STORAGE_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/logos/`
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+/**
+ * Descarga una imagen subida a Torneapp. Las URLs vienen de la base de datos y
+ * cualquier admin puede escribirlas, así que no se sigue ninguna dirección
+ * ajena (evita que el servidor haga peticiones a sitios arbitrarios).
+ */
+async function fetchStorageImage(url: string): Promise<{ data: Buffer; type: string } | null> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !url.startsWith(STORAGE_PREFIX) || url.includes('..')) return null
+  const res = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(8000) })
+  if (!res.ok) return null
+  if (Number(res.headers.get('content-length') ?? 0) > MAX_IMAGE_BYTES) return null
+  const data = Buffer.from(await res.arrayBuffer())
+  if (data.length > MAX_IMAGE_BYTES) return null
+  return { data, type: res.headers.get('content-type') ?? '' }
+}
+
 let fontsPromise: Promise<FontDef[]> | null = null
 
 export function getFonts(): Promise<FontDef[]> {
@@ -40,10 +59,9 @@ export function getFonts(): Promise<FontDef[]> {
 export async function loadLogo(url: string | null, size = 160): Promise<string | null> {
   if (!url) return null
   try {
-    const res = await fetch(url)
-    if (!res.ok) return null
-    const input = Buffer.from(await res.arrayBuffer())
-    const type = res.headers.get('content-type') ?? ''
+    const image = await fetchStorageImage(url)
+    if (!image) return null
+    const { data: input, type } = image
 
     try {
       const sharp = (await import('sharp')).default
@@ -106,9 +124,9 @@ export function loadTemplateBackground(key: string, source: { file: string } | {
         const { join } = await import('node:path')
         input = await readFile(join(process.cwd(), 'public', 'rol', 'plantillas', source.file))
       } else {
-        const res = await fetch(source.url)
-        if (!res.ok) return null
-        input = Buffer.from(await res.arrayBuffer())
+        const image = await fetchStorageImage(source.url)
+        if (!image) return null
+        input = image.data
       }
       const sharp = (await import('sharp')).default
       const out = await sharp(input).resize(1122, 1402, { fit: 'cover', position: 'centre' }).jpeg({ quality: 88 }).toBuffer()

@@ -35,7 +35,10 @@ export async function createTournament(formData: FormData) {
     .select()
     .single()
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('[createTournament] error:', error)
+    return { error: 'No se pudo crear el torneo. Revisa los datos e inténtalo de nuevo.' }
+  }
 
   redirect(`/dashboard/tournaments/${data.id}`)
 }

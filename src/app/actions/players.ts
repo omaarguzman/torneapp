@@ -85,7 +85,8 @@ export async function createPlayer(formData: FormData) {
       return { error: 'Ya existe un jugador con esa CURP registrado en este torneo.' }
     }
     if (error.code === '42501') return { error: REGISTRATION_CLOSED }
-    return { error: error.message }
+    console.error('[createPlayer] insert error:', error)
+    return { error: 'No se pudo registrar al jugador. Inténtalo de nuevo.' }
   }
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -99,18 +100,13 @@ export async function deletePlayer(formData: FormData) {
   const tournamentId = formData.get('tournament_id') as string
   const playerId = formData.get('player_id') as string
 
-  const { data: player } = await supabase
-    .from('players')
-    .select('photo_url')
-    .eq('id', playerId)
-    .single()
-
-  if (player?.photo_url) {
-    const path = player.photo_url.split('/logos/')[1]
+  // Primero se borra el registro (la base de datos decide si se permite) y solo entonces la foto
+  const { data: deleted } = await supabase.from('players').delete().eq('id', playerId).select('photo_url')
+  const photoUrl = deleted?.[0]?.photo_url
+  if (photoUrl) {
+    const path = photoUrl.split('/logos/')[1]
     if (path) await supabase.storage.from('logos').remove([path])
   }
-
-  await supabase.from('players').delete().eq('id', playerId)
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}`)
   revalidatePath('/delegado')

@@ -206,11 +206,14 @@ export default async function DelegateDashboard() {
                     </span>
                   )
                 })()}
-                <form action={deletePlayer}>
-                  <input type="hidden" name="player_id" value={player.id} />
-                  <input type="hidden" name="tournament_id" value={team.tournament_id} />
-                  <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">✕</button>
-                </form>
+                {/* Después de la fecha límite solo el admin puede dar de baja jugadores */}
+                {canRegister && (
+                  <form action={deletePlayer}>
+                    <input type="hidden" name="player_id" value={player.id} />
+                    <input type="hidden" name="tournament_id" value={team.tournament_id} />
+                    <button className="text-gray-600 hover:text-red-400 text-xs transition-colors">✕</button>
+                  </form>
+                )}
               </div>
             ))}
           </div>

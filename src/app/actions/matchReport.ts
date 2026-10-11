@@ -98,6 +98,7 @@ export async function submitMatchReport(
       INVALID_PLAYER: 'Uno de los eventos tiene un jugador que no pertenece a los equipos de este partido.',
       GOALS_MISMATCH: 'Los goles registrados no coinciden con el marcador.',
       INVALID_CARDS: 'Un jugador tiene más tarjetas de las permitidas (máximo 2 amarillas y 1 roja).',
+      INVALID_MINUTE: 'Hay un minuto fuera de rango (máximo 200).',
       MATCH_PENDING:
         'Este partido fue aplazado y aún no tiene nueva fecha. La cédula se captura cuando se vuelva a programar.',
       MATCH_VALIDATED:
