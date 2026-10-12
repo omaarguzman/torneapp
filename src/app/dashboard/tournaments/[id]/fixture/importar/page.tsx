@@ -11,7 +11,7 @@ export default async function ImportMatchdaysPage({ params }: { params: Promise<
   const supabase = await createClient()
 
   const [{ data: tournament }, { data: teams }, { data: venues }, { data: matches }] = await Promise.all([
-    supabase.from('tournaments').select('name, double_round').eq('id', id).single(),
+    supabase.from('tournaments').select('name, double_round, playoff_started_at').eq('id', id).single(),
     supabase.from('teams').select('id, name').eq('tournament_id', id).order('name'),
     supabase.from('venues').select('id, name, venue_slots(start_time)').eq('tournament_id', id).order('created_at'),
     supabase.from('matches').select('status, suspended_minute').eq('tournament_id', id),
@@ -24,7 +24,8 @@ export default async function ImportMatchdaysPage({ params }: { params: Promise<
   const maxRounds = (n % 2 === 0 ? n - 1 : n) * (tournament.double_round ? 2 : 1)
 
   let blocker: string | null = null
-  if (hasPlayed) blocker = 'Este torneo ya tiene partidos jugados en Torneapp. Para seguir, usa "Actualizar fixture".'
+  if (tournament.playoff_started_at) blocker = 'La liguilla ya empezó; ya no se pueden importar jornadas.'
+  else if (hasPlayed) blocker = 'Este torneo ya tiene partidos jugados en Torneapp. Para seguir, usa "Actualizar fixture".'
   else if (n < 3) blocker = 'Primero da de alta a todos los equipos del torneo (al menos 3).'
   else if ((venues ?? []).length === 0) blocker = 'Primero agrega las canchas del torneo con sus horarios.'
 

@@ -4,11 +4,19 @@ import { getFonts, loadLogo, loadTemplateBackground, rasterize } from '@/lib/rol
 import { BALL_SVG, brushSvg, shieldSvg } from '@/lib/rol/art'
 import { RolImage, WIDTH, HEIGHT, type RolData, type RolDateGroup } from '@/lib/rol/RolImage'
 import { autoTemplate, builtinByKey, CUSTOM_LAYOUT, type TemplateLayout } from '@/lib/rol/templates'
+import { isStage, STAGE_SHORT } from '@/lib/playoffs/bracket'
 
 type ImageData = {
   is_admin: boolean
   tournament: { name: string; logo_url: string | null; rol_template: string }
-  matchday: { number: number; week_start: string; image_note: string | null; rol_template: string | null }
+  matchday: {
+    number: number
+    week_start: string
+    image_note: string | null
+    rol_template: string | null
+    stage?: string | null
+    playoff_leg?: number | null
+  }
   matches: {
     home_team_id: string
     away_team_id: string
@@ -94,6 +102,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ matc
     tournamentName: data.tournament.name,
     tournamentLogo,
     matchdayNumber: data.matchday.number,
+    stageLabel: isStage(data.matchday.stage)
+      ? `${STAGE_SHORT[data.matchday.stage].toUpperCase()}${data.matchday.playoff_leg ? (data.matchday.playoff_leg === 1 ? ' IDA' : ' VUELTA') : ''}`
+      : null,
     groups,
     resting: restingTeams.map((t) => ({ name: t.name, logo: logoById.get(t.id) ?? null })),
     note: data.matchday.image_note?.trim() || null,

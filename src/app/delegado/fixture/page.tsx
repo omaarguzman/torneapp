@@ -5,6 +5,7 @@ import { computeSuspensions, type SuspensionReason } from '@/lib/stats/suspensio
 import { resolveCurrentTeam } from '@/lib/delegateTeam'
 import SectionTabs from '@/components/SectionTabs'
 import RolImageButton from '@/components/RolImageButton'
+import { matchdayLabel } from '@/lib/playoffs/bracket'
 import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
@@ -40,6 +41,8 @@ type PendingRow = {
 type MatchdayRow = {
   id: string
   number: number
+  stage?: string | null
+  playoff_leg?: number | null
   matches: MatchRow[]
 }
 
@@ -147,10 +150,10 @@ export default async function DelegateFixturePage() {
             tabs={[
               ...matchdays.map((md) => ({
               key: md.id,
-              label: `J${md.number}`,
+              label: matchdayLabel(md),
               content: (
               <div>
-                <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">Jornada {md.number}</h2>
+                <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white mb-3">{matchdayLabel(md, true)}</h2>
                 {md.matches.length > 0 && <RolImageButton matchdayId={md.id} matchdayNumber={md.number} />}
                 <div className="flex flex-col gap-2">
                   {md.matches.map((m) => {

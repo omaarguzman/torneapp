@@ -17,6 +17,8 @@ export type RolData = {
   tournamentName: string
   tournamentLogo: string | null
   matchdayNumber: number
+  /** Ronda de liguilla ("CUARTOS IDA"): reemplaza al número de jornada */
+  stageLabel?: string | null
   groups: RolDateGroup[]
   resting: { name: string; logo: string | null }[]
   note: string | null
@@ -341,7 +343,7 @@ export function RolImage({ data, layout, art }: { data: RolData; layout: Templat
   }
   const rowH = Math.max(30, Math.min(104, Math.floor(Math.min(rowHFor(columns[0]), rowHFor(columns[1])))))
 
-  const number = String(data.matchdayNumber)
+  const number = data.stageLabel ?? String(data.matchdayNumber)
   const numberBox = (() => {
     const b = layout.number
     const fs = Math.min(b.h * 0.8, Math.max(b.h * 0.5, (b.w + 6) / (0.56 * number.length)))
@@ -370,7 +372,7 @@ export function RolImage({ data, layout, art }: { data: RolData; layout: Templat
         <div style={{ display: 'flex', position: 'absolute', top: 0, left: 0, width: WIDTH, height: 420 }}>
           <img src={art.shield} alt="" width={186} height={210} style={{ position: 'absolute', left: layout.shieldCenter.x - 93, top: 4 }} />
           <div style={{ display: 'flex', position: 'absolute', top: 206, left: 0, width: WIDTH, justifyContent: 'center', alignItems: 'flex-end', gap: 18 }}>
-            <MetalText text="JORNADA" size={100} gradient={CHROME_GRADIENT} style={{ transform: 'skewX(-8deg)' }} />
+            <MetalText text={data.stageLabel ? "LIGUILLA" : "JORNADA"} size={100} gradient={CHROME_GRADIENT} style={{ transform: 'skewX(-8deg)' }} />
             <MetalText text={number} size={112} gradient={GOLD_GRADIENT} style={{ transform: 'skewX(-8deg)' }} />
           </div>
           <div style={{ display: 'flex', position: 'absolute', top: 324, left: WIDTH / 2 - 250, width: 500, height: 70, alignItems: 'center', justifyContent: 'center' }}>

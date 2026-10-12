@@ -19,9 +19,13 @@ export async function generateFixtures(
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('start_date, double_round')
+    .select('start_date, double_round, playoff_started_at')
     .eq('id', tournamentId)
     .single()
+
+  if (tournament?.playoff_started_at) {
+    return { error: 'La liguilla ya empezó; el fixture de la fase regular ya no se puede regenerar.' }
+  }
 
   if (!tournament?.start_date) {
     return { error: 'El torneo necesita una fecha de inicio para poder generar el fixture.' }

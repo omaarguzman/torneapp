@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import GenerateFixtureButton from './GenerateFixtureButton'
+import { matchdayLabel } from '@/lib/playoffs/bracket'
 import CopyLinkButton from '@/components/CopyLinkButton'
 import SectionTabs from '@/components/SectionTabs'
 import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
@@ -46,6 +47,8 @@ type MatchdayRow = {
   week_start: string
   image_note: string | null
   rol_template: string | null
+  stage: string | null
+  playoff_leg: number | null
   matches: MatchRow[]
 }
 
@@ -62,7 +65,7 @@ export default async function FixturePage({
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('name, yellow_card_suspension_threshold, red_card_suspension_matches, rol_template')
+    .select('name, yellow_card_suspension_threshold, red_card_suspension_matches, rol_template, playoff_started_at')
     .eq('id', id)
     .single()
 
@@ -148,7 +151,7 @@ export default async function FixturePage({
   const { data: matchdays } = await supabase
     .from('matchdays')
     .select(
-      `id, number, week_start, image_note, rol_template,
+      `id, number, week_start, image_note, rol_template, stage, playoff_leg,
        matches!matchday_id (
          id, home_team_id, away_team_id, match_date, start_time, end_time,
          status, score_home, score_away, validated_at, walkover, suspended_minute, administrative_result,
@@ -204,7 +207,7 @@ export default async function FixturePage({
             <p className="text-gray-500 text-sm">{tournament.name}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            {(matchdays?.length ?? 0) > 0 && (
+            {(matchdays?.length ?? 0) > 0 && !tournament.playoff_started_at && (
               <Link
                 href={`/dashboard/tournaments/${id}/fixture/actualizar`}
                 className="border border-green-700 hover:border-green-500 text-green-400 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
@@ -220,7 +223,7 @@ export default async function FixturePage({
                 🚧 Canchas cerradas
               </Link>
             )}
-            {(matchdays?.length ?? 0) > 0 && !hasPlayedMatches && (
+            {(matchdays?.length ?? 0) > 0 && !hasPlayedMatches && !tournament.playoff_started_at && (
               <Link
                 href={`/dashboard/tournaments/${id}/fixture/importar`}
                 className="text-gray-400 hover:text-gray-200 text-xs font-semibold"
@@ -228,12 +231,18 @@ export default async function FixturePage({
                 📥 Importar jornadas jugadas
               </Link>
             )}
-            <GenerateFixtureButton
-              tournamentId={id}
-              teamNames={teamNames}
-              hasExistingFixture={(matchdays?.length ?? 0) > 0}
-              hasPlayedMatches={hasPlayedMatches}
-            />
+            {tournament.playoff_started_at ? (
+              <Link href={`/dashboard/tournaments/${id}/liguilla`} className="text-amber-300 hover:text-amber-200 text-sm font-semibold">
+                🏆 Ver liguilla →
+              </Link>
+            ) : (
+              <GenerateFixtureButton
+                tournamentId={id}
+                teamNames={teamNames}
+                hasExistingFixture={(matchdays?.length ?? 0) > 0}
+                hasPlayedMatches={hasPlayedMatches}
+              />
+            )}
           </div>
         </div>
 
@@ -255,15 +264,16 @@ export default async function FixturePage({
                   .filter((p) => p.postponed_from === md.number)
                   .flatMap((p) => [p.home_team_id, p.away_team_id]),
               ])
-              const restingTeam = teams?.find((t) => !playingTeamIds.has(t.id))
+              // En la liguilla no hay "descanso": solo juegan los clasificados
+              const restingTeam = md.stage ? null : teams?.find((t) => !playingTeamIds.has(t.id))
 
               return {
                 key: md.id,
-                label: `J${md.number}`,
+                label: matchdayLabel(md),
                 content: (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white">Jornada {md.number}</h2>
+                  <h2 className="font-condensed text-lg font-bold uppercase tracking-wide text-white">{matchdayLabel(md, true)}</h2>
                   {restingTeam && (
                     <span className="text-gray-500 text-xs">
                       Descansa: <span className="text-gray-300">{restingTeam.name}</span>

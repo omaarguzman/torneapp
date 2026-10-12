@@ -25,7 +25,9 @@ export async function loadTournamentStats(supabase: Supabase, tournamentId: stri
       .from('matches')
       .select('home_team_id, away_team_id, score_home, score_away, walkover')
       .eq('tournament_id', tournamentId)
-      .eq('status', 'played'),
+      .eq('status', 'played')
+      // La tabla general es solo de la fase regular (la liguilla va aparte)
+      .is('playoff_tie_id', null),
     supabase.from('tournaments').select('double_walkover_rule').eq('id', tournamentId).single(),
     supabase
       .from('match_events')

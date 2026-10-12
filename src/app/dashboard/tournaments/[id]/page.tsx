@@ -118,7 +118,7 @@ export default async function TournamentPage({
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
           <div className="bg-gray-900/70 border border-white/10 rounded-xl p-5">
             <p className="text-gray-500 text-sm">Equipos</p>
             <p className="text-2xl font-bold text-white mt-1">{teams?.length ?? 0}</p>
@@ -140,6 +140,13 @@ export default async function TournamentPage({
           >
             <p className="text-gray-500 text-sm">Estadísticas</p>
             <p className="text-2xl font-bold text-white mt-1">Ver tabla →</p>
+          </Link>
+          <Link
+            href={`/dashboard/tournaments/${id}/liguilla`}
+            className="bg-gray-900/70 border border-white/10 hover:border-amber-400/40 rounded-xl p-5 transition-colors"
+          >
+            <p className="text-gray-500 text-sm">Liguilla</p>
+            <p className="text-2xl font-bold text-white mt-1">{tournament.playoff_started_at ? 'Ver llave →' : 'Configurar →'}</p>
           </Link>
         </div>
 

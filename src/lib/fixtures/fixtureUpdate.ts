@@ -76,7 +76,7 @@ function fingerprintOf(matches: MatchRow[], teamIds: string[]) {
 async function loadState(supabase: Supabase, tournamentId: string) {
   const [{ data: tournament }, { data: teams }, { data: venues }, { data: matchdays }, { data: matches }, { data: closures }] =
     await Promise.all([
-      supabase.from('tournaments').select('start_date, double_round').eq('id', tournamentId).single(),
+      supabase.from('tournaments').select('start_date, double_round, playoff_started_at').eq('id', tournamentId).single(),
       supabase
         .from('teams')
         .select('id, name, has_scheduling_priority, preferred_slot:venue_slots(venue_id, day_of_week, start_time, end_time)')
@@ -117,6 +117,7 @@ export async function previewFixtureUpdate(
   const { tournament, teams, venues, matchdays, matches, closedDays } = await loadState(supabase, tournamentId)
 
   if (!tournament) return { error: 'No se encontró el torneo.' }
+  if (tournament.playoff_started_at) return { error: 'La liguilla ya empezó; la fase regular ya no se puede reacomodar.' }
   if (matchdays.length === 0) return { error: 'Este torneo aún no tiene fixture. Genéralo primero.' }
   if (teams.length < 2) return { error: 'Necesitas al menos 2 equipos.' }
 

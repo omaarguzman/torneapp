@@ -60,6 +60,8 @@ export default async function DelegateStatsPage() {
     .select('home_team_id, away_team_id, score_home, score_away, walkover')
     .eq('tournament_id', myTeam.tournament_id)
     .eq('status', 'played')
+    // La tabla general es solo de la fase regular (la liguilla va aparte)
+    .is('playoff_tie_id', null)
 
   const { data: doubleRule } = await supabase
     .from('tournaments')
