@@ -1,0 +1,21 @@
+<!-- Plantilla de correo de Torneapp. Pegar en Supabase → Authentication → Emails. -->
+<!doctype html>
+<html lang="es">
+<body style="margin:0;padding:0;background:#0b0f16;">
+  <span style="display:none;max-height:0;overflow:hidden;">Crea una nueva contraseña para tu cuenta de Torneapp.</span>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f16;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#141a24;border:1px solid #263041;border-radius:16px;">
+        <tr><td style="padding:28px 28px 8px;text-align:center;font-family:Impact,'Arial Narrow',Arial,sans-serif;font-size:28px;letter-spacing:2px;color:#fbbf24;">TORNEAPP</td></tr>
+        <tr><td style="padding:8px 28px 0;text-align:center;font-family:Arial,sans-serif;font-size:20px;font-weight:bold;color:#ffffff;">Restablece tu contraseña</td></tr>
+        <tr><td style="padding:16px 28px 0;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#d9dee7;">Recibimos una solicitud para cambiar la contraseña de tu cuenta. Toca el botón para crear una nueva. El enlace vence en 1 hora y solo funciona una vez.</td></tr>
+        <tr><td align="center" style="padding:24px 28px;">
+          <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/restablecer" style="display:inline-block;background:#fbbf24;color:#0b0f16;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;padding:14px 28px;border-radius:10px;">Crear nueva contraseña</a>
+        </td></tr>
+        <tr><td style="padding:0 28px 28px;font-family:Arial,sans-serif;font-size:12px;line-height:1.5;color:#8a94a6;">Si no pediste este cambio, ignora este correo: tu contraseña sigue igual.</td></tr>
+      </table>
+      <p style="font-family:Arial,sans-serif;font-size:11px;color:#5b6474;margin:16px 0 0;">Torneapp · Gestión de torneos de fútbol</p>
+    </td></tr>
+  </table>
+</body>
+</html>

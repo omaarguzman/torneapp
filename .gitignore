@@ -42,3 +42,4 @@ next-env.d.ts
 
 # auditoria local de la base de datos
 auditoria-bd*.csv
+esquema*.csv

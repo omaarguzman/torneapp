@@ -3,7 +3,8 @@ import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Enlaces que llegan por correo (por ahora, recuperar contraseña).
+ * Enlaces que llegan por correo: confirmar la cuenta (type=email) y recuperar
+ * la contraseña (type=recovery). Al confirmar, /login manda a cada quien a su panel.
  * - token_hash: funciona aunque el enlace se abra en otro dispositivo
  *   (requiere la plantilla de correo personalizada en Supabase).
  * - code: plantilla por defecto de Supabase; solo funciona en el mismo navegador.
@@ -14,8 +15,9 @@ export async function GET(request: Request) {
   const type = searchParams.get('type') as EmailOtpType | null
   const code = searchParams.get('code')
   // Solo rutas internas, para que el enlace no pueda mandar a otro sitio
-  const nextParam = searchParams.get('next') ?? '/restablecer'
-  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/restablecer'
+  const fallback = type === 'recovery' ? '/restablecer' : '/login'
+  const nextParam = searchParams.get('next') ?? fallback
+  const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : fallback
 
   const supabase = await createClient()
 
@@ -29,5 +31,5 @@ export async function GET(request: Request) {
     console.error('[auth/confirm] exchangeCodeForSession error:', error.message)
   }
 
-  return NextResponse.redirect(`${origin}/recuperar?error=enlace`)
+  return NextResponse.redirect(`${origin}${type === 'recovery' ? '/recuperar' : '/login'}?error=enlace`)
 }
