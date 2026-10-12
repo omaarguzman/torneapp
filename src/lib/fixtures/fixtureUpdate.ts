@@ -2,6 +2,7 @@ import { createHash } from 'crypto'
 import type { createClient } from '@/lib/supabase/server'
 import type { SlotTemplate } from './scheduler'
 import { buildUpdatePlan, missingPairs } from './updatePlan'
+import { todayInMexico } from '@/lib/registration'
 
 type Supabase = Awaited<ReturnType<typeof createClient>>
 
@@ -54,6 +55,12 @@ function addDays(date: string, days: number) {
   const d = new Date(`${date}T00:00:00Z`)
   d.setUTCDate(d.getUTCDate() + days)
   return d.toISOString().slice(0, 10)
+}
+
+/** Lunes de la semana de una fecha (YYYY-MM-DD). */
+export function mondayOf(date: string) {
+  const dow = new Date(`${date}T00:00:00Z`).getUTCDay()
+  return addDays(date, -((dow + 6) % 7))
 }
 
 /** Huella del estado actual: si cambia algo entre la vista previa y "Aplicar", la propuesta ya no es válida. */
@@ -159,7 +166,10 @@ export async function previewFixtureUpdate(
 
   const firstExisting = matchdays.find((md) => md.number === firstNumber)
   const lastMatchday = matchdays[matchdays.length - 1]
-  const startDate = firstExisting?.week_start ?? addDays(lastMatchday.week_start, 7 * (firstNumber - lastMatchday.number))
+  // Nunca se planea en semanas que ya pasaron (p. ej. jornadas importadas de hace tiempo)
+  const plannedStart = firstExisting?.week_start ?? addDays(lastMatchday.week_start, 7 * (firstNumber - lastMatchday.number))
+  const thisWeek = mondayOf(todayInMexico())
+  const startDate = plannedStart < thisWeek ? thisWeek : plannedStart
 
   const homeCounts = new Map<string, number>()
   covered.forEach((m) => homeCounts.set(m.home, (homeCounts.get(m.home) ?? 0) + 1))

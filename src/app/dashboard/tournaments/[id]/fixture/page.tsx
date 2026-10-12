@@ -220,6 +220,14 @@ export default async function FixturePage({
                 🚧 Canchas cerradas
               </Link>
             )}
+            {(matchdays?.length ?? 0) > 0 && !hasPlayedMatches && (
+              <Link
+                href={`/dashboard/tournaments/${id}/fixture/importar`}
+                className="text-gray-400 hover:text-gray-200 text-xs font-semibold"
+              >
+                📥 Importar jornadas jugadas
+              </Link>
+            )}
             <GenerateFixtureButton
               tournamentId={id}
               teamNames={teamNames}
@@ -494,6 +502,13 @@ export default async function FixturePage({
         ) : (
           <div className="border border-dashed border-gray-800 rounded-lg p-10 text-center">
             <p className="text-gray-500">Aún no se ha generado el fixture de este torneo.</p>
+            <p className="text-gray-500 text-sm mt-4">¿Tu torneo ya empezó antes de usar Torneapp?</p>
+            <Link
+              href={`/dashboard/tournaments/${id}/fixture/importar`}
+              className="inline-block mt-2 text-amber-300 hover:text-amber-200 text-sm font-semibold"
+            >
+              📥 Importar jornadas jugadas →
+            </Link>
           </div>
         )}
       </div>

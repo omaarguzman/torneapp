@@ -10,7 +10,7 @@ from public.super_admins s join auth.users u on u.id = s.user_id;
 
 -- Agregar una cuenta
 -- insert into public.super_admins (user_id)
--- select id from auth.users where lower(email) = lower('correo@ejemplo.com')
+--select id from auth.users where lower(email) = lower('correo@ejemplo.com')
 -- on conflict do nothing;
 
 -- Quitar una cuenta

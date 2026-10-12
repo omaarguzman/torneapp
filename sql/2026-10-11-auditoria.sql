@@ -19,32 +19,9 @@ begin
   end if;
 end $$;
 
--- 2) Cada jugador, cargo, asistencia y partido debe usar equipos de SU torneo.
---    Antes, un admin podía crear un cargo (o un jugador) en su torneo apuntando
---    al equipo de otro torneo: a ese delegado le aparecía el adeudo y se le
---    bloqueaban resultados, o le llegaban avisos de partidos ajenos.
-alter table teams drop constraint if exists teams_id_tournament_key;
-alter table teams add constraint teams_id_tournament_key unique (id, tournament_id);
-
-alter table players drop constraint if exists players_team_same_tournament;
-alter table players add constraint players_team_same_tournament
-  foreign key (team_id, tournament_id) references teams (id, tournament_id);
-
-alter table team_charges drop constraint if exists team_charges_team_same_tournament;
-alter table team_charges add constraint team_charges_team_same_tournament
-  foreign key (team_id, tournament_id) references teams (id, tournament_id);
-
-alter table match_attendance drop constraint if exists match_attendance_team_same_tournament;
-alter table match_attendance add constraint match_attendance_team_same_tournament
-  foreign key (team_id, tournament_id) references teams (id, tournament_id);
-
-alter table matches drop constraint if exists matches_home_same_tournament;
-alter table matches add constraint matches_home_same_tournament
-  foreign key (home_team_id, tournament_id) references teams (id, tournament_id);
-
-alter table matches drop constraint if exists matches_away_same_tournament;
-alter table matches add constraint matches_away_same_tournament
-  foreign key (away_team_id, tournament_id) references teams (id, tournament_id);
+-- 2) (Reemplazado) Las llaves compuestas equipo + torneo que estaban aquí
+--    confundían a Supabase al leer equipos con sus jugadores. La protección
+--    ahora es un trigger: ver sql/2026-10-11-fix-equipos.sql.
 
 -- 3) Después de la fecha límite, el delegado ya no puede editar ni borrar
 --    jugadores (antes podía cambiarle nombre y CURP a uno ya registrado, o

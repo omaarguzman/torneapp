@@ -1088,7 +1088,6 @@ alter table public.team_charges add constraint team_charges_concept_check CHECK 
 alter table public.team_charges add constraint team_charges_pkey PRIMARY KEY (id);
 alter table public.team_private add constraint team_private_invite_token_key UNIQUE (invite_token);
 alter table public.team_private add constraint team_private_pkey PRIMARY KEY (team_id);
-alter table public.teams add constraint teams_id_tournament_key UNIQUE (id, tournament_id);
 alter table public.teams add constraint teams_pkey PRIMARY KEY (id);
 alter table public.tournaments add constraint tournaments_double_walkover_rule_check CHECK ((double_walkover_rule = ANY (ARRAY['both_lose'::text, 'draw'::text])));
 alter table public.tournaments add constraint tournaments_min_matches_required_check CHECK ((min_matches_required > 0));
@@ -1107,7 +1106,6 @@ alter table public.venues add constraint venues_pkey PRIMARY KEY (id);
 alter table public.match_attendance add constraint match_attendance_match_id_fkey FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE;
 alter table public.match_attendance add constraint match_attendance_player_id_fkey FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE;
 alter table public.match_attendance add constraint match_attendance_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE;
-alter table public.match_attendance add constraint match_attendance_team_same_tournament FOREIGN KEY (team_id, tournament_id) REFERENCES teams(id, tournament_id);
 alter table public.match_attendance add constraint match_attendance_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
 alter table public.match_changes add constraint match_changes_away_team_id_fkey FOREIGN KEY (away_team_id) REFERENCES teams(id) ON DELETE SET NULL;
 alter table public.match_changes add constraint match_changes_home_team_id_fkey FOREIGN KEY (home_team_id) REFERENCES teams(id) ON DELETE SET NULL;
@@ -1119,9 +1117,7 @@ alter table public.match_events add constraint match_events_team_id_fkey FOREIGN
 alter table public.match_tokens add constraint match_tokens_match_id_fkey FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE;
 alter table public.match_tokens add constraint match_tokens_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
 alter table public.matchdays add constraint matchdays_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
-alter table public.matches add constraint matches_away_same_tournament FOREIGN KEY (away_team_id, tournament_id) REFERENCES teams(id, tournament_id);
 alter table public.matches add constraint matches_away_team_id_fkey FOREIGN KEY (away_team_id) REFERENCES teams(id) ON DELETE CASCADE;
-alter table public.matches add constraint matches_home_same_tournament FOREIGN KEY (home_team_id, tournament_id) REFERENCES teams(id, tournament_id);
 alter table public.matches add constraint matches_home_team_id_fkey FOREIGN KEY (home_team_id) REFERENCES teams(id) ON DELETE CASCADE;
 alter table public.matches add constraint matches_matchday_id_fkey FOREIGN KEY (matchday_id) REFERENCES matchdays(id) ON DELETE CASCADE;
 alter table public.matches add constraint matches_original_matchday_id_fkey FOREIGN KEY (original_matchday_id) REFERENCES matchdays(id) ON DELETE SET NULL;
@@ -1135,12 +1131,10 @@ alter table public.notifications add constraint notifications_match_id_fkey FORE
 alter table public.notifications add constraint notifications_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE;
 alter table public.notifications add constraint notifications_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
 alter table public.players add constraint players_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE;
-alter table public.players add constraint players_team_same_tournament FOREIGN KEY (team_id, tournament_id) REFERENCES teams(id, tournament_id);
 alter table public.players add constraint players_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
 alter table public.profiles add constraint profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
 alter table public.rol_templates add constraint rol_templates_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
 alter table public.team_charges add constraint team_charges_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE;
-alter table public.team_charges add constraint team_charges_team_same_tournament FOREIGN KEY (team_id, tournament_id) REFERENCES teams(id, tournament_id);
 alter table public.team_charges add constraint team_charges_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
 alter table public.team_private add constraint team_private_team_id_fkey FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE;
 alter table public.team_private add constraint team_private_tournament_id_fkey FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE;
@@ -1372,5 +1366,41 @@ grant execute on function public.swap_matches(p_match_a uuid, p_match_b uuid) to
 
 -- Storage
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('logos', 'logos', true, 2097152, '{image/png,image/jpeg,image/webp,image/gif}'::text[]) on conflict (id) do nothing;
+
+-- Equipos del mismo torneo (agregado tras la corrección del 2026-10-11)
+-- Cada jugador, cargo, asistencia y partido debe usar equipos de SU torneo
+create or replace function public.ensure_team_in_tournament()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $
+begin
+  if tg_table_name = 'matches' then
+    if exists (
+      select 1 from teams
+      where id in (new.home_team_id, new.away_team_id) and tournament_id <> new.tournament_id
+    ) then
+      raise exception 'TEAM_OTHER_TOURNAMENT';
+    end if;
+  elsif new.team_id is not null and new.tournament_id is not null and exists (
+    select 1 from teams where id = new.team_id and tournament_id <> new.tournament_id
+  ) then
+    raise exception 'TEAM_OTHER_TOURNAMENT';
+  end if;
+  return new;
+end;
+$;
+
+do $
+declare t text;
+begin
+  foreach t in array array['players', 'team_charges', 'match_attendance', 'matches'] loop
+    execute format('drop trigger if exists %I on public.%I', t || '_team_same_tournament', t);
+    execute format(
+      'create trigger %I before insert or update on public.%I for each row execute function public.ensure_team_in_tournament()',
+      t || '_team_same_tournament', t);
+  end loop;
+end $;
 
 commit;

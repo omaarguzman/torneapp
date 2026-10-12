@@ -75,6 +75,37 @@ export const GUIDES: ManualGuide[] = [
         ],
       },
       {
+        id: 'admin-importar',
+        title: 'Tu torneo ya empezó: importar jornadas jugadas',
+        intro: 'Si empezaste el torneo antes de usar Torneapp (en papel, Excel u otra app), no tienes que empezar de cero.',
+        steps: [
+          'Da de alta a **todos** los equipos y las canchas con sus horarios, como en un torneo nuevo.',
+          'Abre el **Fixture** y toca **📥 Importar jornadas jugadas**.',
+          'Para cada jornada que ya se jugó, escribe la **fecha** y, en cada partido, el local, el visitante y el **marcador**. La hora y la cancha vienen llenas; ajústalas si quieres. Debajo verás quién no tuvo partido y si repetiste a algún equipo.',
+          'Con **+ Agregar jornada** capturas la siguiente. Al terminar toca **Guardar jornadas y planear el resto**.',
+          'La app te muestra la propuesta del resto del torneo (como en **Actualizar fixture**): conserva las jornadas importadas, no repite ningún cruce y empieza a partir de esta semana. Revísala y toca **Aplicar**.',
+          'El marcador de los partidos importados ya cuenta en la tabla. Para que también cuenten goleadores, tarjetas, suspensiones y asistencia hay que llenar su cédula.',
+          'Si vas a llenar las cédulas, marca **Dejar las cédulas abiertas para capturarlas después** antes de guardar: cada partido queda con su **📋 Link árbitro** para capturarla tú o mandarla a quien tenga los datos. Al terminar, valida cada cédula desde el partido.',
+          'Si no marcas la casilla, los partidos quedan validados solo con el marcador. Puedes completar cualquiera después con **Reabrir cédula**.',
+        ],
+        tip: 'Solo se puede importar mientras el torneo no tenga partidos jugados en Torneapp. Si ya habías generado un fixture, al importar se reemplaza.',
+      },
+      {
+        id: 'admin-nuevos-equipos',
+        title: 'Agregar equipos a media temporada',
+        intro: 'Ejemplo: 10 equipos a una vuelta (9 jornadas), ya se jugaron 3 y llegan 5 equipos nuevos para la jornada 4.',
+        steps: [
+          'Da de alta a los equipos nuevos en **Equipos**. Hasta aquí el fixture no cambia.',
+          'En el **Fixture** toca **🔄 Actualizar fixture**. Verás una propuesta; nada se guarda hasta que toques **Aplicar**.',
+          'Lo jugado no se toca: J1 a J3 se quedan con sus resultados, cédulas y suspensiones.',
+          'La app recalcula el torneo con 15 equipos: 15 jornadas de 7 partidos, y en cada una **descansa un equipo**. Quedan J4 a J15 por planear.',
+          'Los equipos originales alcanzan a jugar contra todos. A cada equipo nuevo le faltan 14 rivales y solo quedan 12 jornadas, así que los cruces que no caben (casi siempre de nuevos entre sí) van a **⏸ Pendientes**. En este ejemplo son unos 6.',
+          'Los partidos que ya estaban programados se reutilizan cuando se puede y conservan su link de árbitro. Se respetan las preferencias de horario pagadas y las canchas cerradas, y se equilibra quién es local.',
+          'Al aplicar, cada delegado recibe un aviso de los partidos suyos que cambiaron. Los pendientes los programas cuando haya hueco desde **⏸ Pendientes → Programar**.',
+        ],
+        tip: 'Agrega a todos los equipos nuevos antes de que se juegue el primer partido de la siguiente jornada y actualiza una sola vez. Si tienes pocos horarios por semana, quedarán más partidos en Pendientes: la propuesta te lo muestra antes de aplicar.',
+      },
+      {
         id: 'admin-cedulas',
         title: 'Cédulas del árbitro y validación',
         steps: [
@@ -185,6 +216,14 @@ export const GUIDES: ManualGuide[] = [
 ]
 
 export const FAQ: { q: string; a: string }[] = [
+  {
+    q: 'Mi torneo ya empezó en otro lado, ¿puedo pasarlo a Torneapp?',
+    a: 'Sí. Da de alta equipos y canchas, y en el Fixture usa "Importar jornadas jugadas" para capturar las jornadas que ya se jugaron. La app planea el resto sin repetir cruces.',
+  },
+  {
+    q: '¿Qué pasa si llegan equipos nuevos con el torneo ya empezado?',
+    a: 'Dalos de alta y usa "Actualizar fixture". Se conserva lo jugado y se vuelve a planear lo que falta con todos los equipos; lo que no cabe queda en Pendientes para programarlo después.',
+  },
   {
     q: '¿Cuánto cuesta Torneapp?',
     a: 'Durante la etapa de pruebas es gratis.',

@@ -4,8 +4,15 @@ import Link from 'next/link'
 import { previewFixtureUpdate } from '@/lib/fixtures/fixtureUpdate'
 import ApplyUpdateForm from './ApplyUpdateForm'
 
-export default async function UpdateFixturePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function UpdateFixturePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ importado?: string }>
+}) {
   const { id } = await params
+  const { importado } = await searchParams
   const supabase = await createClient()
 
   const { data: tournament } = await supabase.from('tournaments').select('name').eq('id', id).single()
@@ -20,6 +27,11 @@ export default async function UpdateFixturePage({ params }: { params: Promise<{ 
       </Link>
       <h1 className="font-display text-3xl uppercase tracking-wide text-white mt-4">Actualizar fixture</h1>
       <p className="text-gray-500 text-sm mb-6">{tournament.name}</p>
+      {importado && (
+        <p className="mb-6 text-green-400 text-sm bg-green-950 border border-green-800 rounded-lg px-4 py-3">
+          ✓ Jornadas importadas. Ahora revisa cómo quedaría el resto del torneo y toca Aplicar para guardarlo.
+        </p>
+      )}
     </>
   )
 
