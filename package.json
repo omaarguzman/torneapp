@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:nueva": "supabase migration new",
+    "db:dev": "supabase link --project-ref bjgxwxfvxmxvqvrzhykv && supabase db push",
+    "db:prod": "supabase link --project-ref lybjhkvtylqsgnfcklsr && supabase db push",
+    "db:estado-dev": "supabase link --project-ref bjgxwxfvxmxvqvrzhykv && supabase migration list",
+    "db:estado-prod": "supabase link --project-ref lybjhkvtylqsgnfcklsr && supabase migration list"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
@@ -26,6 +31,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "^16.3.8",
+    "supabase": "^2.120.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
