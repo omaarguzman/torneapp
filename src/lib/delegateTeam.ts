@@ -11,26 +11,30 @@ export type DelegateTeam = {
   logo_url: string | null
   tournament_id: string
   tournament_name: string
-  /** Bloqueo total por el admin: el delegado solo puede ver lo que debe. */
+  /** Bloqueo total por el admin (o torneo pausado): el delegado solo puede ver lo que debe. */
   access_blocked: boolean
+  /** El torneo completo está pausado por el soporte de Torneapp. */
+  tournament_paused: boolean
 }
 
 export async function getDelegateTeams(supabase: SupabaseClient, userId: string): Promise<DelegateTeam[]> {
   const { data } = await supabase
     .from('teams')
-    .select('id, name, logo_url, tournament_id, access_blocked, tournament:tournaments(name)')
+    .select('id, name, logo_url, tournament_id, access_blocked, tournament:tournaments(name, disabled_at)')
     .eq('delegate_id', userId)
     .order('created_at')
 
   return (data ?? []).map((t) => {
-    const tournament = Array.isArray(t.tournament) ? t.tournament[0] : t.tournament
+    const tournament = (Array.isArray(t.tournament) ? t.tournament[0] : t.tournament) as { name: string; disabled_at: string | null } | null
+    const paused = !!tournament?.disabled_at
     return {
       id: t.id,
       name: t.name,
       logo_url: t.logo_url,
       tournament_id: t.tournament_id,
-      tournament_name: (tournament as { name: string } | null)?.name ?? '',
-      access_blocked: !!t.access_blocked,
+      tournament_name: tournament?.name ?? '',
+      access_blocked: !!t.access_blocked || paused,
+      tournament_paused: paused,
     }
   })
 }

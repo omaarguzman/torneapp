@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
 import AppShell from '@/components/shell/AppShell'
 import { createClient } from '@/lib/supabase/server'
+import { isSuperAdmin } from '@/lib/superAdmin'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const isSuper = await isSuperAdmin(supabase)
 
   return (
     <AppShell
@@ -15,6 +17,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         { href: '/dashboard/venues', label: 'Canchas guardadas', icon: '🏟️' },
         { href: '/dashboard/tournaments/new', label: 'Nuevo torneo', icon: '＋' },
         { href: '/dashboard/ayuda', label: 'Ayuda', icon: '❓' },
+        ...(isSuper ? [{ href: '/super', label: 'Portal general', icon: '🌐' }] : []),
       ]}
     >
       {children}

@@ -7,6 +7,7 @@ import { StatsImage, type StatsImageData, type StatsTeam } from '@/lib/rol/Stats
 import { autoTemplate, builtinByKey, CUSTOM_LAYOUT, type TemplateLayout } from '@/lib/rol/templates'
 import { loadTournamentStats } from '@/lib/stats/tournamentStats'
 import { todayInMexico } from '@/lib/registration'
+import { isSuperAdmin } from '@/lib/superAdmin'
 
 /**
  * Página 1 (tabla) o 2 (goleadores y demás) de las estadísticas, como PNG sobre
@@ -30,7 +31,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ tour
     .maybeSingle()
   if (!tournament) return new Response('No encontrado.', { status: 404 })
 
-  const isAdmin = tournament.admin_id === user.id
+  const isAdmin = tournament.admin_id === user.id || (await isSuperAdmin(supabase))
   if (!isAdmin) {
     const { data: myTeams } = await supabase
       .from('teams')

@@ -28,6 +28,7 @@ export type MatchData = {
   suspension_reason: string | null
   venue_name: string | null
   tournament_name: string
+  tournament_paused?: boolean
   home_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
   away_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
   events: MatchEvent[]
@@ -50,6 +51,16 @@ export default async function MatchReportPage({
       <main className="min-h-screen bg-gray-950 flex items-center justify-center p-8">
         <p className="text-gray-400 text-center">
           Este enlace no corresponde a ningún partido. Verifica que lo hayas copiado completo.
+        </p>
+      </main>
+    )
+  }
+
+  if (match.tournament_paused) {
+    return (
+      <main className="min-h-screen bg-gray-950 flex items-center justify-center p-8">
+        <p className="text-gray-400 text-center">
+          ⏸ El torneo {match.tournament_name} está pausado. Por ahora no se pueden capturar cédulas.
         </p>
       </main>
     )

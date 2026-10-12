@@ -24,13 +24,13 @@ export async function createPlayer(formData: FormData) {
 
   // El delegado solo puede registrar jugadores hasta la fecha límite del torneo (el admin, siempre).
   // Se revisa antes de subir la foto; la base de datos también lo impide.
-  const { data: { user: currentUser } } = await supabase.auth.getUser()
   const { data: tournamentRow } = await supabase
     .from('tournaments')
-    .select('admin_id, player_registration_deadline')
+    .select('player_registration_deadline')
     .eq('id', tournamentId)
     .single()
-  if (tournamentRow && tournamentRow.admin_id !== currentUser?.id && !registrationOpen(tournamentRow.player_registration_deadline)) {
+  const { data: isAdmin } = await supabase.rpc('is_tournament_admin', { p_tournament_id: tournamentId })
+  if (tournamentRow && isAdmin !== true && !registrationOpen(tournamentRow.player_registration_deadline)) {
     return { error: REGISTRATION_CLOSED }
   }
 

@@ -101,6 +101,7 @@ export async function submitMatchReport(
       INVALID_MINUTE: 'Hay un minuto fuera de rango (máximo 200).',
       MATCH_PENDING:
         'Este partido fue aplazado y aún no tiene nueva fecha. La cédula se captura cuando se vuelva a programar.',
+      TOURNAMENT_PAUSED: 'Este torneo está pausado. Por ahora no se pueden capturar cédulas.',
       MATCH_VALIDATED:
         'Esta cédula ya fue validada por el administrador del torneo y no se puede modificar.',
     }
@@ -133,6 +134,7 @@ export async function submitRefereeWalkover(
     console.error('[submitRefereeWalkover] error:', error)
     const messages: Record<string, string> = {
       MATCH_PENDING: 'Este partido fue aplazado y aún no tiene nueva fecha.',
+      TOURNAMENT_PAUSED: 'Este torneo está pausado. Por ahora no se pueden capturar cédulas.',
       MATCH_VALIDATED: 'Esta cédula ya fue validada por el administrador del torneo y no se puede modificar.',
     }
     const code = Object.keys(messages).find((c) => error.message.includes(c))

@@ -14,9 +14,11 @@ const dateLabel = (d: string | null) =>
 export default async function DashboardPage() {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
   const { data: tournaments } = await supabase
     .from('tournaments')
     .select('id, name, sport_type, start_date, end_date, double_round, logo_url, teams(count), matches(count)')
+    .eq('admin_id', user?.id ?? '')
     .order('created_at', { ascending: false })
 
   return (

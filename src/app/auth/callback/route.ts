@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { claimErrorCode } from '@/lib/oauthErrors'
+import { panelFor } from '@/lib/superAdmin'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -45,7 +46,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/delegado`)
   }
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
-
-  return NextResponse.redirect(`${origin}${profile?.role === 'delegate' ? '/delegado' : '/dashboard'}`)
+  return NextResponse.redirect(`${origin}${await panelFor(supabase, data.user.id)}`)
 }

@@ -6,6 +6,7 @@ import RotatingWord from '@/components/landing/RotatingWord'
 import LiveMatchPhone from '@/components/landing/LiveMatchPhone'
 import ShowcaseTabs from '@/components/landing/ShowcaseTabs'
 import { createClient } from '@/lib/supabase/server'
+import { panelFor } from '@/lib/superAdmin'
 
 const MARQUEE = [
   '🗓️ Fixture automático',
@@ -49,10 +50,7 @@ export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   let panel: string | null = null
-  if (user) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    panel = profile?.role === 'delegate' ? '/delegado' : '/dashboard'
-  }
+  if (user) panel = await panelFor(supabase, user.id)
   const primaryCta = panel ? { href: panel, label: 'Ir a mi panel' } : { href: '/register', label: 'Crear mi torneo gratis' }
 
   return (

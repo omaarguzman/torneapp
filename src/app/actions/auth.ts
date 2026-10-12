@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { friendlyAuthError, friendlyLoginError } from '@/lib/friendlyAuthError'
 import { passwordProblem } from '@/lib/passwordPolicy'
+import { panelFor } from '@/lib/superAdmin'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -23,13 +24,7 @@ export async function login(formData: FormData) {
     return { error: friendlyLoginError(error.message, error.status) }
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', data.user.id)
-    .single()
-
-  redirect(profile?.role === 'delegate' ? '/delegado' : '/dashboard')
+  redirect(await panelFor(supabase, data.user.id))
 }
 
 export async function register(formData: FormData) {

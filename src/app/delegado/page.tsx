@@ -99,7 +99,14 @@ export default async function DelegateDashboard() {
           </div>
         </div>
 
-        {team.access_blocked ? (
+        {team.tournament_paused ? (
+          <div className="bg-gray-900/70 border border-white/10 rounded-lg p-5">
+            <p className="text-white font-semibold">⏸ Este torneo está pausado</p>
+            <p className="text-gray-400 text-sm mt-1">
+              Por ahora no se puede consultar ni modificar. Si tienes dudas, pregúntale al administrador del torneo.
+            </p>
+          </div>
+        ) : team.access_blocked ? (
           <div className="flex flex-col gap-4">
             <div className="bg-red-950/60 border border-red-800 rounded-lg p-5">
               <p className="text-red-200 font-semibold">⛔ Acceso bloqueado por el administrador del torneo</p>

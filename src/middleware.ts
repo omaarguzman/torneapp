@@ -31,15 +31,17 @@ export async function middleware(request: NextRequest) {
                      request.nextUrl.pathname.startsWith('/register') ||
                      request.nextUrl.pathname.startsWith('/recuperar')
   const isProtectedPage = request.nextUrl.pathname.startsWith('/dashboard') ||
-                          request.nextUrl.pathname.startsWith('/delegado')
+                          request.nextUrl.pathname.startsWith('/delegado') ||
+                          request.nextUrl.pathname.startsWith('/super')
 
   if (!user && isProtectedPage) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   if (user && isAuthPage) {
+    const { data: isSuper } = await supabase.rpc('is_super_admin')
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    const destination = profile?.role === 'delegate' ? '/delegado' : '/dashboard'
+    const destination = isSuper === true ? '/super' : profile?.role === 'delegate' ? '/delegado' : '/dashboard'
     return NextResponse.redirect(new URL(destination, request.url))
   }
 
