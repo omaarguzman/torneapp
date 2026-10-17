@@ -1,5 +1,6 @@
 'use client'
 
+import LegalConsent from '@/components/LegalConsent'
 import { useActionState } from 'react'
 import { registerDelegate } from '@/app/actions/delegate'
 import PasswordField from '@/components/PasswordField'
@@ -89,6 +90,7 @@ export default function DelegateRegisterForm({
       >
         {isPending ? 'Creando cuenta...' : 'Registrarme como delegado'}
       </button>
+      <LegalConsent action="registrarte" />
     </form>
   )
 }

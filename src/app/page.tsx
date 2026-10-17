@@ -230,7 +230,17 @@ export default async function Home() {
       <footer className="border-t border-white/5 py-6 bg-black">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <Logo size={24} />
-          <p className="text-gray-600 text-sm">© {new Date().getFullYear()} Torneapp · Gestión de torneos de fútbol</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-5">
+            <nav className="flex gap-4 text-sm">
+              <Link href="/privacidad" className="text-gray-400 hover:text-white">
+                Aviso de privacidad
+              </Link>
+              <Link href="/terminos" className="text-gray-400 hover:text-white">
+                Condiciones del servicio
+              </Link>
+            </nav>
+            <p className="text-gray-600 text-sm">© {new Date().getFullYear()} Torneapp · Gestión de torneos de fútbol</p>
+          </div>
         </div>
       </footer>
     </main>

@@ -96,6 +96,15 @@ export default function PlayerForm({
         />
       </div>
 
+      <p className="text-xs text-gray-500">
+        Al registrar a un jugador declaras contar con su autorización (y, si es menor de edad, la de su madre, padre o tutor)
+        para usar sus datos en el torneo, según el{' '}
+        <a href="/privacidad" target="_blank" className="text-amber-300 hover:text-amber-200">
+          aviso de privacidad
+        </a>
+        .
+      </p>
+
       {error && (
         <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-4 py-3">
           {error}

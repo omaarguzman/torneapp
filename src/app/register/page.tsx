@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { register } from '@/app/actions/auth'
 import Link from 'next/link'
+import LegalConsent from '@/components/LegalConsent'
 import GoogleButton from '@/components/GoogleButton'
 import { LogoMark } from '@/components/Logo'
 import PasswordField from '@/components/PasswordField'
@@ -100,6 +101,7 @@ export default function RegisterPage() {
             >
               {loading ? 'Creando cuenta...' : 'Crear cuenta'}
             </button>
+            <LegalConsent />
           </form>
           </>
         )}
