@@ -11,6 +11,7 @@ import PaymentsSection from './PaymentsSection'
 import AttendanceSection from './AttendanceSection'
 import RulesForm from './RulesForm'
 import TournamentLogoForm from './TournamentLogoForm'
+import PublicPageForm from './PublicPageForm'
 import RolTemplatesSection from './RolTemplatesSection'
 import DisciplinePanel from '@/components/DisciplinePanel'
 import { loadDiscipline } from '@/lib/stats/disciplineData'
@@ -490,6 +491,12 @@ export default async function TournamentPage({
                 content: (
                   <div className="flex flex-col gap-6">
                   <TournamentLogoForm tournamentId={id} logoUrl={tournament.logo_url ?? null} />
+                  <PublicPageForm
+                    tournamentId={id}
+                    tournamentName={tournament.name}
+                    enabled={!!tournament.public_enabled}
+                    slug={tournament.public_slug ?? null}
+                  />
                   <RolTemplatesSection tournamentId={id} current={tournament.rol_template ?? 'auto'} customs={rolTemplates ?? []} />
                   <RulesForm
                     tournamentId={id}
