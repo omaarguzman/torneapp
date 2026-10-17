@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createPlayer } from '@/app/actions/players'
 import Link from 'next/link'
 import { IMAGE_ACCEPT } from '@/lib/uploads'
+import { shrinkImageInput } from '@/lib/clientImage'
 
 export default function PlayerForm({
   tournamentId,
@@ -85,11 +86,12 @@ export default function PlayerForm({
       </div>
 
       <div>
-        <label className="text-sm text-gray-400 mb-1 block">Foto (opcional, máx. 2MB)</label>
+        <label className="text-sm text-gray-400 mb-1 block">Foto (opcional)</label>
         <input
           name="photo"
           type="file"
           accept={IMAGE_ACCEPT}
+          onChange={(e) => shrinkImageInput(e.currentTarget, 480)}
           className="w-full bg-gray-900 border border-gray-700 text-gray-400 rounded-lg px-4 py-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-gray-800 file:text-white file:text-xs"
         />
       </div>

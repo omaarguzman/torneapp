@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { imageExtension, imageProblem } from '@/lib/uploads'
+import { imageProblem } from '@/lib/uploads'
+import { optimizeImage } from '@/lib/imageOptimize'
 import { BUILTIN_TEMPLATES } from '@/lib/rol/templates'
 
 export type NoteResult = { success: true } | { error: string } | null
@@ -46,8 +47,9 @@ export async function uploadTournamentLogo(_prev: LogoResult, formData: FormData
 
   const { data: tournament } = await supabase.from('tournaments').select('logo_url').eq('id', tournamentId).single()
 
-  const path = `${tournamentId}/torneo-${crypto.randomUUID()}.${imageExtension(file)}`
-  const { error: uploadError } = await supabase.storage.from('logos').upload(path, file, { contentType: file.type })
+  const image = await optimizeImage(file, 'logo')
+  const path = `${tournamentId}/torneo-${crypto.randomUUID()}.${image.ext}`
+  const { error: uploadError } = await supabase.storage.from('logos').upload(path, image.body, { contentType: image.contentType })
   if (uploadError) {
     console.error('[uploadTournamentLogo] error:', uploadError)
     return { error: 'No se pudo subir el logo. Inténtalo de nuevo.' }
@@ -153,8 +155,9 @@ export async function uploadRolTemplate(_prev: TemplateResult, formData: FormDat
     return { error: `Puedes tener hasta ${MAX_CUSTOM_TEMPLATES} plantillas propias. Borra alguna para subir otra.` }
   }
 
-  const path = `${tournamentId}/plantilla-${crypto.randomUUID()}.${imageExtension(file)}`
-  const { error: uploadError } = await supabase.storage.from('logos').upload(path, file, { contentType: file.type })
+  const image = await optimizeImage(file, 'template')
+  const path = `${tournamentId}/plantilla-${crypto.randomUUID()}.${image.ext}`
+  const { error: uploadError } = await supabase.storage.from('logos').upload(path, image.body, { contentType: image.contentType })
   if (uploadError) {
     console.error('[uploadRolTemplate] error:', uploadError)
     return { error: 'No se pudo subir la imagen. Inténtalo de nuevo.' }

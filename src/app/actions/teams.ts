@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { imageExtension, imageProblem } from '@/lib/uploads'
+import { imageProblem } from '@/lib/uploads'
+import { optimizeImage } from '@/lib/imageOptimize'
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 
@@ -57,8 +58,9 @@ async function uploadTeamLogo(
   const problem = imageProblem(file, 'El logo')
   if (problem) return { error: problem }
 
-  const path = `${tournamentId}/${crypto.randomUUID()}.${imageExtension(file)}`
-  const { error } = await supabase.storage.from('logos').upload(path, file, { contentType: file.type })
+  const image = await optimizeImage(file, 'logo')
+  const path = `${tournamentId}/${crypto.randomUUID()}.${image.ext}`
+  const { error } = await supabase.storage.from('logos').upload(path, image.body, { contentType: image.contentType })
 
   if (error) {
     console.error('[uploadTeamLogo] error:', error)

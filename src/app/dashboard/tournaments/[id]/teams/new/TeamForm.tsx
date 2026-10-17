@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createTeam, updateTeam } from '@/app/actions/teams'
 import Link from 'next/link'
 import { IMAGE_ACCEPT } from '@/lib/uploads'
+import { shrinkImageInput } from '@/lib/clientImage'
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
@@ -116,6 +117,7 @@ export default function TeamForm({
           name="logo"
           type="file"
           accept={IMAGE_ACCEPT}
+          onChange={(e) => shrinkImageInput(e.currentTarget, 512)}
           className="w-full bg-gray-900 border border-gray-700 text-gray-400 rounded-lg px-4 py-2.5 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-gray-800 file:text-white file:text-xs"
         />
       </div>

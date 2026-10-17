@@ -5,6 +5,7 @@ import { useActionState } from 'react'
 import { deleteRolTemplate, setTournamentTemplate, uploadRolTemplate } from '@/app/actions/rolImage'
 import { BUILTIN_TEMPLATES } from '@/lib/rol/templates'
 import { IMAGE_ACCEPT } from '@/lib/uploads'
+import { shrinkImageInput } from '@/lib/clientImage'
 
 type Custom = { id: string; name: string; image_url: string }
 
@@ -128,6 +129,7 @@ export default function RolTemplatesSection({
             type="file"
             name="image"
             accept={IMAGE_ACCEPT}
+            onChange={(e) => shrinkImageInput(e.currentTarget, 1600)}
             required
             className="text-gray-400 text-xs file:mr-2 file:bg-gray-800 file:border file:border-gray-700 file:text-gray-200 file:rounded-lg file:px-3 file:py-1.5"
           />

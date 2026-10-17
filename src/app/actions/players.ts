@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { imageExtension, imageProblem } from '@/lib/uploads'
+import { imageProblem } from '@/lib/uploads'
+import { optimizeImage } from '@/lib/imageOptimize'
 import { registrationOpen } from '@/lib/registration'
 
 const REGISTRATION_CLOSED =
@@ -54,11 +55,12 @@ export async function createPlayer(formData: FormData) {
     if (problem) return { error: problem }
 
     // La carpeta por equipo permite que el delegado solo pueda tocar fotos de su equipo
-    const path = `players/${tournamentId}/${teamId}/${crypto.randomUUID()}.${imageExtension(photoFile)}`
+    const image = await optimizeImage(photoFile, 'photo')
+    const path = `players/${tournamentId}/${teamId}/${crypto.randomUUID()}.${image.ext}`
 
     const { error: uploadError } = await supabase.storage
       .from('logos')
-      .upload(path, photoFile, { contentType: photoFile.type })
+      .upload(path, image.body, { contentType: image.contentType })
 
     if (uploadError) {
       console.error('[createPlayer] upload error:', uploadError)

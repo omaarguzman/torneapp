@@ -4,6 +4,7 @@
 import { useActionState } from 'react'
 import { removeTournamentLogo, uploadTournamentLogo } from '@/app/actions/rolImage'
 import { IMAGE_ACCEPT } from '@/lib/uploads'
+import { shrinkImageInput } from '@/lib/clientImage'
 
 export default function TournamentLogoForm({ tournamentId, logoUrl }: { tournamentId: string; logoUrl: string | null }) {
   const [state, formAction, isPending] = useActionState(uploadTournamentLogo, null)
@@ -22,6 +23,7 @@ export default function TournamentLogoForm({ tournamentId, logoUrl }: { tourname
             type="file"
             name="logo"
             accept={IMAGE_ACCEPT}
+            onChange={(e) => shrinkImageInput(e.currentTarget, 512)}
             required
             className="text-gray-400 text-xs file:mr-2 file:bg-gray-800 file:border file:border-gray-700 file:text-gray-200 file:rounded-lg file:px-3 file:py-1.5"
           />
