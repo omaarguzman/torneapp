@@ -129,6 +129,23 @@ export const GUIDES: ManualGuide[] = [
         ],
       },
       {
+        id: 'admin-liguilla',
+        title: 'Liguilla',
+        intro: 'La fase final por eliminación. Se configura antes de iniciarla y después se juega ronda por ronda.',
+        steps: [
+          'En la página del torneo toca **Liguilla → Configurar** y activa **Este torneo tiene liguilla**.',
+          'Elige cuántos equipos van a la fase final (4, 8 o 16) y cuántos **pasan directo**. Ejemplo: 8 a la fase final con 1–4 directo hace un **repechaje** del 5 al 12 (5 vs 12, 6 vs 11, 7 vs 10, 8 vs 9) y los 4 ganadores se unen en cuartos.',
+          'Para cada ronda elige **Partido único** o **Ida y vuelta**, y qué pasa si una eliminatoria termina empatada (en el global): avanza el **mejor posicionado** o se define por **penales**. Toca **Guardar configuración**.',
+          'Abajo ves cómo quedaría la primera ronda con la tabla de hoy. Cuando termine la fase regular toca **Iniciar liguilla**: la tabla general se congela y se programa la primera ronda con tus canchas y horarios.',
+          'Cada ronda aparece en el **Fixture** con su nombre (Repechaje, Cuartos · ida…). Ahí se captura la cédula, se mueve o se aplaza como cualquier partido. Es local el mejor posicionado; en ida y vuelta, cierra en casa.',
+          'Si el desempate es por penales y el partido que define queda empatado, la cédula pide los **penales** de cada equipo (también desde el link del árbitro).',
+          'Cuando todas las eliminatorias de una ronda tienen la cédula **validada**, en la Liguilla aparece **Programar** la siguiente ronda. Los que siguen vivos se reacomodan por su lugar en la tabla general: el mejor contra el peor.',
+          'Al terminar las semifinales puedes marcar **Agregar también el partido por el 3er lugar** al programar la final, o agregarlo después mientras la final no tenga ganador.',
+          'Con **🖼️ Imagen de la llave** descargas o compartes la llave con la plantilla del rol. Al terminar la final se muestra el campeón.',
+        ],
+        tip: 'La tabla general solo cuenta la fase regular; los goles y tarjetas de la liguilla sí cuentan en goleadores y suspensiones (las suspensiones pendientes se cumplen en la liguilla). Si te equivocaste, **Deshacer ronda** borra la última ronda mientras no tenga partidos jugados.',
+      },
+      {
         id: 'admin-pagos',
         title: 'Pagos, disciplina y asistencia',
         steps: [
@@ -185,6 +202,16 @@ export const GUIDES: ManualGuide[] = [
         tip: 'Si tu equipo tiene pagos pendientes, los resultados y la tabla se ocultan hasta que se pongan al corriente.',
       },
       {
+        id: 'delegado-liguilla',
+        title: 'Liguilla',
+        steps: [
+          'Cuando el administrador inicia la liguilla aparece **🥇 Liguilla** en tu menú, con la llave completa: cada eliminatoria, sus marcadores y quién avanza. Tu equipo sale marcado.',
+          'El número junto a cada equipo es su lugar en la tabla general. En cada ronda juega el mejor contra el peor de los que siguen vivos.',
+          'Las fechas, horas y canchas de cada ronda están en tu **Calendario**, en la pestaña de la ronda. Desde ahí también descargas la imagen del rol.',
+          'Con **🖼️ Imagen de la llave** la compartes con tus jugadores.',
+        ],
+      },
+      {
         id: 'delegado-avisos',
         title: 'Avisos',
         steps: [
@@ -216,6 +243,10 @@ export const GUIDES: ManualGuide[] = [
 ]
 
 export const FAQ: { q: string; a: string }[] = [
+  {
+    q: '¿Cómo funciona la liguilla?',
+    a: 'Configúrala en Liguilla (cuántos clasifican, cuántos pasan directo, partido único o ida y vuelta, desempate). Al iniciarla se congela la tabla general y en cada ronda juega el mejor posicionado contra el peor de los que siguen vivos.',
+  },
   {
     q: 'Mi torneo ya empezó en otro lado, ¿puedo pasarlo a Torneapp?',
     a: 'Sí. Da de alta equipos y canchas, y en el Fixture usa "Importar jornadas jugadas" para capturar las jornadas que ya se jugaron. La app planea el resto sin repetir cruces.',

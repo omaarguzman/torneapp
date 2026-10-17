@@ -5,6 +5,7 @@ import { resolveCurrentTeam } from '@/lib/delegateTeam'
 import { STAGE_LABEL, STAGE_ORDER } from '@/lib/playoffs/bracket'
 import { loadPlayoffState } from '@/lib/playoffs/playoffData'
 import TieCard from '@/components/PlayoffTieCard'
+import BracketImageButton from '@/components/BracketImageButton'
 
 export const metadata: Metadata = { title: 'Liguilla' }
 
@@ -33,6 +34,7 @@ export default async function DelegatePlayoffsPage() {
           <p className="text-gray-400 text-sm">La liguilla todavía no empieza.</p>
         ) : (
           <div className="flex flex-col gap-8">
+            <BracketImageButton tournamentId={team.tournament_id} tournamentName={team.tournament_name} />
             {champion && (
               <div className="text-center bg-amber-400/10 border border-amber-400/40 rounded-2xl p-6">
                 <p className="text-4xl">🏆</p>

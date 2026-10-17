@@ -41,13 +41,13 @@ export type StatsImageData = {
 const MEDALS = ['#eab308', '#9ca3af', '#b46e3c']
 
 /** Zona donde va el contenido: la que ocupan las tarjetas y los paneles de la plantilla. */
-function contentBox(layout: TemplateLayout) {
+export function contentBox(layout: TemplateLayout) {
   const x = Math.min(layout.cards.x, layout.panels.x)
   const right = Math.max(layout.cards.x + layout.cards.w, layout.panels.x + layout.panels.w)
   return { x, y: layout.cards.y, w: right - x, h: layout.panels.y + layout.panels.h - layout.cards.y }
 }
 
-function PanelTitle({ text }: { text: string }) {
+export function PanelTitle({ text }: { text: string }) {
   return (
     <div
       style={{

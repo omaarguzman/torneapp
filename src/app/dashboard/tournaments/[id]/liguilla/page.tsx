@@ -7,6 +7,7 @@ import { playoffOptions, STAGE_LABEL, STAGE_ORDER, type TiePlan } from '@/lib/pl
 import { currentSeeds, loadPlayoffState, plannedRound, thirdPlacePlan } from '@/lib/playoffs/playoffData'
 import { PlayoffConfigForm, RoundActionButton } from './PlayoffForms'
 import TieCard from '@/components/PlayoffTieCard'
+import BracketImageButton from '@/components/BracketImageButton'
 
 export const metadata: Metadata = { title: 'Liguilla' }
 
@@ -92,6 +93,7 @@ export default async function PlayoffsPage({ params }: { params: Promise<{ id: s
           </div>
         ) : (
           <div className="flex flex-col gap-8">
+            <BracketImageButton tournamentId={id} tournamentName={tournament.name} />
             {champion && (
               <div className="text-center bg-amber-400/10 border border-amber-400/40 rounded-2xl p-6">
                 <p className="text-4xl">🏆</p>
