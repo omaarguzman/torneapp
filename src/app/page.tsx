@@ -7,6 +7,7 @@ import LiveMatchPhone from '@/components/landing/LiveMatchPhone'
 import ShowcaseTabs from '@/components/landing/ShowcaseTabs'
 import { createClient } from '@/lib/supabase/server'
 import { panelFor } from '@/lib/superAdmin'
+import InstallAppButton from '@/components/InstallAppButton'
 
 const MARQUEE = [
   '🗓️ Fixture automático',
@@ -69,6 +70,7 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
             <Logo size={30} />
             <nav className="flex items-center gap-2 sm:gap-4">
+              <InstallAppButton className="hidden sm:inline" />
               {panel ? (
                 <Link href={panel} className="text-sm font-semibold text-amber-300 hover:text-amber-200">
                   Mi panel →

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Anton, Barlow, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 
@@ -30,6 +30,13 @@ export const metadata: Metadata = {
   },
   description:
     "Organiza tu torneo de fútbol: fixture automático, cédula digital del árbitro, tabla de posiciones, rol de juegos para compartir, pagos y avisos para los delegados.",
+  // Instalada como app en iPhone: pantalla completa y nombre bajo el ícono
+  appleWebApp: { capable: true, title: "Torneapp", statusBarStyle: "black" },
+};
+
+// Color de la barra del sistema al usarla como app
+export const viewport: Viewport = {
+  themeColor: "#030712",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import GenerateFixtureButton from './GenerateFixtureButton'
 import { matchdayLabel } from '@/lib/playoffs/bracket'
+import ShareImageButton from '@/components/ShareImageButton'
+import { slugify } from '@/lib/slug'
 import CopyLinkButton from '@/components/CopyLinkButton'
 import SectionTabs from '@/components/SectionTabs'
 import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
@@ -346,6 +348,15 @@ export default async function FixturePage({
                               >
                                 {played ? 'Ver cédula' : m.status === 'suspended' ? 'Resolver suspensión' : 'Capturar cédula'}
                               </Link>
+                              {played && (
+                                <ShareImageButton
+                                  compact
+                                  src={`/api/resultado/${m.id}`}
+                                  title={`${m.home_team?.name ?? 'Local'} vs ${m.away_team?.name ?? 'Visitante'}`}
+                                  fileName={`resultado-${slugify(`${m.home_team?.name ?? ''}-${m.away_team?.name ?? ''}`)}`}
+                                  label="🖼️ Resultado"
+                                />
+                              )}
                               {tokenByMatch.get(m.id) && !m.validated_at && (
                                 <CopyLinkButton path={`/partido/${tokenByMatch.get(m.id)}`} label="📋 Link árbitro" />
                               )}

@@ -6,6 +6,8 @@ import { resolveCurrentTeam } from '@/lib/delegateTeam'
 import SectionTabs from '@/components/SectionTabs'
 import RolImageButton from '@/components/RolImageButton'
 import { matchdayLabel } from '@/lib/playoffs/bracket'
+import ShareImageButton from '@/components/ShareImageButton'
+import { slugify } from '@/lib/slug'
 import { currentMatchdayId } from '@/lib/fixtures/currentMatchday'
 
 const suspensionLabels: Record<SuspensionReason, string> = {
@@ -192,6 +194,15 @@ export default async function DelegateFixturePage() {
                           <div className="text-right text-xs text-gray-500">
                             <p className="capitalize">{dateLabel} · {m.start_time.slice(0, 5)}</p>
                             <p>{m.venue?.name}</p>
+                            {played && !isLocked && (
+                              <ShareImageButton
+                                compact
+                                src={`/api/resultado/${m.id}`}
+                                title={`${m.home_team?.name ?? 'Local'} vs ${m.away_team?.name ?? 'Visitante'}`}
+                                fileName={`resultado-${slugify(`${m.home_team?.name ?? ''}-${m.away_team?.name ?? ''}`)}`}
+                                label="🖼️ Resultado"
+                              />
+                            )}
                           </div>
                         </div>
                         {matchSuspensions.length > 0 && (

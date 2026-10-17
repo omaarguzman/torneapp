@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import Logo from '@/components/Logo'
 import { logout } from '@/app/actions/auth'
 import NavLinks, { type NavLink } from './NavLinks'
+import InstallAppButton from '@/components/InstallAppButton'
 
 /**
  * Marco de las secciones con sesión (admin y delegado): barra superior con
@@ -33,9 +34,12 @@ export default function AppShell({
           <div className="order-3 w-full sm:order-none sm:w-auto sm:flex-1 min-w-0">
             <NavLinks links={links} />
           </div>
-          <form action={logout} className="ml-auto sm:ml-0">
+          <div className="ml-auto sm:ml-0 flex items-center gap-4">
+          <InstallAppButton />
+          <form action={logout}>
             <button className="text-sm text-gray-500 hover:text-white transition-colors whitespace-nowrap">Cerrar sesión</button>
           </form>
+          </div>
         </div>
       </header>
 
