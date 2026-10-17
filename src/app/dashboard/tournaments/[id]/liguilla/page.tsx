@@ -2,46 +2,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { createNextPlayoffRound, startPlayoffs, undoPlayoffRound } from '@/app/actions/playoffs'
+import { addThirdPlace, createNextPlayoffRound, startPlayoffs, undoPlayoffRound } from '@/app/actions/playoffs'
 import { playoffOptions, STAGE_LABEL, STAGE_ORDER, type TiePlan } from '@/lib/playoffs/bracket'
-import { currentSeeds, loadPlayoffState, plannedRound, type TieView } from '@/lib/playoffs/playoffData'
+import { currentSeeds, loadPlayoffState, plannedRound, thirdPlacePlan } from '@/lib/playoffs/playoffData'
 import { PlayoffConfigForm, RoundActionButton } from './PlayoffForms'
+import TieCard from '@/components/PlayoffTieCard'
 
 export const metadata: Metadata = { title: 'Liguilla' }
-
-function TieCard({ tie, name }: { tie: TieView; name: (id: string) => string }) {
-  const o = tie.outcome
-  const winner = o.status === 'decided' ? o.winner : null
-  const row = (teamId: string, seed: number) => (
-    <div className={`flex items-center justify-between gap-3 ${winner && winner !== teamId ? 'opacity-50' : ''}`}>
-      <span className="truncate">
-        <span className="text-gray-500 tabular-nums mr-2">{seed}.</span>
-        <span className={winner === teamId ? 'text-amber-300 font-semibold' : 'text-white'}>{name(teamId)}</span>
-      </span>
-      <span className="flex gap-2 tabular-nums text-gray-300">
-        {tie.matches.map((m) => (
-          <span key={m.id} className="w-6 text-center">
-            {m.scoreHome === null ? '–' : m.homeTeamId === teamId ? m.scoreHome : m.scoreAway}
-          </span>
-        ))}
-      </span>
-    </div>
-  )
-  return (
-    <div className="bg-gray-900/70 border border-white/10 rounded-xl p-3 flex flex-col gap-1.5 text-sm">
-      {row(tie.high.teamId, tie.high.seed)}
-      {row(tie.low.teamId, tie.low.seed)}
-      <p className="text-xs text-gray-500 mt-1">
-        {o.status === 'pending' && (tie.legs === 2 ? 'Ida y vuelta · por jugar' : 'Partido único · por jugar')}
-        {o.status === 'needs_penalties' && <span className="text-yellow-300">Empate global {o.aggregate[0]}–{o.aggregate[1]}: falta capturar los penales</span>}
-        {o.status === 'decided' &&
-          `Avanza ${name(o.winner)}${
-            o.by === 'seed' ? ' (empate: mejor posicionado)' : o.by === 'penalties' ? ' (penales)' : tie.legs === 2 ? ` (global ${Math.max(...o.aggregate)}–${Math.min(...o.aggregate)})` : ''
-          }`}
-      </p>
-    </div>
-  )
-}
 
 function Pairings({ ties, name }: { ties: TiePlan[]; name: (id: string) => string }) {
   return (
@@ -75,6 +42,11 @@ export default async function PlayoffsPage({ params }: { params: Promise<{ id: s
   const unplayed = (regular ?? []).filter((m) => m.status === 'scheduled' || m.status === 'pending' || m.status === 'suspended').length
   const final = state.ties.find((t) => t.stage === 'final')
   const champion = final?.outcome.status === 'decided' ? final.outcome.winner : null
+  const runnerUp = final?.outcome.status === 'decided' ? final.outcome.loser : null
+  const thirdTie = state.ties.find((t) => t.stage === 'tercer_lugar')
+  const third = thirdTie?.outcome.status === 'decided' ? thirdTie.outcome.winner : null
+  const thirdPlan = thirdPlacePlan(state)
+  const thirdHasPlayed = !!thirdTie?.matches.some((m) => m.status !== 'scheduled' && m.status !== 'pending')
 
   return (
     <main className="flex-1 p-4 md:p-8">
@@ -125,6 +97,14 @@ export default async function PlayoffsPage({ params }: { params: Promise<{ id: s
                 <p className="text-4xl">🏆</p>
                 <p className="font-condensed text-sm uppercase tracking-widest text-amber-300 mt-2">Campeón</p>
                 <p className="font-display text-3xl uppercase text-white">{name(champion)}</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Subcampeón: <span className="text-white">{name(runnerUp!)}</span>
+                  {third && (
+                    <>
+                      {' '}· 3er lugar: <span className="text-white">{name(third)}</span>
+                    </>
+                  )}
+                </p>
               </div>
             )}
 
@@ -132,6 +112,16 @@ export default async function PlayoffsPage({ params }: { params: Promise<{ id: s
               <section key={stage}>
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                   <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white">{STAGE_LABEL[stage]}</h2>
+                  {stage === 'tercer_lugar' && !thirdHasPlayed && (
+                    <RoundActionButton
+                      action={undoPlayoffRound}
+                      tournamentId={id}
+                      stage="tercer_lugar"
+                      tone="danger"
+                      label="Quitar 3er lugar"
+                      confirmText="Se borra el partido por el 3er lugar."
+                    />
+                  )}
                   {stage === state.currentStage && !state.currentHasPlayed && (
                     <RoundActionButton
                       action={undoPlayoffRound}
@@ -155,6 +145,20 @@ export default async function PlayoffsPage({ params }: { params: Promise<{ id: s
               </section>
             ))}
 
+            {thirdPlan && state.ties.some((t) => t.stage === 'final') && (
+              <section className="flex flex-col gap-3 border-t border-white/10 pt-6">
+                <p className="text-sm text-gray-400">
+                  ¿Quieres partido por el 3er lugar? {name(thirdPlan[0].high.teamId)} vs {name(thirdPlan[0].low.teamId)}.
+                </p>
+                <RoundActionButton
+                  action={addThirdPlace}
+                  tournamentId={id}
+                  label="Agregar partido por el 3er lugar"
+                  confirmText="Se programa en la semana siguiente a la última jornada. Si quieres que sea la misma semana que la final, muévelo después desde el Fixture."
+                />
+              </section>
+            )}
+
             {next && (
               <section className="flex flex-col gap-4 border-t border-white/10 pt-6">
                 <h2 className="font-condensed text-xl font-bold uppercase tracking-wide text-white">Siguiente: {STAGE_LABEL[next.stage]}</h2>
@@ -164,7 +168,14 @@ export default async function PlayoffsPage({ params }: { params: Promise<{ id: s
                   tournamentId={id}
                   label={`Programar ${STAGE_LABEL[next.stage].toLowerCase()}`}
                   confirmText="Se programan los partidos con tus canchas y horarios, a partir de la semana siguiente a la última jornada."
-                />
+                >
+                  {next.stage === 'final' && thirdPlan && (
+                    <label htmlFor="third-place" className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                      <input id="third-place" name="third_place" type="checkbox" className="accent-amber-400" />
+                      Agregar también el partido por el 3er lugar ({name(thirdPlan[0].high.teamId)} vs {name(thirdPlan[0].low.teamId)}), en la misma semana
+                    </label>
+                  )}
+                </RoundActionButton>
               </section>
             )}
 

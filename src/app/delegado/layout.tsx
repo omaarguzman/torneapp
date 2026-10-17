@@ -25,6 +25,7 @@ export default async function DelegateLayout({ children }: { children: ReactNode
     links.push(
       { href: '/delegado/fixture', label: 'Calendario', icon: '🗓️' },
       { href: '/delegado/estadisticas', label: 'Tabla', icon: '🏆' },
+      ...(team.playoffs_started ? [{ href: '/delegado/liguilla', label: 'Liguilla', icon: '🥇' }] : []),
       { href: '/delegado/reglamento', label: 'Reglamento', icon: '📜' },
       { href: '/delegado/avisos', label: 'Avisos', icon: '🔔', badge: unread }
     )

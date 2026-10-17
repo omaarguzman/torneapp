@@ -47,6 +47,26 @@ export default function MatchReportForm({
   )
   const [scoreHome, setScoreHome] = useState(match.score_home?.toString() ?? '')
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() ?? '')
+  const [penHome, setPenHome] = useState(match.penalties_home?.toString() ?? '')
+  const [penAway, setPenAway] = useState(match.penalties_away?.toString() ?? '')
+
+  // Liguilla con desempate por penales: se piden en el partido que define la eliminatoria si queda empatada
+  const po = match.playoff
+  const decisive = !!po && po.tiebreak === 'penalties' && (po.legs === 1 || po.leg === 2)
+  const totals = (() => {
+    if (scoreHome === '' || scoreAway === '') return null
+    let home = parseInt(scoreHome)
+    let away = parseInt(scoreAway)
+    const first = po?.legs === 2 ? po.first_leg : null
+    if (first) {
+      if (first.score_home === null || first.score_away === null) return null
+      const homeWasHome = first.home_team_id === match.home_team.id
+      home += homeWasHome ? first.score_home : first.score_away
+      away += homeWasHome ? first.score_away : first.score_home
+    }
+    return { home, away }
+  })()
+  const needsPenalties = decisive && !!totals && totals.home === totals.away
   const [state, formAction, isPending] = useActionState(submitMatchReport, null)
   const isResumption = match.status === 'scheduled' && match.suspended_minute !== null
   const [suspended, setSuspended] = useState(match.status === 'suspended')
@@ -188,6 +208,38 @@ export default function MatchReportForm({
           </p>
         )}
       </div>
+
+      {needsPenalties && (
+        <div className="bg-amber-400/10 border border-amber-400/40 rounded-xl p-5">
+          <p className="text-amber-200 text-sm font-semibold">
+            {po?.legs === 2 ? `Empate global ${totals!.home}–${totals!.away}` : 'Empate'}: se define por penales
+          </p>
+          <p className="text-gray-400 text-xs mt-1">Captura los penales anotados por cada equipo.</p>
+          <div className="flex items-center justify-center gap-4 mt-3">
+            {[
+              { label: match.home_team.name, name: 'penalties_home', value: penHome, set: setPenHome },
+              { label: match.away_team.name, name: 'penalties_away', value: penAway, set: setPenAway },
+            ].map((p, i) => (
+              <div key={p.name} className="flex items-center gap-4">
+                {i === 1 && <span className="text-gray-600 text-xl">–</span>}
+                <label className="flex flex-col items-center gap-1.5">
+                  <span className="text-white text-sm text-center max-w-[100px] truncate">{p.label}</span>
+                  <input
+                    name={p.name}
+                    type="number"
+                    min={0}
+                    max={50}
+                    required
+                    value={p.value}
+                    onChange={(e) => p.set(e.target.value)}
+                    className="w-16 bg-gray-800 border border-gray-700 text-white text-center text-xl font-bold rounded-lg py-2"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Roster de cada equipo con botones rápidos */}
       {[match.home_team, match.away_team].map((team) => (

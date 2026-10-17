@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, type ReactNode } from 'react'
 import { savePlayoffConfig, type PlayoffResult } from '@/app/actions/playoffs'
 import { STAGE_LABEL, stagesFor, type PlayoffConfig, type Stage } from '@/lib/playoffs/bracket'
 
@@ -145,6 +145,7 @@ export function RoundActionButton({
   label,
   confirmText,
   tone = 'primary',
+  children,
 }: {
   action: (prev: PlayoffResult, formData: FormData) => Promise<PlayoffResult>
   tournamentId: string
@@ -152,6 +153,8 @@ export function RoundActionButton({
   label: string
   confirmText: string
   tone?: 'primary' | 'danger'
+  /** Campos extra del formulario (p. ej. la casilla del 3er lugar) */
+  children?: ReactNode
 }) {
   const [state, run, pending] = useActionState(action, null)
   const [asking, setAsking] = useState(false)
@@ -164,6 +167,7 @@ export function RoundActionButton({
     <form action={run} className="flex flex-col gap-2">
       <input type="hidden" name="tournament_id" value={tournamentId} />
       {stage && <input type="hidden" name="stage" value={stage} />}
+      {children}
       {asking ? (
         <div className="flex flex-wrap items-center gap-3 bg-gray-900 border border-white/10 rounded-xl px-4 py-3">
           <p className="text-sm text-gray-300 flex-1 min-w-[12rem]">{confirmText}</p>

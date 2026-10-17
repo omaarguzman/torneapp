@@ -28,6 +28,16 @@ export type MatchData = {
   suspension_reason: string | null
   venue_name: string | null
   tournament_name: string
+  penalties_home?: number | null
+  penalties_away?: number | null
+  /** Solo en partidos de liguilla */
+  playoff?: {
+    stage: string
+    leg: number | null
+    legs: number
+    tiebreak: 'seed' | 'penalties'
+    first_leg: { home_team_id: string; score_home: number | null; score_away: number | null } | null
+  } | null
   tournament_paused?: boolean
   home_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }
   away_team: { id: string; name: string; logo_url: string | null; players: MatchPlayer[] }

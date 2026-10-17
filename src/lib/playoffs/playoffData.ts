@@ -8,6 +8,7 @@ import {
   homeAway,
   isStage,
   nextRound,
+  pairBestWorst,
   STAGE_ORDER,
   tieOutcome,
   type LegResult,
@@ -143,6 +144,23 @@ export async function loadPlayoffState(supabase: Supabase, tournamentId: string)
   }
 }
 
+/**
+ * Partido por el 3er lugar (los perdedores de semifinales). Solo se ofrece con
+ * las semifinales decididas, sin 3er lugar creado y con la final sin decidir.
+ */
+export function thirdPlacePlan(state: PlayoffState): TiePlan[] | null {
+  const semis = state.ties.filter((t) => t.stage === 'semifinal')
+  if (semis.length !== 2 || semis.some((t) => t.outcome.status !== 'decided')) return null
+  if (state.ties.some((t) => t.stage === 'tercer_lugar')) return null
+  if (state.ties.some((t) => t.stage === 'final' && t.outcome.status === 'decided')) return null
+  const seedOf = new Map(state.seeds.map((x) => [x.teamId, x.seed]))
+  const losers = semis.map((t) => {
+    const loser = (t.outcome as Extract<TieOutcome, { status: 'decided' }>).loser
+    return { teamId: loser, seed: seedOf.get(loser) ?? 99 }
+  })
+  return pairBestWorst(losers)
+}
+
 /** Lugares de la tabla general (solo fase regular) para arrancar la liguilla. */
 export async function currentSeeds(supabase: Supabase, tournamentId: string): Promise<TieSeed[]> {
   const stats = await loadTournamentStats(supabase, tournamentId)
@@ -174,18 +192,19 @@ export type RoundPayload = {
   }[]
 }
 
+export type RoundGroup = { stage: Stage; ties: TiePlan[]; legs: number }
+
 /**
- * Programa una ronda con las canchas y horarios del torneo: la ida en una
- * semana y la vuelta en la siguiente. Empieza la semana después de la última
- * jornada (o esta semana, si eso ya pasó).
+ * Programa una o varias rondas juntas (p. ej. final y 3er lugar en la misma
+ * semana) con las canchas y horarios del torneo: la ida en una semana y la
+ * vuelta en la siguiente. Empieza la semana después de la última jornada (o
+ * esta semana, si eso ya pasó).
  */
-export async function buildRoundPayload(
+export async function buildRoundPayloads(
   supabase: Supabase,
   tournamentId: string,
-  stage: Stage,
-  ties: TiePlan[],
-  legs: number
-): Promise<RoundPayload | { error: string }> {
+  groups: RoundGroup[]
+): Promise<RoundPayload[] | { error: string }> {
   const [{ data: venues }, { data: closures }, { data: lastMd }] = await Promise.all([
     supabase.from('venues').select('id, venue_slots(day_of_week, start_time, end_time)').eq('tournament_id', tournamentId),
     supabase.from('venue_closures').select('venue_id, closed_on').eq('tournament_id', tournamentId),
@@ -212,9 +231,10 @@ export async function buildRoundPayload(
   const afterLast = lastMd ? addDays(mondayOf(lastMd.week_start), 7) : thisWeek
   const startDate = afterLast < thisWeek ? thisWeek : afterLast
 
-  const withIds = ties.map((t) => ({ ...t, id: crypto.randomUUID() }))
-  const rounds = Array.from({ length: legs }, (_, i) =>
-    withIds.map((t) => homeAway(t, i + 1, legs)).map((p) => ({ home: p.home, away: p.away }))
+  const withIds = groups.map((g) => ({ ...g, ties: g.ties.map((t) => ({ ...t, id: crypto.randomUUID() })) }))
+  const weeks = Math.max(...withIds.map((g) => g.legs))
+  const rounds = Array.from({ length: weeks }, (_, w) =>
+    withIds.flatMap((g) => (w < g.legs ? g.ties.map((t) => homeAway(t, w + 1, g.legs)) : []))
   )
 
   const result = scheduleFixtures({
@@ -233,37 +253,38 @@ export async function buildRoundPayload(
     }
   }
 
-  return {
-    stage,
-    ties: withIds.map((t) => ({
-      id: t.id,
-      position: t.position,
-      high: t.high.teamId,
-      low: t.low.teamId,
-      high_seed: t.high.seed,
-      low_seed: t.low.seed,
-      legs,
-    })),
-    matchdays: result.matchdays.map((md) => ({
-      leg: legs === 2 ? md.number : null,
-      week_start: md.weekStart,
-      matches: result.matches
-        .filter((m) => m.round === md.number)
-        .map((m) => {
-          const tie = withIds.find(
-            (t) => (t.high.teamId === m.homeTeamId && t.low.teamId === m.awayTeamId) || (t.low.teamId === m.homeTeamId && t.high.teamId === m.awayTeamId)
-          )!
-          return {
-            tie: tie.id,
-            leg: md.number,
-            home: m.homeTeamId,
-            away: m.awayTeamId,
-            venue: m.venueId,
-            date: m.date,
-            start: m.startTime,
-            end: m.endTime,
-          }
-        }),
-    })),
-  }
+  return withIds.map((g) => {
+    const tieOf = (home: string, away: string) =>
+      g.ties.find((t) => (t.high.teamId === home && t.low.teamId === away) || (t.low.teamId === home && t.high.teamId === away))
+    return {
+      stage: g.stage,
+      ties: g.ties.map((t) => ({
+        id: t.id,
+        position: t.position,
+        high: t.high.teamId,
+        low: t.low.teamId,
+        high_seed: t.high.seed,
+        low_seed: t.low.seed,
+        legs: g.legs,
+      })),
+      matchdays: result.matchdays
+        .filter((md) => md.number <= g.legs)
+        .map((md) => ({
+          leg: g.legs === 2 ? md.number : null,
+          week_start: md.weekStart,
+          matches: result.matches
+            .filter((m) => m.round === md.number && tieOf(m.homeTeamId, m.awayTeamId))
+            .map((m) => ({
+              tie: tieOf(m.homeTeamId, m.awayTeamId)!.id,
+              leg: md.number,
+              home: m.homeTeamId,
+              away: m.awayTeamId,
+              venue: m.venueId,
+              date: m.date,
+              start: m.startTime,
+              end: m.endTime,
+            })),
+        })),
+    }
+  })
 }

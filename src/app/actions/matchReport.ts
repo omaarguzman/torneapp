@@ -79,6 +79,14 @@ export async function submitMatchReport(
     return { error: 'Indica el motivo de la suspensión.' }
   }
 
+  // Penales: solo vienen cuando la cédula de liguilla los pide (empate que define la eliminatoria)
+  const penRaw = [formData.get('penalties_home'), formData.get('penalties_away')] as (string | null)[]
+  const withPenalties = penRaw.some((v) => v !== null && v !== '')
+  const penalties = withPenalties ? penRaw.map((v) => parseInt(v ?? '', 10)) : [null, null]
+  if (withPenalties && (penalties.some((p) => !Number.isInteger(p) || p! < 0 || p! > 50) || penalties[0] === penalties[1])) {
+    return { error: 'Captura los penales de ambos equipos; no pueden quedar empatados.' }
+  }
+
   const { error } = await supabase.rpc('submit_match_report', {
     p_token: token,
     p_score_home: scoreHome,
@@ -89,6 +97,8 @@ export async function submitMatchReport(
     p_attendance: attendance,
     p_suspended_minute: suspendedMinute,
     p_suspension_reason: suspensionReason,
+    p_penalties_home: penalties[0],
+    p_penalties_away: penalties[1],
   })
 
   if (error) {
@@ -101,6 +111,7 @@ export async function submitMatchReport(
       INVALID_MINUTE: 'Hay un minuto fuera de rango (máximo 200).',
       MATCH_PENDING:
         'Este partido fue aplazado y aún no tiene nueva fecha. La cédula se captura cuando se vuelva a programar.',
+      INVALID_PENALTIES: 'Los penales no son válidos: captura los de ambos equipos y que no queden empatados.',
       TOURNAMENT_PAUSED: 'Este torneo está pausado. Por ahora no se pueden capturar cédulas.',
       MATCH_VALIDATED:
         'Esta cédula ya fue validada por el administrador del torneo y no se puede modificar.',

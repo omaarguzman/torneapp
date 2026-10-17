@@ -3,7 +3,16 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { isStage, playoffOptions, stagesFor, STAGE_ORDER, type Stage } from '@/lib/playoffs/bracket'
-import { buildRoundPayload, currentSeeds, legsFor, loadPlayoffState, plannedRound } from '@/lib/playoffs/playoffData'
+import {
+  buildRoundPayloads,
+  currentSeeds,
+  legsFor,
+  loadPlayoffState,
+  plannedRound,
+  thirdPlacePlan,
+  type RoundGroup,
+  type RoundPayload,
+} from '@/lib/playoffs/playoffData'
 
 export type PlayoffResult = { success: string } | { error: string } | null
 
@@ -68,6 +77,24 @@ export async function savePlayoffConfig(_prev: PlayoffResult, formData: FormData
   return { success: 'Configuración de la liguilla guardada.' }
 }
 
+/** Crea en la base las rondas ya programadas (una llamada por ronda). */
+async function saveRounds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  tournamentId: string,
+  payloads: RoundPayload[],
+  seeds: { team: string; seed: number }[] | null
+) {
+  for (const [i, payload] of payloads.entries()) {
+    const { error } = await supabase.rpc('create_playoff_round', {
+      p_tournament_id: tournamentId,
+      p_seeds: i === 0 ? seeds : null,
+      p_round: payload,
+    })
+    if (error) return error
+  }
+  return null
+}
+
 /** Congela la tabla general, guarda los lugares y programa la primera ronda. */
 export async function startPlayoffs(_prev: PlayoffResult, formData: FormData): Promise<PlayoffResult> {
   const supabase = await createClient()
@@ -81,14 +108,12 @@ export async function startPlayoffs(_prev: PlayoffResult, formData: FormData): P
   const round = plannedRound(state, seeds)
   if (!round || round.ties.length === 0) return { error: 'No hay suficientes equipos para la liguilla.' }
 
-  const payload = await buildRoundPayload(supabase, tournamentId, round.stage, round.ties, legsFor(state.config, round.stage))
-  if ('error' in payload) return payload
+  const payloads = await buildRoundPayloads(supabase, tournamentId, [
+    { stage: round.stage, ties: round.ties, legs: legsFor(state.config, round.stage) },
+  ])
+  if ('error' in payloads) return payloads
 
-  const { error } = await supabase.rpc('create_playoff_round', {
-    p_tournament_id: tournamentId,
-    p_seeds: seeds.map((s) => ({ team: s.teamId, seed: s.seed })),
-    p_round: payload,
-  })
+  const error = await saveRounds(supabase, tournamentId, payloads, seeds.map((s) => ({ team: s.teamId, seed: s.seed })))
   if (error) {
     console.error('[startPlayoffs] error:', error)
     return dbError(error.message, 'No se pudo iniciar la liguilla. Inténtalo de nuevo.')
@@ -97,7 +122,11 @@ export async function startPlayoffs(_prev: PlayoffResult, formData: FormData): P
   return { success: 'ok' }
 }
 
-/** Con todas las eliminatorias decididas, programa la siguiente ronda (reacomodando por la tabla). */
+/**
+ * Con todas las eliminatorias decididas, programa la siguiente ronda
+ * (reacomodando por la tabla). Antes de la final se puede agregar el 3er
+ * lugar en la misma semana.
+ */
 export async function createNextPlayoffRound(_prev: PlayoffResult, formData: FormData): Promise<PlayoffResult> {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string
@@ -109,10 +138,14 @@ export async function createNextPlayoffRound(_prev: PlayoffResult, formData: For
   const round = plannedRound(state, state.seeds)
   if (!round) return { error: 'La liguilla ya terminó.' }
 
-  const payload = await buildRoundPayload(supabase, tournamentId, round.stage, round.ties, legsFor(state.config, round.stage))
-  if ('error' in payload) return payload
+  const groups: RoundGroup[] = [{ stage: round.stage, ties: round.ties, legs: legsFor(state.config, round.stage) }]
+  const third = round.stage === 'final' && formData.get('third_place') === 'on' ? thirdPlacePlan(state) : null
+  if (third) groups.push({ stage: 'tercer_lugar', ties: third, legs: legsFor(state.config, 'tercer_lugar') })
 
-  const { error } = await supabase.rpc('create_playoff_round', { p_tournament_id: tournamentId, p_seeds: null, p_round: payload })
+  const payloads = await buildRoundPayloads(supabase, tournamentId, groups)
+  if ('error' in payloads) return payloads
+
+  const error = await saveRounds(supabase, tournamentId, payloads, null)
   if (error) {
     console.error('[createNextPlayoffRound] error:', error)
     return dbError(error.message, 'No se pudo crear la siguiente ronda.')
@@ -121,12 +154,43 @@ export async function createNextPlayoffRound(_prev: PlayoffResult, formData: For
   return { success: 'ok' }
 }
 
-/** Borra la ronda más reciente si nadie ha jugado; si era la primera, la liguilla vuelve a "sin iniciar". */
+/** Agrega el partido por el 3er lugar después (si no se creó junto con la final). */
+export async function addThirdPlace(_prev: PlayoffResult, formData: FormData): Promise<PlayoffResult> {
+  const supabase = await createClient()
+  const tournamentId = formData.get('tournament_id') as string
+
+  const state = await loadPlayoffState(supabase, tournamentId)
+  const third = state.config ? thirdPlacePlan(state) : null
+  if (!state.config || !third) return { error: 'El partido por el 3er lugar ya no se puede agregar.' }
+
+  const payloads = await buildRoundPayloads(supabase, tournamentId, [
+    { stage: 'tercer_lugar', ties: third, legs: legsFor(state.config, 'tercer_lugar') },
+  ])
+  if ('error' in payloads) return payloads
+
+  const error = await saveRounds(supabase, tournamentId, payloads, null)
+  if (error) {
+    console.error('[addThirdPlace] error:', error)
+    return dbError(error.message, 'No se pudo agregar el 3er lugar.')
+  }
+  revalidate(tournamentId)
+  return { success: 'ok' }
+}
+
+/**
+ * Borra una ronda si nadie ha jugado; si era la primera, la liguilla vuelve a
+ * "sin iniciar". Al deshacer la final también se quita el 3er lugar sin jugar.
+ */
 export async function undoPlayoffRound(_prev: PlayoffResult, formData: FormData): Promise<PlayoffResult> {
   const supabase = await createClient()
   const tournamentId = formData.get('tournament_id') as string
   const stage = formData.get('stage') as string
   if (!isStage(stage) || !STAGE_ORDER.includes(stage)) return { error: 'Ronda no válida.' }
+
+  if (stage === 'final') {
+    const { error: thirdError } = await supabase.rpc('undo_playoff_round', { p_tournament_id: tournamentId, p_stage: 'tercer_lugar' })
+    if (thirdError) return dbError(thirdError.message, 'No se pudo quitar el partido por el 3er lugar.')
+  }
 
   const { error } = await supabase.rpc('undo_playoff_round', { p_tournament_id: tournamentId, p_stage: stage })
   if (error) {
@@ -134,5 +198,5 @@ export async function undoPlayoffRound(_prev: PlayoffResult, formData: FormData)
     return dbError(error.message, 'No se pudo deshacer la ronda.')
   }
   revalidate(tournamentId)
-  return { success: 'Ronda deshecha.' }
+  return { success: stage === 'tercer_lugar' ? 'Partido por el 3er lugar quitado.' : 'Ronda deshecha.' }
 }
