@@ -54,15 +54,16 @@ export default function NewTournamentPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Fecha de inicio</label>
+              <label className="text-sm text-gray-400 mb-1 block">Fecha de inicio *</label>
               <input
                 name="start_date"
                 type="date"
+                required
                 className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 transition-colors"
               />
             </div>
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">Fecha de fin</label>
+              <label className="text-sm text-gray-400 mb-1 block">Fecha de fin (opcional)</label>
               <input
                 name="end_date"
                 type="date"

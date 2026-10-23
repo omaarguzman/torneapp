@@ -12,6 +12,7 @@ import AttendanceSection from './AttendanceSection'
 import RulesForm from './RulesForm'
 import TournamentLogoForm from './TournamentLogoForm'
 import PublicPageForm from './PublicPageForm'
+import TournamentInfoForm from './TournamentInfoForm'
 import RolTemplatesSection from './RolTemplatesSection'
 import DisciplinePanel from '@/components/DisciplinePanel'
 import { loadDiscipline } from '@/lib/stats/disciplineData'
@@ -43,6 +44,11 @@ export default async function TournamentPage({
     .single()
 
   if (!tournament) notFound()
+
+  const { count: matchdayCount } = await supabase
+    .from('matchdays')
+    .select('id', { count: 'exact', head: true })
+    .eq('tournament_id', id)
 
   const { data: venues } = await supabase
     .from('venues')
@@ -490,6 +496,15 @@ export default async function TournamentPage({
                 label: 'Reglas',
                 content: (
                   <div className="flex flex-col gap-6">
+                  <TournamentInfoForm
+                    tournamentId={id}
+                    name={tournament.name}
+                    sportType={tournament.sport_type ?? 'futbol_11'}
+                    startDate={tournament.start_date ?? null}
+                    endDate={tournament.end_date ?? null}
+                    doubleRound={!!tournament.double_round}
+                    hasFixture={(matchdayCount ?? 0) > 0}
+                  />
                   <TournamentLogoForm tournamentId={id} logoUrl={tournament.logo_url ?? null} />
                   <PublicPageForm
                     tournamentId={id}

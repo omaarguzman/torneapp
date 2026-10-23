@@ -67,7 +67,7 @@ export default async function FixturePage({
 
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select('name, yellow_card_suspension_threshold, red_card_suspension_matches, rol_template, playoff_started_at')
+    .select('name, yellow_card_suspension_threshold, red_card_suspension_matches, rol_template, playoff_started_at, start_date')
     .eq('id', id)
     .single()
 
@@ -243,6 +243,7 @@ export default async function FixturePage({
                 teamNames={teamNames}
                 hasExistingFixture={(matchdays?.length ?? 0) > 0}
                 hasPlayedMatches={hasPlayedMatches}
+                needsStartDate={!tournament.start_date}
               />
             )}
           </div>

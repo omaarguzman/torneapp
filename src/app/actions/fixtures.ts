@@ -27,8 +27,20 @@ export async function generateFixtures(
     return { error: 'La liguilla ya empezó; el fixture de la fase regular ya no se puede regenerar.' }
   }
 
-  if (!tournament?.start_date) {
-    return { error: 'El torneo necesita una fecha de inicio para poder generar el fixture.' }
+  if (!tournament) return { error: 'No se encontró el torneo.' }
+
+  // Si al crear el torneo no se puso fecha de inicio, se puede dar aquí mismo
+  if (!tournament.start_date) {
+    const given = ((formData.get('start_date') as string) || '').trim()
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(given)) {
+      return { error: 'Indica la fecha de inicio del torneo para poder generar el fixture.' }
+    }
+    const { error: dateError } = await supabase.from('tournaments').update({ start_date: given }).eq('id', tournamentId)
+    if (dateError) {
+      console.error('[generateFixtures] start_date error:', dateError)
+      return { error: 'No se pudo guardar la fecha de inicio. Inténtalo de nuevo.' }
+    }
+    tournament.start_date = given
   }
 
   const { count: playedCount } = await supabase

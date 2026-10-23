@@ -8,11 +8,14 @@ export default function GenerateFixtureButton({
   teamNames,
   hasExistingFixture,
   hasPlayedMatches = false,
+  needsStartDate = false,
 }: {
   tournamentId: string
   teamNames: Record<string, string>
   hasExistingFixture: boolean
   hasPlayedMatches?: boolean
+  /** El torneo no tiene fecha de inicio: se pide aquí antes de generar */
+  needsStartDate?: boolean
 }) {
   const [state, formAction, isPending] = useActionState(generateFixtures, null)
 
@@ -39,6 +42,18 @@ export default function GenerateFixtureButton({
         }}
       >
         <input type="hidden" name="tournament_id" value={tournamentId} />
+        {needsStartDate && (
+          <label className="flex flex-col gap-1 mb-2 text-xs text-yellow-300">
+            Falta la fecha de inicio del torneo. ¿Cuándo empieza?
+            <input
+              id="fixture-start-date"
+              name="start_date"
+              type="date"
+              required
+              className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm"
+            />
+          </label>
+        )}
         <button
           type="submit"
           disabled={isPending}
